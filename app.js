@@ -138,6 +138,43 @@ async function supabaseBackend() {
       if (d.recipients.length) must(await sb.from('content_recipients').insert(d.recipients.map((email) => ({ content_id: id, email }))));
       return res.data.share_slug;
     },
+    async getForEdit(slug) {
+      const u = await B.user();
+      const c = must(await sb.from('contents').select('*, content_recipients(email)').eq('share_slug', slug).eq('owner_id', u.id).maybeSingle());
+      if (!c) return null;
+      c.recipients = (c.content_recipients || []).map((r) => r.email).filter(Boolean);
+      c.has_password = !!c.password_hash; delete c.password_hash; delete c.content_recipients;
+      return c;
+    },
+    async update(old, d) {
+      const u = await B.user();
+      let media_path = old.media_path;
+      const kindIsFile = ['photo', 'video', 'audio'].includes(d.media_type);
+      if (d.file) {   // nuovo file: lo carico e poi cancello il vecchio
+        const ext = (d.file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
+        media_path = `${u.id}/${old.id}/media-${Date.now()}.${ext}`;
+        must(await sb.storage.from('media').upload(media_path, d.file, { contentType: d.file.type, upsert: false }));
+      } else if (!kindIsFile) media_path = null;
+      const patch = {
+        title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
+        external_url: d.media_type === 'link' ? d.external_url : null,
+        text_body: d.media_type === 'text' ? d.text_body : null,
+        duration_seconds: kindIsFile ? (d.file ? d.duration : old.duration_seconds) : null,
+        lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, location_source: d.source,
+        visibility: d.visibility, tags: d.tags || [],
+      };
+      if (d.passwordAction === 'set') patch.password_hash = d.password;
+      if (d.passwordAction === 'remove') patch.password_hash = null;
+      const res = await sb.from('contents').update(patch).eq('id', old.id).select('share_slug').single();
+      if (res.error) { if (d.file) await sb.storage.from('media').remove([media_path]); throw res.error; }
+      if (old.media_path && old.media_path !== media_path) await sb.storage.from('media').remove([old.media_path]);
+      // destinatari: sostituisco l'elenco
+      must(await sb.from('content_recipients').delete().eq('content_id', old.id));
+      if (d.visibility === 'restricted' && d.recipients.length) {
+        must(await sb.from('content_recipients').insert(d.recipients.map((email) => ({ content_id: old.id, email }))));
+      }
+      return res.data.share_slug;
+    },
     async remove(c) {
       if (c.media_path) await sb.storage.from('media').remove([c.media_path]);
       must(await sb.from('contents').delete().eq('id', c.id));
@@ -218,6 +255,25 @@ function demoBackend() {
       save(); return slug;
     },
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
+    async getForEdit(slug) {
+      const c = db.contents.find((x) => x.share_slug === slug && x.owner_id === db.user.id);
+      return c ? { ...c, has_password: !!c.password_hash, duration_seconds: c.duration_seconds ?? null } : null;
+    },
+    async update(old, d) {
+      const c = db.contents.find((x) => x.id === old.id); if (!c) throw new Error('Contenuto non trovato');
+      const kindIsFile = ['photo', 'video', 'audio'].includes(d.media_type);
+      if (d.file) { await putBlob(c.id + ':' + Date.now(), d.file); c.media_path = [...mem.keys()].pop(); }
+      else if (!kindIsFile) c.media_path = null;
+      Object.assign(c, {
+        title: d.title, hint: d.hint || null, media_type: d.media_type,
+        external_url: d.media_type === 'link' ? d.external_url : null, text_body: d.media_type === 'text' ? d.text_body : null,
+        lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, visibility: d.visibility, tags: d.tags || [],
+        recipients: d.visibility === 'restricted' ? d.recipients : [],
+      });
+      if (d.passwordAction === 'set') c.password_hash = await sha(d.password);
+      if (d.passwordAction === 'remove') c.password_hash = null;
+      save(); return c.share_slug;
+    },
     async mapContents(b) {
       const u = db.user;
       return db.contents.filter((c) => canAccess(c, u) && c.lat >= b.s && c.lat <= b.n && c.lng >= b.w && c.lng <= b.e)
@@ -289,6 +345,11 @@ async function routeInner() {
   const pending = popPending();
   if (pending && pending !== location.hash) { location.hash = pending; return; }
   if (page === 'new') return viewNew();
+  if (page === 'edit' && arg) {
+    const c = await B.getForEdit(arg);
+    if (!c) { app.innerHTML = '<div class="card center"><h2>Non puoi modificare questo contenuto</h2><p class="muted">Solo chi l\'ha creato può modificarlo.</p><a class="btn" href="#/">Torna alla mappa</a></div>'; return; }
+    return viewNew(c);
+  }
   return viewHome(user, prof);
 }
 
@@ -535,6 +596,7 @@ async function viewHome(user, prof) {
       <div class="actions">
         <button class="ghost" data-a="share">Condividi</button>
         <a class="btn ghost" href="#/c/${esc(c.share_slug)}">Apri</a>
+        <a class="btn ghost" href="#/edit/${esc(c.share_slug)}">Modifica</a>
         <button class="danger" data-a="del">Elimina</button>
       </div></div>`).join('');
   $('#list').onclick = async (e) => {
@@ -570,10 +632,17 @@ function shareSheet(title, slug, container) {
   };
 }
 
-async function viewNew() {
+async function viewNew(ed = null) {
   const s = { tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: 'restricted' };
+  if (ed) {
+    Object.assign(s, {
+      tags: new Set(ed.tags || []), kind: ['photo', 'video', 'audio'].includes(ed.media_type) ? 'file' : ed.media_type,
+      media_type: ed.media_type, radius: ed.unlock_radius_m, vis: ed.visibility,
+    });
+  }
   app.innerHTML = `
-    <h1>Nuovo contenuto</h1>
+    <h1>${ed ? 'Modifica contenuto' : 'Nuovo contenuto'}</h1>
+    ${ed ? '<div class="msg info">Il link già condiviso resta lo stesso: chi lo apre vedrà la versione aggiornata.</div>' : ''}
     <div class="card"><h2>1 · Cosa vuoi lasciare</h2>
       <div class="seg" id="kind"><button class="on" data-k="file">Galleria</button><button data-k="text">Testo</button><button data-k="link">Link</button></div>
       <div id="k-file"><label for="file">Foto, video (max ${CONFIG.MAX_VIDEO_SECONDS} s) o audio</label>
@@ -612,12 +681,13 @@ async function viewNew() {
       <div id="v-restricted"><label for="emails">Email dei destinatari</label>
         <textarea id="emails" placeholder="maria@esempio.it, luca@esempio.it"></textarea>
         <p class="muted small">Solo chi accede con queste email potrà vederlo. Il link lo mandi tu (WhatsApp, SMS…).</p></div>
-      <label for="pwd">Password (facoltativa)</label>
-      <input id="pwd" type="text" autocomplete="off" maxlength="64" placeholder="Lascia vuoto per nessuna password">
+      <label for="pwd">${ed && ed.has_password ? 'Nuova password (lascia vuoto per mantenere quella attuale)' : 'Password (facoltativa)'}</label>
+      <input id="pwd" type="text" autocomplete="off" maxlength="64" placeholder="${ed && ed.has_password ? '🔒 password attuale mantenuta' : 'Lascia vuoto per nessuna password'}">
+      ${ed && ed.has_password ? '<label class="inline"><input type="checkbox" id="nopwd"><span>Togli la password</span></label>' : ''}
     </div>
     <div id="sm"></div>
-    <button class="full accent" id="save">Fissa nel luogo</button>
-    <p class="center"><a href="#/">Annulla</a></p>`;
+    <button class="full accent" id="save">${ed ? 'Salva le modifiche' : 'Fissa nel luogo'}</button>
+    <p class="center"><a href="${ed ? `#/c/${esc(ed.share_slug)}` : '#/'}">Annulla</a></p>`;
 
   // --- tag
   const allTags = [...TAGS_SUGGESTED];
@@ -714,6 +784,23 @@ async function viewNew() {
     $('#v-restricted').hidden = s.vis !== 'restricted';
   };
 
+  // --- precompilazione in modifica
+  if (ed) {
+    $(`#kind button[data-k="${s.kind}"]`).click();
+    if (s.kind === 'file') {
+      $('#preview').innerHTML = `<div class="msg info">File attuale: <b>${esc(TYPES[ed.media_type].n)}</b>. Scegli un nuovo file solo se vuoi sostituirlo.</div>`;
+    }
+    if (ed.text_body) { $('#txt').value = ed.text_body; $('#txt').oninput(); }
+    if (ed.external_url) { $('#url').value = ed.external_url; $('#url').oninput(); }
+    $('#title').value = ed.title || ''; $('#hint').value = ed.hint || '';
+    (ed.tags || []).forEach((t) => { if (!allTags.includes(t)) allTags.unshift(t); }); drawTags();
+    $(`#vis button[data-v="${s.vis}"]`).click();
+    $('#emails').value = (ed.recipients || []).join(', ');
+    $('#radius').value = s.radius; $('#rout').textContent = `${s.radius} m`;
+    setPoint(ed.lat, ed.lng, ed.location_source || 'map');
+    msg($('#lm'), 'Posizione attuale. Per spostarla: trascina lo spillo, tocca un altro punto, usa il GPS o scrivi le coordinate.', 'info');
+  }
+
   // --- salvataggio
   $('#save').onclick = async () => {
     const err = (t) => msg($('#sm'), t);
@@ -723,7 +810,7 @@ async function viewNew() {
       if (!external_url) return err('Inserisci un link valido (es. https://…). Puoi incollare anche il messaggio di condivisione.');
     } else if (s.kind === 'text') {
       if (!$('#txt').value.trim()) return err('Scrivi il testo da lasciare in quel luogo.');
-    } else if (!s.file) return err('Scegli una foto, un video o un audio.');
+    } else if (!s.file && !(ed && ['photo', 'video', 'audio'].includes(ed.media_type))) return err('Scegli una foto, un video o un audio.');
     if (s.lat == null) return err('Indica il luogo: GPS, coordinate o tocco sulla mappa.');
     const title = $('#title').value.trim(); if (!title) return err('Dai un titolo al contenuto.');
     const recipients = s.vis === 'restricted' ? [...new Set($('#emails').value.toLowerCase().split(/[\s,;]+/).filter(Boolean))] : [];
@@ -731,15 +818,21 @@ async function viewNew() {
     if (bad.length) return err(`Email non valide: ${esc(bad.join(', '))}`);
     if (s.vis === 'restricted' && !recipients.length) return err('Aggiungi almeno un destinatario, oppure scegli "Tutti" o "Solo io".');
     const btn = $('#save'); btn.disabled = true; btn.textContent = s.file ? 'Carico il file…' : 'Salvo…';
+    const data = {
+      file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'file' ? s.media_type : s.kind, duration: s.kind === 'file' ? s.duration : null,
+      text_body: s.kind === 'text' ? $('#txt').value.trim() : null, tags: [...s.tags],
+      external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
+      visibility: s.vis, recipients, password: $('#pwd').value,
+    };
     try {
-      const slug = await B.create({
-        file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'file' ? s.media_type : s.kind, duration: s.kind === 'file' ? s.duration : null,
-        text_body: s.kind === 'text' ? $('#txt').value.trim() : null, tags: [...s.tags],
-        external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
-        visibility: s.vis, recipients, password: $('#pwd').value,
-      });
-      viewCreated(title, slug);
-    } catch (e) { err(errText(e)); btn.disabled = false; btn.textContent = 'Fissa nel luogo'; }
+      if (ed) {
+        data.passwordAction = $('#nopwd')?.checked ? 'remove' : (data.password ? 'set' : 'keep');
+        const slug = await B.update(ed, data);
+        location.hash = `#/c/${slug}`;
+        return;
+      }
+      viewCreated(title, await B.create(data));
+    } catch (e) { err(errText(e)); btn.disabled = false; btn.textContent = ed ? 'Salva le modifiche' : 'Fissa nel luogo'; }
   };
 }
 
@@ -784,6 +877,7 @@ async function viewContent(slug, user) {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
       <div class="card media">${renderMedia(t.media_type, r)}</div>
+      ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica contenuto e posizione</a>` : ''}
       <a class="btn ghost full" href="#/">${user ? 'Torna alla mappa' : 'Scopri Ubi'}</a>`;
   };
   if (user && (t.is_owner || t.already_unlocked)) {
