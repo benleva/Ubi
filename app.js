@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161314';
+import { CONFIG } from './config.js?v=202611161340';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.12';
+const APP_VERSION = 'v.13';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -441,6 +441,7 @@ async function routeInner() {
   if (B.recovery) return viewNewPassword();
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
   if (page === 'faq') return viewFaq(arg);
+  if (page === 'avvisi') return viewOptout(arg);
   const user = await B.user();
   if (page === 'c' && arg) {
     if (user) {
@@ -1497,6 +1498,18 @@ const FAQ_IDEAS = [
     <li><b>Trekking</b>: all'inizio del sentiero lascia un <i>Link</i> alla mappa interattiva del percorso (Wikiloc, Komoot…) e, lungo la strada, consigli sui bivi e sui punti panoramici.</li>
     <li>Lo stesso luogo nelle quattro stagioni: torna e lascia una foto ogni volta.</li></ul>`],
 ];
+
+// Pagina di arrivo dal link "non voglio più ricevere avvisi" presente nelle email.
+function viewOptout(esito) {
+  const T = {
+    ok: ['✓ Fatto', 'Non riceverai più avvisi email da Ubi. Potrai comunque aprire i contenuti che ti vengono condivisi, entrando in Ubi.'],
+    'non-valido': ['Link non valido', 'Il link di disiscrizione è incompleto o è stato modificato. Usa quello presente in fondo all\'email.'],
+    errore: ['Qualcosa è andato storto', 'Non siamo riusciti a registrare la richiesta. Riprova tra qualche minuto.'],
+  };
+  const [t, d] = T[esito] || T['non-valido'];
+  app.innerHTML = `<div class="hero"><span class="pin"></span><h1>${t}</h1><p class="muted">${d}</p></div>
+    <a class="btn full" href="#/">Vai a Ubi</a>`;
+}
 
 function viewFaq() {
   stopWatch();
