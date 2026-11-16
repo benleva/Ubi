@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161609';
+import { CONFIG } from './config.js?v=202611161627';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.13';
+const APP_VERSION = 'v.16';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -15,6 +15,12 @@ const TYPES = {
   audio: { l: 'A', c: '#e0901f', n: 'Audio' },
 };
 const badge = (t, extra = '') => { const x = TYPES[t] || TYPES.photo; return `<span class="tico ${extra}" style="background:${x.c}" title="${x.n}">${x.l}</span>`; };
+// Dating: pallino rosa (lei) o azzurro (lui)
+const GENDER = { f: { c: '#ff5fa2', n: 'lei' }, m: { c: '#4fb3ff', n: 'lui' } };
+const datingBadge = (g, extra = '') => { const x = GENDER[g] || { c: '#b06ad9', n: '' }; return `<span class="tico ${extra}" style="background:${x.c}" title="Dating${x.n ? ` · ${x.n}` : ''}">♥</span>`; };
+const pinBadge = (c, extra = '') => (c.is_dating ? datingBadge(c.gender, extra) : badge(c.media_type, extra));
+const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
+const setDatingTheme = (on) => document.body.classList.toggle('dating', !!on);
 const TAGS_SUGGESTED = ['famiglia', 'amore', 'anniversario', 'amici', 'ricordo', 'sport', 'panorama', 'tramonto',
   'monumento', 'storia', 'arte', 'natura', 'mare', 'montagna', 'trekking', 'sentiero', 'passeggiata', 'mappa interattiva', 'città', 'cibo', 'fotografia', 'musica', 'guida', 'caccia al tesoro'];
 const MAX_TAGS = 8;
@@ -117,7 +123,7 @@ async function supabaseBackend() {
     },
     async listMine() {
       const u = await B.user();
-      return must(await sb.from('contents').select('id,share_slug,title,media_type,media_path,visibility,created_at,password_hash,tags')
+      return must(await sb.from('contents').select('id,share_slug,title,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled')
         .eq('owner_id', u.id).order('created_at', { ascending: false }));
     },
     async create(d) {
@@ -133,7 +139,7 @@ async function supabaseBackend() {
         id, owner_id: u.id, title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
         external_url: d.external_url || null, duration_seconds: d.duration ?? null, lat: d.lat, lng: d.lng,
         unlock_radius_m: d.radius, location_source: d.source, visibility: d.visibility, password_hash: d.password || null,
-        text_body: d.text_body || null, tags: d.tags || [],
+        text_body: d.text_body || null, tags: d.tags || [], is_dating: !!d.is_dating, replies_enabled: d.replies_enabled !== false,
       };
       const res = await sb.from('contents').insert(row).select('share_slug').single();
       if (res.error) { if (media_path) await sb.storage.from('media').remove([media_path]); throw res.error; }
@@ -212,7 +218,7 @@ async function supabaseBackend() {
         text_body: d.media_type === 'text' ? d.text_body : null,
         duration_seconds: kindIsFile ? (d.file ? d.duration : old.duration_seconds) : null,
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, location_source: d.source,
-        visibility: d.visibility, tags: d.tags || [],
+        visibility: d.visibility, tags: d.tags || [], replies_enabled: d.replies_enabled !== false,
       };
       if (d.passwordAction === 'set') patch.password_hash = d.password;
       if (d.passwordAction === 'remove') patch.password_hash = null;
@@ -231,6 +237,41 @@ async function supabaseBackend() {
       must(await sb.from('contents').delete().eq('id', c.id));
     },
     async teaser(slug) { return (must(await sb.rpc('get_teaser', { p_slug: slug })) || [])[0] || null; },
+    // --- dating
+    async joinDating(d) {
+      const u = await B.user();
+      must(await sb.from('profiles').update({ dating_gender: d.gender, dating_birth_date: d.birth, dating_consent_version: CONFIG.DATING_CONSENT_VERSION }).eq('id', u.id));
+    },
+    async leaveDating() { const u = await B.user(); must(await sb.from('profiles').update({ dating_consent_version: null }).eq('id', u.id)); },
+    // --- risposte ai pin
+    async addReply(slug, d) {
+      const u = await B.user();
+      const id = crypto.randomUUID();
+      let path = null;
+      if (d.file) {
+        const ext = (d.file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
+        path = `${u.id}/r-${id}/risposta.${ext}`;
+        must(await sb.storage.from('media').upload(path, d.file, { contentType: d.file.type, upsert: false }));
+      }
+      const res = await sb.rpc('add_reply', { p_id: id, p_slug: slug, p_media_type: d.media_type, p_media_path: path, p_text: d.text || null, p_duration: d.duration ?? null });
+      if (res.error) { if (path) await sb.storage.from('media').remove([path]); throw res.error; }
+      let mailed = false;
+      try { const r = await sb.functions.invoke(CONFIG.REPLY_FUNCTION || 'notify-reply', { body: { reply_id: id } }); mailed = !r.error && r.data?.sent === 1; } catch { /* l'email è un extra */ }
+      return { id, mailed };
+    },
+    async repliesFor(slug) {
+      const rows = must(await sb.rpc('pin_replies_for', { p_slug: slug })) || [];
+      for (const r of rows) {
+        if (r.media_path) { const x = await sb.storage.from('media').createSignedUrl(r.media_path, 3600); r.url = x.data?.signedUrl || null; }
+      }
+      return rows;
+    },
+    async myReplies() { return must(await sb.rpc('my_replies')) || []; },
+    async replyWant(id) { return must(await sb.rpc('reply_want', { p_id: id })); },
+    async replyRemove(id) {
+      const path = must(await sb.rpc('reply_remove', { p_id: id }));
+      if (path) await sb.storage.from('media').remove([path]);
+    },
     async mapContents(b) {
       return must(await sb.rpc('map_contents', { p_min_lat: b.s, p_min_lng: b.w, p_max_lat: b.n, p_max_lng: b.e })) || [];
     },
@@ -308,6 +349,13 @@ function demoBackend() {
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
     _book() { db.book = db.book || {}; db.book[db.user.id] = db.book[db.user.id] || []; return db.book[db.user.id]; },
     async notifyRecipients() { return { sent: 0, skipped: 0, demo: true }; },
+    async joinDating() { throw new Error('La sezione dating non è disponibile nella demo.'); },
+    async leaveDating() {},
+    async addReply() { throw new Error('Le risposte non sono disponibili nella demo.'); },
+    async repliesFor() { return []; },
+    async myReplies() { return []; },
+    async replyWant() { return false; },
+    async replyRemove() {},
     async listContacts() { return [...B._book()].sort((a, b) => a.name.localeCompare(b.name)); },
     async saveContact(c) {
       const bk = B._book();
@@ -440,6 +488,7 @@ async function routeInner() {
   window.scrollTo(0, 0);   // ogni nuova schermata si apre dall'inizio
   if (B.recovery) return viewNewPassword();
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
+  setDatingTheme(page === 'dating' || (page === 'new' && arg === 'dating'));
   if (page === 'faq') return viewFaq(arg);
   if (page === 'avvisi') return viewOptout(arg);
   const user = await B.user();
@@ -456,15 +505,20 @@ async function routeInner() {
   if (!prof) return viewConsent();
   const pending = popPending();
   if (pending && pending !== location.hash) { location.hash = pending; return; }
-  if (page === 'new') return viewNew();
+  if (page === 'dating') return isDating(prof) ? viewDating(user, prof) : viewDatingJoin(prof);
+  if (page === 'new') {
+    if (arg === 'dating' && !isDating(prof)) { location.hash = '#/dating'; return; }
+    return viewNew(null, { dating: arg === 'dating' });
+  }
   if (page === 'profilo') return viewMyProfile(prof);
   if (page === 'rubrica') return viewBook();
   if (page === 'u' && arg) return viewAuthor(arg);
   if (page === 'messaggi') return arg ? viewThread(arg, location.hash.split('/')[3]) : viewInbox();
   if (page === 'edit' && arg) {
     const c = await B.getForEdit(arg);
+    if (c && c.is_dating) setDatingTheme(true);
     if (!c) { app.innerHTML = '<div class="card center"><h2>Non puoi modificare questo contenuto</h2><p class="muted">Solo chi l\'ha creato può modificarlo.</p><a class="btn" href="#/">Torna alla mappa</a></div>'; return; }
-    return viewNew(c);
+    return viewNew(c, { dating: !!c.is_dating });
   }
   return viewHome(user, prof);
 }
@@ -608,7 +662,7 @@ function viewNewPassword() {
 let lastView = null;   // ricorda centro e zoom tra una visita e l'altra
 const tagFilter = new Set();   // tag selezionati nella nuvola della mappa
 const typeFilter = new Set();  // tipi selezionati (photo, video, …) e/o 'mine'
-async function homeMap() {
+async function homeMap(opts = {}) {
   const el = $('#hmap');
   await waitLeaflet();
   if (!document.body.contains(el)) return;
@@ -618,7 +672,7 @@ async function homeMap() {
   let me = null, timer = null, first = true;
   const icon = (c) => L.divIcon({
     className: '', iconSize: [34, 34], iconAnchor: [17, 17],
-    html: badge(c.media_type, `pin${c.is_owner ? ' mine' : ''}${c.is_owner || c.unlocked ? '' : ' locked'}`),
+    html: pinBadge(c, `pin${c.is_owner ? ' mine' : ''}${c.is_owner || c.unlocked ? '' : ' locked'}`),
   });
   let rows = [];
   const draw = () => {
@@ -626,8 +680,9 @@ async function homeMap() {
     // filtri: tipo (uno qualsiasi dei selezionati) E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
     const types = [...typeFilter].filter((k) => k !== 'mine');
     const shown = rows.filter((c) =>
-      (!types.length || types.includes(c.media_type)) &&
-      (!typeFilter.has('mine') || c.is_owner) &&
+      (!opts.dating || c.is_dating) &&
+      (opts.dating || !types.length || types.includes(c.media_type) || (types.includes('dating') && c.is_dating)) &&
+      (opts.dating || !typeFilter.has('mine') || c.is_owner) &&
       (!tagFilter.size || (c.tags || []).some((t) => tagFilter.has(t))));
     document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', typeFilter.has(b.dataset.k)));
     shown.forEach((c) => {
@@ -637,7 +692,7 @@ async function homeMap() {
     });
     // nuvola: tag presenti nella zona, i più usati prima; i selezionati restano sempre visibili
     const count = new Map();
-    rows.forEach((c) => (c.tags || []).forEach((t) => count.set(t, (count.get(t) || 0) + 1)));
+    rows.filter((c) => !opts.dating || c.is_dating).forEach((c) => (c.tags || []).forEach((t) => count.set(t, (count.get(t) || 0) + 1)));
     tagFilter.forEach((t) => { if (!count.has(t)) count.set(t, 0); });
     const list = [...count.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 30);
     $('#tagcloud').innerHTML = list.length ? `<button class="chip ${tagFilter.size ? '' : 'on'}" data-t="">Tutti i tag</button>` +
@@ -664,11 +719,12 @@ async function homeMap() {
       rows = await B.mapContents({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() });
       if (!document.body.contains(el)) return;
       const shownCount = draw();
-      if (first && rows.length && !lastView && !me) {
-        map.fitBounds(rows.map((c) => [c.lat, c.lng]), { padding: [40, 40], maxZoom: 16 });
+      const fit = rows.filter((c) => !opts.dating || c.is_dating);
+      if (first && fit.length && !lastView && !me) {
+        map.fitBounds(fit.map((c) => [c.lat, c.lng]), { padding: [40, 40], maxZoom: 16 });
       }
       first = false;
-      msg($('#mm'), !rows.length ? 'Nessun contenuto in questa zona: sposta la mappa o lasciane uno tu.' : (!shownCount ? 'Nessun contenuto con questi filtri in questa zona.' : ''), 'info');
+      msg($('#mm'), !rows.length || (opts.dating && !rows.some((c) => c.is_dating)) ? (opts.dating ? 'Nessun biglietto in questa zona: sposta la mappa o lasciane uno tu.' : 'Nessun contenuto in questa zona: sposta la mappa o lasciane uno tu.') : (!shownCount ? 'Nessun contenuto con questi filtri in questa zona.' : ''), 'info');
     } catch (err) { msg($('#mm'), errText(err)); }
   };
   map.on('moveend', () => {
@@ -694,11 +750,13 @@ async function viewHome(user, prof) {
       <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></span></div>
     <div id="hmap" class="map home"></div>
     <div class="chips types" id="typebar">${Object.entries(TYPES).map(([k, x]) => `<button class="chip" data-k="${k}"><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}</button>`).join('')}
+      <button class="chip" data-k="dating">${datingBadge('f', 'sm')}Dating</button>
       <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei</button></div>
     <div id="tagcloud" class="chips cloud"></div>
     <div id="mm"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
+    <a href="#/dating" class="btn full datingbtn" style="margin-top:10px">💗 Ubi Dating · incontra chi ama i tuoi luoghi</a>
     <h2 style="margin-top:22px">I miei contenuti</h2>
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
@@ -709,9 +767,9 @@ async function viewHome(user, prof) {
   if (!items.length) { $('#list').innerHTML = '<div class="card center muted">Non hai ancora lasciato nulla.<br>Inizia da un luogo che conta per te.</div>'; return; }
   $('#list').innerHTML = items.map((c, i) => `
     <div class="card" data-i="${i}">
-      <div class="item"><div class="ico">${badge(c.media_type)}</div>
+      <div class="item"><div class="ico">${c.is_dating ? datingBadge(prof.dating_gender) : badge(c.media_type)}</div>
         <div><div class="t">${esc(c.title)}</div>
-        <div class="meta">${VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString('it-IT')}</div></div></div>
+        <div class="meta">${c.is_dating ? '💗 Dating · ' : ''}${VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString('it-IT')}</div></div></div>
       ${tagChips(c.tags)}
       <div class="actions">
         <button class="ghost" data-a="share">Condividi</button>
@@ -752,8 +810,9 @@ function shareSheet(title, slug, container) {
   };
 }
 
-async function viewNew(ed = null) {
-  const s = { sel: new Set(), book: [], tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: 'restricted' };
+async function viewNew(ed = null, opts = {}) {
+  const dating = !!opts.dating;
+  const s = { sel: new Set(), book: [], tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: dating ? 'public' : 'restricted' };
   if (ed) {
     Object.assign(s, {
       tags: new Set(ed.tags || []), kind: ['photo', 'video', 'audio'].includes(ed.media_type) ? 'file' : ed.media_type,
@@ -761,12 +820,21 @@ async function viewNew(ed = null) {
     });
   }
   app.innerHTML = `
-    <h1>${ed ? 'Modifica contenuto' : 'Nuovo contenuto'}</h1>
+    <h1>${dating ? (ed ? '💗 Modifica il biglietto' : '💗 Nuovo biglietto dating') : (ed ? 'Modifica contenuto' : 'Nuovo contenuto')}</h1>
     ${ed ? '<div class="msg info">Il link già condiviso resta lo stesso: chi lo apre vedrà la versione aggiornata.</div>' : ''}
+    ${dating ? `<div class="card datingtips"><b>Come funziona il biglietto</b>
+      <ul class="small"><li>Lo lasci in un luogo che ami: sulla mappa appare con il tuo pallino ${datingBadge('f', 'sm')}${datingBadge('m', 'sm')}.</li>
+      <li>Lo può aprire solo chi è iscritto a Ubi Dating (18+) ed è <b>arrivato fin lì</b>: avrete già una passione in comune.</li>
+      <li>Resti <b>anonimo</b>: chi ti risponde vede solo il biglietto. Vi scoprite solo se scegliete entrambi «Voglio conoscerti».</li>
+      <li><b>Consiglio:</b> registra un breve <b>video dal vivo</b>, sul posto: è il modo più sincero per presentarti.</li>
+      <li>Non scrivere dove abiti, il cognome o i tuoi orari. Scegli un luogo pubblico.</li></ul></div>` : ''}
     <div class="card"><h2>1 · Cosa vuoi lasciare</h2>
       <div class="seg" id="kind"><button class="on" data-k="file">Galleria</button><button data-k="text">Testo</button><button data-k="link">Link</button></div>
       <div id="k-file"><label for="file">Foto, video (max ${CONFIG.MAX_VIDEO_SECONDS} s) o audio</label>
         <input id="file" type="file" accept="image/*,video/*,audio/*">
+        <div class="row" style="margin-top:8px"><button type="button" class="ghost" id="capv">🎥 Registra ora un video</button><button type="button" class="ghost" id="capp">📷 Scatta ora</button></div>
+        <input id="capvf" type="file" accept="video/*" capture="user" hidden><input id="cappf" type="file" accept="image/*" capture="environment" hidden>
+        <p class="muted small">💡 Un <b>video registrato in tempo reale</b>, sul posto e dedicato a chi lo aprirà, rende il pin molto più emozionante (max ${CONFIG.MAX_VIDEO_SECONDS} s).</p>
         <p class="muted small">Un file per contenuto. <b>Vuoi lasciare tante foto?</b> Crea un album condiviso (Google Foto, iCloud, Drive…), scegli <a href="#" id="toalbum">Link</a> e incolla il link dell'album.</p></div>
       <div id="k-text" hidden><label for="txt">Il tuo testo</label>
         <textarea id="txt" maxlength="2000" rows="6" placeholder="Es. una dedica, le istruzioni per lo scatto, l'indizio per la caccia al tesoro…"></textarea>
@@ -801,7 +869,9 @@ async function viewNew(ed = null) {
       <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="newtag" maxlength="24" placeholder="Aggiungi un tag tuo…" enterkeyhint="done">
         <button id="addtag" type="button" class="ghost" style="flex:0 0 auto">＋</button></div>
     </div>
-    <div class="card"><h2>4 · Chi può aprirlo</h2>
+    ${dating ? `<div class="card"><h2>4 · Chi può aprirlo</h2>
+      <div class="msg info small">💗 I biglietti dating sono <b>visibili a tutti</b> sulla mappa, ma solo gli iscritti a Ubi Dating (18+) che arrivano sul posto possono aprirli e risponderti. Ti avvisiamo via email a ogni risposta.</div></div>` : ''}
+    <div class="card" ${dating ? 'hidden' : ''}><h2>4 · Chi può aprirlo</h2>
       <div class="seg" id="vis"><button data-v="restricted" class="on">Persone scelte</button><button data-v="public">Tutti</button><button data-v="hidden">Solo io</button></div>
       <div id="v-restricted">
         <label>Dalla tua rubrica <span class="muted small" id="seln"></span></label>
@@ -816,6 +886,8 @@ async function viewNew(ed = null) {
       <label for="pwd">${ed && ed.has_password ? 'Nuova password (lascia vuoto per mantenere quella attuale)' : 'Password (facoltativa)'}</label>
       <input id="pwd" type="text" autocomplete="off" maxlength="64" placeholder="${ed && ed.has_password ? '🔒 password attuale mantenuta' : 'Lascia vuoto per nessuna password'}">
       ${ed && ed.has_password ? '<label class="inline"><input type="checkbox" id="nopwd"><span>Togli la password</span></label>' : ''}
+      <label class="inline" style="margin-top:12px"><input type="checkbox" id="replies" ${!ed || ed.replies_enabled !== false ? 'checked' : ''}>
+        <span>Chi sblocca il pin può <b>lasciarmi una risposta</b> (testo, foto, video o audio): mi arriva un'email.</span></label>
     </div>
     <div id="sm"></div>
     <button class="full accent" id="save">${ed ? 'Salva le modifiche' : 'Fissa nel luogo'}</button>
@@ -857,8 +929,13 @@ async function viewNew(ed = null) {
     const u = extractUrl($('#url').value);
     $('#urlok').innerHTML = !$('#url').value.trim() ? '' : u ? `<span style="color:var(--ok)">✓ Link trovato: <b>${esc(hostOf(u))}</b></span>` : '<span style="color:var(--err)">Non trovo un link valido (deve iniziare con https://)</span>';
   };
-  $('#file').onchange = async () => {
-    const f = $('#file').files[0]; s.file = null; s.duration = null; $('#preview').innerHTML = ''; msg($('#pm'), '');
+  $('#capv').onclick = () => $('#capvf').click();
+  $('#capp').onclick = () => $('#cappf').click();
+  $('#capvf').onchange = () => handleFile($('#capvf').files[0]);
+  $('#cappf').onchange = () => handleFile($('#cappf').files[0]);
+  $('#file').onchange = () => handleFile($('#file').files[0]);
+  const handleFile = async (f) => {
+    s.file = null; s.duration = null; $('#preview').innerHTML = ''; msg($('#pm'), '');
     if (!f) return;
     const type = f.type.split('/')[0];
     if (!['image', 'video', 'audio'].includes(type)) return msg($('#pm'), 'Formato non supportato.');
@@ -1000,6 +1077,7 @@ async function viewNew(ed = null) {
     if (s.lat == null) return err('Indica il luogo: GPS, indirizzo, coordinate o tocco sulla mappa.');
     const title = $('#title').value.trim(); if (!title) return err('Dai un titolo al contenuto.');
     if (s.vis === 'restricted' && ed && !bookReady) return err('Attendi un attimo: sto caricando la rubrica.');
+    if (dating) s.vis = 'public';
     const recipients = s.vis === 'restricted' ? [...new Set([...s.sel, ...$('#emails').value.toLowerCase().split(/[\s,;]+/).filter(Boolean)])] : [];
     const bad = recipients.filter((x) => !EMAIL_RE.test(x));
     if (bad.length) return err(`Email non valide: ${esc(bad.join(', '))}`);
@@ -1009,7 +1087,8 @@ async function viewNew(ed = null) {
       file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'file' ? s.media_type : s.kind, duration: s.kind === 'file' ? s.duration : null,
       text_body: s.kind === 'text' ? $('#txt').value.trim() : null, tags: [...s.tags],
       external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
-      visibility: s.vis, recipients, password: $('#pwd').value,
+      visibility: dating ? 'public' : s.vis, recipients: dating ? [] : recipients, password: $('#pwd').value,
+      is_dating: dating, replies_enabled: dating ? true : $('#replies').checked,
     };
     try {
       if (ed) {
@@ -1105,14 +1184,19 @@ async function viewContent(slug, user) {
     app.innerHTML = '<div class="card center"><h2>Contenuto non disponibile</h2><p class="muted">Non esiste, è stato rimosso, oppure non sei tra i destinatari.</p><a class="btn" href="#/">Vai a Ubi</a></div>';
     return;
   }
-  const header = `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
+  setDatingTheme(t.is_dating);
+  const header = t.is_dating
+    ? `<h1>${datingBadge(t.gender)} ${esc(t.title)}</h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
+    : `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const showUnlocked = (r, d) => {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
       <div class="card media">${renderMedia(t.media_type, r)}</div>
       ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica contenuto e posizione</a>
-        <button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>` : ''}
-      <a class="btn ghost full" href="#/">${user ? 'Torna alla mappa' : 'Scopri Ubi'}</a>`;
+        ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
+      <div id="replybox"></div>
+      <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
+    if (user) replySection(t, slug, $('#replybox')).catch((err) => msg($('#replybox'), errText(err)));
   };
   if (user && (t.is_owner || t.already_unlocked)) {
     try {
@@ -1144,7 +1228,9 @@ async function viewContent(slug, user) {
     <div class="card">
       ${t.requires_password ? '<label for="pwd">Password</label><input id="pwd" type="text" autocomplete="off">' : ''}
       <div id="um"></div>
-      ${user ? '<button class="full accent" id="unlock">🔓 Sblocca qui</button>' : '<button class="full" id="login">Accedi per sbloccare</button>'}
+      ${!user ? '<button class="full" id="login">Accedi per sbloccare</button>'
+        : (t.is_dating && !t.is_owner && !t.i_am_dating) ? '<div class="msg info small">I biglietti dating si aprono solo se sei iscritto a Ubi Dating (riservato ai maggiorenni).</div><a class="btn full accent" href="#/dating">💗 Iscriviti a Ubi Dating</a>'
+        : '<button class="full accent" id="unlock">🔓 Sblocca qui</button>'}
     </div>`;
   if (!user) { $('#login').onclick = () => { setPending(location.hash); viewLogin(); }; }
 
@@ -1188,6 +1274,7 @@ async function viewContent(slug, user) {
         password_required: 'Serve la password.', wrong_password: 'Password errata.',
         rate_limited: 'Troppi tentativi: riprova tra 15 minuti.', not_found: 'Contenuto non disponibile.',
         login_required: 'Accedi per sbloccare.',
+        dating_required: 'Questo biglietto si apre solo se sei iscritto a Ubi Dating (18+). <a href="#/dating">Iscriviti</a>',
       };
       if (r.status === 'ok') return showUnlocked(r, r.distance_m);
       msg($('#um'), M[r.status] || r.status);
@@ -1196,6 +1283,228 @@ async function viewContent(slug, user) {
   };
 }
 
+
+// ======================= RISPOSTE AI PIN =======================
+// Controlla un file scelto per una risposta: tipo, dimensione, durata dei video.
+async function checkMediaFile(f) {
+  const type = f.type.split('/')[0];
+  if (!['image', 'video', 'audio'].includes(type)) throw new Error('Formato non supportato.');
+  if (f.size > CONFIG.MAX_FILE_MB * 1048576) throw new Error(`File troppo grande (max ${CONFIG.MAX_FILE_MB} MB).`);
+  const url = URL.createObjectURL(f);
+  if (type === 'image') { const el = document.createElement('img'); el.src = url; el.alt = 'anteprima'; return { media_type: 'photo', duration: null, el }; }
+  const el = document.createElement(type); el.controls = true; el.preload = 'metadata'; el.src = url; if (type === 'video') el.playsInline = true;
+  const dur = await new Promise((res) => { el.onloadedmetadata = () => res(el.duration); el.onerror = () => res(NaN); setTimeout(() => res(el.duration), 8000); });
+  if (!Number.isFinite(dur)) throw new Error('Non riesco a leggere la durata del file. Prova con un altro formato (MP4, M4A, MP3).');
+  if (type === 'video' && dur > CONFIG.MAX_VIDEO_SECONDS + 0.5) throw new Error(`Il video dura ${Math.round(dur)} s: il massimo è ${CONFIG.MAX_VIDEO_SECONDS}.`);
+  return { media_type: type, duration: Math.round(dur), el };
+}
+const replyMedia = (r) => !r.url ? '' : r.media_type === 'photo' ? `<img src="${esc(r.url)}" alt="">`
+  : r.media_type === 'video' ? `<video src="${esc(r.url)}" controls playsinline preload="metadata"></video>`
+  : r.media_type === 'audio' ? `<audio src="${esc(r.url)}" controls preload="metadata"></audio>` : '';
+const anonName = (g) => (g === 'f' ? 'Anonima' : g === 'm' ? 'Anonimo' : 'Anonimo/a');
+const fmtDate = (d) => new Date(d).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+
+// Sotto un pin sbloccato: risposte ricevute (creatore) oppure modulo/stato della mia risposta (chi ha sbloccato).
+async function replySection(t, slug, box) {
+  if (!box) return;
+  if (t.is_owner) {
+    const rows = await B.repliesFor(slug);
+    if (!document.body.contains(box)) return;
+    if (!rows.length) {
+      box.innerHTML = `<div class="card muted small center">${t.replies_enabled ? '💬 Ancora nessuna risposta. Quando qualcuno sblocca il pin e ti risponde, ti arriva un\'email.' : 'Le risposte a questo pin sono disattivate (puoi attivarle da Modifica).'}</div>`;
+      return;
+    }
+    box.innerHTML = `<h2>💬 Risposte ricevute (${rows.length})</h2>` + rows.map((r) => `
+      <div class="card reply" data-id="${esc(r.id)}">
+        <div class="replyhead">${t.is_dating ? datingBadge(r.author_gender, 'sm') : ''}<b>${r.revealed ? esc(r.author_name || 'Utente') : anonName(r.author_gender)}</b>
+          <span class="muted small">· ${fmtDate(r.created_at)}</span></div>
+        <div class="media">${replyMedia(r)}</div>
+        ${r.text_body ? `<div class="textbody">${linkify(r.text_body)}</div>` : ''}
+        <div class="actions">
+          ${r.revealed && r.author_id ? `<a class="btn" href="#/messaggi/${esc(r.author_id)}/${esc(slug)}">✉️ Scrivi${t.is_dating ? ` a ${esc(r.author_name || '')}` : ''}</a>`
+            : r.owner_wants ? `<span class="muted small">Hai scelto 💗: ${r.author_wants ? '' : 'aspetti la sua scelta.'}</span>`
+            : `<button data-a="want">💗 Voglio conoscerti${r.author_wants ? ' (ha già scelto te!)' : ''}</button>`}
+          <button class="ghost danger" data-a="del">Elimina</button>
+        </div></div>`).join('');
+    box.onclick = async (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      const card = b.closest('.reply'); const id = card.dataset.id;
+      b.disabled = true;
+      try {
+        if (b.dataset.a === 'want') {
+          const both = await B.replyWant(id);
+          if (both) alertOk(card, '💗 Vi siete scelti! Ora vedi chi è e potete scrivervi.');
+          return replySection(t, slug, box);
+        }
+        if (b.dataset.a === 'del') {
+          if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma'; b.disabled = false; return; }
+          await B.replyRemove(id); return replySection(t, slug, box);
+        }
+      } catch (err) { alertIn(card, errText(err)); b.disabled = false; }
+    };
+    return;
+  }
+  if (!t.replies_enabled) return;
+  if (t.i_replied) {
+    const r = (await B.myReplies()).find((x) => x.share_slug === slug);
+    if (!r || !document.body.contains(box)) return;
+    box.innerHTML = `<div class="card reply" data-id="${esc(r.id)}"><h2>✓ Hai risposto il ${fmtDate(r.created_at)}</h2>
+      ${r.text_body ? `<div class="textbody">${linkify(r.text_body)}</div>` : `<p class="muted small">Hai inviato ${({ photo: 'una foto', video: 'un videomessaggio', audio: 'un audio' })[r.media_type] || 'una risposta'}.</p>`}
+      ${myReplyStatus(r)}
+      <div class="actions">${myReplyActions(r)}<button class="ghost danger" data-a="del">Ritira la risposta</button></div></div>`;
+    bindMyReply(box, () => replySection({ ...t, i_replied: !box.dataset.removed }, slug, box));
+    return;
+  }
+  box.innerHTML = `<div class="card"><h2>${t.is_dating ? '💌 Rispondi al biglietto' : '💬 Lascia una risposta a chi l\'ha creato'}</h2>
+    <p class="muted small">${t.is_dating ? 'Resti anonimo/a: vi scoprite solo se scegliete entrambi «Voglio conoscerti».' : 'Riceverà un\'email e vedrà il tuo nome.'} 💡 Un videomessaggio registrato qui, adesso, vale più di mille parole.</p>
+    <div class="row"><button type="button" class="ghost" data-c="v">🎥 Videomessaggio</button><button type="button" class="ghost" data-c="p">📷 Foto</button><button type="button" class="ghost" data-c="a">🎙 Audio</button></div>
+    <input type="file" id="rfv" accept="video/*" capture="user" hidden><input type="file" id="rfp" accept="image/*" hidden><input type="file" id="rfa" accept="audio/*" hidden>
+    <div id="rprev" class="preview"></div>
+    <label for="rtxt">Messaggio <span class="muted small">(facoltativo se alleghi un file)</span></label>
+    <textarea id="rtxt" maxlength="1000" rows="4" placeholder="${t.is_dating ? 'Es. Anch\'io salgo qui ogni estate…' : 'Es. Che bel ricordo, grazie!'}"></textarea>
+    <div id="rm"></div><button class="full accent" id="rsend">Invia la risposta</button></div>`;
+  const st = { file: null, media_type: null, duration: null };
+  const pick = async (f) => {
+    st.file = null; $('#rprev').innerHTML = ''; msg($('#rm'), '');
+    if (!f) return;
+    try { const m = await checkMediaFile(f); Object.assign(st, { file: f, media_type: m.media_type, duration: m.duration }); $('#rprev').append(m.el);
+      $('#rprev').insertAdjacentHTML('beforeend', '<button type="button" class="ghost small-btn" id="rclear">✕ Togli il file</button>');
+      $('#rclear').onclick = () => pick(null);
+    } catch (err) { msg($('#rm'), errText(err)); }
+  };
+  box.querySelectorAll('[data-c]').forEach((b) => { b.onclick = () => $(`#rf${b.dataset.c}`).click(); });
+  ['v', 'p', 'a'].forEach((k) => { $(`#rf${k}`).onchange = (e) => pick(e.target.files[0]); });
+  $('#rsend').onclick = async () => {
+    const text = $('#rtxt').value.trim();
+    if (!st.file && !text) return msg($('#rm'), 'Scrivi un messaggio o allega un video, una foto o un audio.');
+    const btn = $('#rsend'); btn.disabled = true; btn.textContent = st.file ? 'Carico il file…' : 'Invio…';
+    try {
+      const res = await B.addReply(slug, { file: st.file, media_type: st.file ? st.media_type : 'text', duration: st.duration, text });
+      box.innerHTML = `<div class="msg ok">Risposta inviata ✓ ${res.mailed ? 'Il creatore del pin riceverà un\'email.' : ''}</div>`;
+      setTimeout(() => replySection({ ...t, i_replied: true }, slug, box), 1500);
+    } catch (err) { msg($('#rm'), errText(err)); btn.disabled = false; btn.textContent = 'Invia la risposta'; }
+  };
+}
+const alertOk = (el, text) => el.insertAdjacentHTML('beforeend', `<div class="msg ok">${text}</div>`);
+function myReplyStatus(r) {
+  if (!r.is_dating) return '';
+  if (r.revealed) return `<div class="msg ok">💗 Vi siete scelti! Il biglietto è di <b>${esc(r.owner_name || '')}</b>.</div>`;
+  if (r.owner_wants && !r.author_wants) return '<div class="msg info">💗 Ha scelto di conoscerti! Tocca «Voglio conoscerti» per scoprirvi.</div>';
+  if (r.author_wants) return '<p class="muted small">Hai scelto 💗: aspetti la sua scelta. Se sceglie anche lei/lui, vedrete i vostri nomi e potrete scrivervi.</p>';
+  return '<p class="muted small">Restate anonimi finché non scegliete entrambi «Voglio conoscerti».</p>';
+}
+function myReplyActions(r) {
+  if (r.revealed && r.owner_id) return `<a class="btn" href="#/messaggi/${esc(r.owner_id)}/${esc(r.share_slug)}">✉️ Scrivi</a>`;
+  if (r.is_dating && !r.author_wants) return '<button data-a="want">💗 Voglio conoscerti</button>';
+  return '';
+}
+function bindMyReply(box, refresh) {
+  box.onclick = async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const card = b.closest('.reply'); const id = card.dataset.id;
+    b.disabled = true;
+    try {
+      if (b.dataset.a === 'want') { await B.replyWant(id); return refresh(); }
+      if (b.dataset.a === 'del') {
+        if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma: ritira'; b.disabled = false; return; }
+        await B.replyRemove(id); card.remove(); box.dataset.removed = '1'; return refresh();
+      }
+    } catch (err) { alertIn(card, errText(err)); b.disabled = false; }
+  };
+}
+
+// ======================= UBI DATING (solo maggiorenni) =======================
+const DATING_CONSENTS = [
+  'Dichiaro di avere <b>almeno 18 anni</b> e che la data di nascita indicata è vera.',
+  'Sono <b>l\'unico responsabile</b> di ciò che pubblico, dei messaggi che invio e degli incontri che decido di fare. Ubi non verifica l\'identità degli utenti e non è responsabile del loro comportamento.',
+  'Non pubblicherò contenuti sessuali, offensivi o illegali, né immagini di altre persone senza il loro consenso, né dati che permettano di trovarmi (indirizzo, cognome, orari).',
+  'Ho capito che <b>resto anonimo</b> finché io e l\'altra persona non scegliamo entrambi «Voglio conoscerti», e che posso ritirare risposte e biglietti in ogni momento.',
+  'Incontrerò chi conosco qui solo in <b>luoghi pubblici</b>, avvisando una persona di fiducia, e segnalerò comportamenti scorretti a info@ubipin.it.',
+  'Acconsento espressamente al trattamento della mia data di nascita, del mio genere (mostrato come pallino rosa o azzurro) e della mia partecipazione a Ubi Dating, come descritto nell\'<a href="privacy.html" target="_blank" rel="noopener">informativa privacy</a> (art. 9.2.a GDPR).',
+];
+function viewDatingJoin(prof) {
+  setDatingTheme(true);
+  const maxBirth = new Date(); maxBirth.setFullYear(maxBirth.getFullYear() - 18);
+  const maxStr = maxBirth.toISOString().slice(0, 10);
+  let gender = prof?.dating_gender || null;
+  app.innerHTML = `
+    <h1>💗 Ubi Dating</h1>
+    <div class="card datingtips"><p><b>Incontra chi ama i tuoi stessi luoghi.</b></p>
+      <ul class="small"><li>Lasci un <b>biglietto</b> (un video dal vivo, una foto, un testo) in un posto che ami: una vetta, un sentiero, una spiaggia, un rifugio.</li>
+      <li>Lo può aprire solo chi è iscritto e <b>arriva fin lì</b>: avrete già una passione in comune.</li>
+      <li>Chi lo apre può risponderti con un videomessaggio, una foto o un testo: ti arriva un'email.</li>
+      <li>Restate <b>anonimi</b> finché non scegliete entrambi «Voglio conoscerti». Poi potete scrivervi.</li></ul></div>
+    <div class="card"><form id="f">
+      <label>Sono</label>
+      <div class="seg" id="gen"><button type="button" data-g="f" class="${gender === 'f' ? 'on' : ''}">${datingBadge('f', 'sm')}Donna</button><button type="button" data-g="m" class="${gender === 'm' ? 'on' : ''}">${datingBadge('m', 'sm')}Uomo</button></div>
+      <label for="birth">Data di nascita</label>
+      <input id="birth" type="date" required max="${maxStr}" min="1900-01-01" value="${esc(prof?.dating_birth_date || '')}">
+      <p class="muted small">Serve solo a verificare che tu sia maggiorenne: non viene mostrata a nessuno.</p>
+      <h2 style="margin-top:18px">Consensi informati</h2>
+      ${DATING_CONSENTS.map((c, i) => `<label class="inline"><input type="checkbox" required id="dc${i}"><span>${c}</span></label>`).join('')}
+      <div id="m"></div>
+      <button class="full accent" type="submit">Entra in Ubi Dating</button>
+    </form></div>
+    <p class="center"><a href="#/">Torna a Ubi</a></p>`;
+  $('#gen').onclick = (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    gender = b.dataset.g; [...$('#gen').children].forEach((x) => x.classList.toggle('on', x === b));
+  };
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault();
+    if (!gender) return msg($('#m'), 'Scegli Donna o Uomo.');
+    const birth = $('#birth').value;
+    if (!birth || birth > maxStr) return msg($('#m'), 'Ubi Dating è riservato ai maggiorenni (18+).');
+    if (DATING_CONSENTS.some((_, i) => !$(`#dc${i}`).checked)) return msg($('#m'), 'Per entrare devi accettare tutti i consensi.');
+    const btn = e.submitter || $('#f button[type=submit]'); btn.disabled = true;
+    try { await B.joinDating({ gender, birth }); location.hash = '#/dating'; route(); } catch (err) { msg($('#m'), authErr(err)); btn.disabled = false; }
+  };
+}
+async function viewDating(user, prof) {
+  setDatingTheme(true);
+  app.innerHTML = `
+    <div class="homebar"><h1>💗 Ubi Dating</h1>
+      <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></div>
+    <p class="muted small">Biglietti lasciati da chi ama questi luoghi: ${datingBadge('f', 'sm')}lei, ${datingBadge('m', 'sm')}lui. Si aprono solo sul posto.</p>
+    <div id="hmap" class="map home"></div>
+    <div id="typebar" hidden></div>
+    <div id="tagcloud" class="chips cloud"></div>
+    <div id="mm"></div>
+    <a href="#/new/dating" class="btn accent full">＋ Lascia un biglietto in un luogo che ami</a>
+    <h2 style="margin-top:22px">I miei biglietti</h2><div id="mine"><p class="muted center">Carico…</p></div>
+    <h2 style="margin-top:22px">Le mie risposte</h2><div id="myrep"><p class="muted center">Carico…</p></div>
+    <div class="card small"><b>🛡️ Sicurezza</b><ul>
+      <li>Incontra le persone solo in luoghi pubblici e avvisa qualcuno di fiducia.</li>
+      <li>Non condividere indirizzo, cognome o orari finché non ti senti sicuro/a.</li>
+      <li>Comportamenti scorretti? Scrivi a <a href="mailto:info@ubipin.it">info@ubipin.it</a>.</li></ul></div>
+    <p class="center small"><a href="#/">Torna a Ubi</a> · <a href="#" id="leave">Esci da Ubi Dating</a></p>`;
+  homeMap({ dating: true });
+  $('#leave').onclick = async (e) => {
+    e.preventDefault();
+    if (e.target.dataset.confirm !== '1') { e.target.dataset.confirm = '1'; e.target.textContent = 'Conferma: esci da Ubi Dating (i tuoi biglietti restano finché non li elimini)'; return; }
+    try { await B.leaveDating(); location.hash = '#/'; } catch (err) { msg($('#mm'), errText(err)); }
+  };
+  try {
+    const mine = (await B.listMine()).filter((c) => c.is_dating);
+    $('#mine').innerHTML = mine.length ? mine.map((c) => `
+      <div class="card"><div class="item"><div class="ico">${datingBadge(prof.dating_gender)}</div>
+        <div><div class="t">${esc(c.title)}</div><div class="meta">${fmtDate(c.created_at)}</div></div></div>
+        <div class="actions"><a class="btn" href="#/c/${esc(c.share_slug)}">Apri e vedi le risposte</a><a class="btn ghost" href="#/edit/${esc(c.share_slug)}">Modifica</a></div></div>`).join('')
+      : '<div class="card center muted">Non hai ancora lasciato biglietti.<br>Scegli un luogo che ami davvero.</div>';
+  } catch (err) { msg($('#mine'), errText(err)); }
+  const loadMy = async () => {
+    try {
+      const reps = (await B.myReplies()).filter((r) => r.is_dating);
+      $('#myrep').innerHTML = reps.length ? reps.map((r) => `
+        <div class="card reply" data-id="${esc(r.id)}"><div class="t"><a href="#/c/${esc(r.share_slug)}">${esc(r.title)}</a></div>
+          <div class="meta muted small">Hai risposto il ${fmtDate(r.created_at)}</div>
+          ${myReplyStatus(r)}<div class="actions">${myReplyActions(r)}<button class="ghost danger" data-a="del">Ritira</button></div></div>`).join('')
+        : '<div class="card center muted small">Quando sblocchi un biglietto e rispondi, lo ritrovi qui.</div>';
+      bindMyReply($('#myrep'), loadMy);
+    } catch (err) { msg($('#myrep'), errText(err)); }
+  };
+  loadMy();
+}
 
 // ======================= PROFILO, AUTORE, MESSAGGI =======================
 function avatarHtml(path, name, size = 40) {
@@ -1470,6 +1779,17 @@ const FAQ_GUIDE = [
     <li><b>📒 Rubrica</b> (dalla home o dal profilo): salva nome ed email delle persone a cui mandi i pin; nella creazione li scegli con un tocco. Puoi anche aggiungere un contatto al volo dal modulo del pin. La rubrica la vedi solo tu.</li>
     <li>I messaggi arrivano nella busta <b>✉️</b> in alto: il numero arancione indica quelli da leggere.</li>
     <li>Puoi scrivere a chi ha pin che puoi vedere, e rispondere a chi ti ha scritto.</li></ol>`],
+  ['6c · Rispondere a un pin', `<ol>
+    <li>Dopo aver <b>sbloccato</b> un pin sul posto, sotto il contenuto trovi <b>Lascia una risposta</b>: un testo, una foto, un audio o un <b>videomessaggio</b> registrato lì, in quel momento.</li>
+    <li>Chi ha creato il pin riceve un'<b>email</b> e trova la risposta aprendo il pin.</li>
+    <li>Quando crei un pin puoi disattivare le risposte (casella in fondo, sezione 4).</li>
+    <li>Puoi ritirare la tua risposta quando vuoi; il creatore può eliminarla.</li></ol>`],
+  ['💗 Ubi Dating', `<ol>
+    <li>Riservato ai <b>maggiorenni</b>. Si entra da <b>💗 Ubi Dating</b> in home: indichi genere e data di nascita e accetti i consensi. Sei responsabile di ciò che pubblichi e degli incontri che fai.</li>
+    <li>Lasci un <b>biglietto</b> in un luogo che ami (meglio un video dal vivo): sulla mappa appare con un pallino <b>rosa</b> (lei) o <b>azzurro</b> (lui), visibile a tutti.</li>
+    <li>Lo può aprire e rispondere solo chi è iscritto e <b>arriva sul posto</b>: avrete già una passione in comune.</li>
+    <li>Siete <b>anonimi</b>: vi scoprite solo se entrambi toccate <b>«Voglio conoscerti»</b>. Da lì vedete i nomi e potete scrivervi.</li>
+    <li>Incontratevi solo in luoghi pubblici e segnalate abusi a info@ubipin.it.</li></ol>`],
   ['7 · Account e accesso', `<ul>
     <li>Resti collegato finché non tocchi <b>Esci</b> in fondo alla pagina.</li>
     <li><b>Password dimenticata?</b> In <i>Accedi</i> scrivi l'email e tocca il pulsante: ti arriva un link per sceglierne una nuova. Aprilo con lo <b>stesso browser</b> in cui usi Ubi.</li>

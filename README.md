@@ -33,6 +33,14 @@ Una qualsiasi di queste opzioni:
 
 Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 
+## 4. Ubi Dating e risposte ai pin (aggiornamento 7)
+1. SQL Editor: eseguire `supabase/migrations/20261116160000_dating_risposte.sql`.
+2. Edge Functions > Deploy a new function > **Via Editor**: nome `notify-reply`, incollare `supabase/functions/notify-reply/index.ts`, Deploy (lasciare "Verify JWT" acceso). Usa gli stessi segreti di notify-recipients.
+3. Il nome della funzione va in `config.js` > `REPLY_FUNCTION`.
+
+- Dating: solo maggiorenni (controllo sul server), biglietti pubblici con pallino rosa/azzurro, sblocco e risposta solo per gli iscritti, anonimato finché entrambi non scelgono «Voglio conoscerti».
+- Risposte: chi ha sbloccato un pin può lasciare al creatore testo, foto, video (max 60 s) o audio; il creatore riceve un'email.
+
 ## Come funziona la sicurezza
 - La tabella dei contenuti è leggibile solo dal proprietario (Row Level Security).
 - Gli altri usano due funzioni: `get_teaser` (titolo, indizio, punto sulla mappa) e `unlock`, che controlla **sul server** permessi, distanza, precisione GPS, password (bcrypt) e blocca dopo 5 errori in 15 minuti.

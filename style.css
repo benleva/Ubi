@@ -136,3 +136,19 @@ details.quickadd summary { cursor: pointer; color: var(--brand); font-weight: 70
 .ver { font-size: 12px; font-weight: 700; opacity: .75; margin-left: 6px; align-self: flex-end; margin-bottom: 4px; letter-spacing: 0; }
 
 .addrpick { text-align: left; margin-top: 6px; font-size: 14px; font-weight: 500; }
+
+/* ---------- Ubi Dating: rosa e viola ---------- */
+body.dating { --brand: #7b3fa0; --accent: #e0559b; --bg: #fbf3f8; --line: #ecd8e8; }
+body.dating .top { background: linear-gradient(90deg, #7b3fa0, #d94f9a); }
+body.dating .msg.info { background: #f6e9f4; color: #6b2f8c; }
+body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a); }
+.datingbtn { background: linear-gradient(90deg, #7b3fa0, #e0559b) !important; color: #fff !important; border: 0; }
+.datingtips { background: #fff7fc; border: 1px solid #f0d3e8; }
+.datingtips ul { padding-left: 20px; margin: 8px 0 0; }
+.datingtips li { margin-bottom: 6px; }
+.reply .replyhead { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.reply .media img, .reply .media video { width: 100%; border-radius: 10px; display: block; }
+.reply .media audio { width: 100%; }
+.reply .textbody { margin-top: 8px; }
+#rprev img, #rprev video { width: 100%; border-radius: 10px; margin-top: 10px; display: block; }
+#rprev audio { width: 100%; margin-top: 10px; }
