@@ -5,6 +5,7 @@
 //
 // Segreti da impostare in Supabase (Edge Functions > Secrets):
 //   BREVO_API_KEY, BREVO_SENDER_EMAIL, BREVO_SENDER_NAME (es. "Ubi"), UBI_APP_URL (es. https://benleva.github.io/Ubi/), UNSUB_SECRET (una frase lunga a caso)
+//   UNSUB_URL (facoltativo): indirizzo completo della funzione unsubscribe, se diverso da .../functions/v1/unsubscribe
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const CORS = {
@@ -86,7 +87,8 @@ Deno.serve(async (req) => {
     const link = `${appUrl.replace(/#.*$/, '')}#/c/${c.share_slug}`;
     let sent = 0; const failed = [];
     for (const email of todo) {
-      const unsub = `${SUPABASE_URL}/functions/v1/unsubscribe?e=${encodeURIComponent(email)}&t=${await sign(email)}`;
+      const unsubBase = Deno.env.get('UNSUB_URL') || `${SUPABASE_URL}/functions/v1/unsubscribe`;   // indirizzo della funzione unsubscribe
+      const unsub = `${unsubBase}?e=${encodeURIComponent(email)}&t=${await sign(email)}`;
       const res = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: { 'api-key': Deno.env.get('BREVO_API_KEY'), 'content-type': 'application/json', accept: 'application/json' },

@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161307';
+import { CONFIG } from './config.js?v=202611161312';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.10';
+const APP_VERSION = 'v.11';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -141,7 +141,7 @@ async function supabaseBackend() {
       return res.data.share_slug;
     },
     async notifyRecipients(slug) {
-      const { data, error } = await sb.functions.invoke('notify-recipients', { body: { slug } });
+      const { data, error } = await sb.functions.invoke(CONFIG.NOTIFY_FUNCTION || 'notify-recipients', { body: { slug } });
       if (error) {   // leggo il motivo vero restituito dalla funzione
         let detail = error.message;
         try { const b = await error.context.json(); detail = b.error || JSON.stringify(b); } catch { try { detail = await error.context.text() || detail; } catch { /* resta il messaggio */ } }
