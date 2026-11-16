@@ -1,5 +1,5 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js';
+import { CONFIG } from './config.js?v=202611161254';
 
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
