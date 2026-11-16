@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Ubi — lascia un ricordo dove è nato</title>
+  <meta name="description" content="Fissa foto, video e audio in un luogo: si sbloccano solo quando ci arrivi.">
+  <meta name="theme-color" content="#1f3a5f">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <a href="#/" class="brand"><span class="pin" aria-hidden="true"></span>Ubi</a>
+    <span id="mode" class="badge" hidden>DEMO</span>
+  </header>
+  <main id="app" aria-live="polite"><p class="muted center">Caricamento…</p></main>
+  <footer class="foot"><a href="privacy.html">Privacy</a> · Ubi</footer>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "Ubi — lascia un ricordo dove è nato",
+  "short_name": "Ubi",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f3ee",
+  "theme_color": "#1f3a5f",
+  "lang": "it",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
