@@ -168,3 +168,22 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .invitebox { margin-top: 12px; }
 .invitebox .row > * { flex: 1; }
 #faq-posizione { scroll-margin-top: 80px; }
+
+/* banner pubblicitari: stessa misura del pulsante Ubi Dating */
+.adbanner { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; border-radius: 14px; color: #fff; text-decoration: none; position: relative; transition: opacity .6s; }
+.adbanner.fade { opacity: 0; }
+.adbanner img { height: 38px; width: 38px; object-fit: contain; border-radius: 8px; background: #fff; flex: 0 0 auto; }
+.adbanner .adtxt { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.adbanner .adtxt b { font-size: 16px; }
+.adbanner .adtxt span { font-size: 13px; opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adbanner .adtag { margin-left: auto; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: .75; }
+.capsule .countdown { font-size: 30px; font-weight: 800; letter-spacing: 1px; margin: 6px 0 8px; }
+.prize { background: #fff8ee; border-color: #f3d9b8; }
+.prizecode { font-size: 40px; font-weight: 800; letter-spacing: 6px; background: #fff; border: 2px dashed #e8743b; border-radius: 14px; padding: 12px; margin: 12px auto; max-width: 280px; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--line, #e4ded4); white-space: nowrap; }
+
+.socials { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 12px; }
+.soc { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; padding: 0; min-height: 0; color: var(--ink, #1b2430); font-size: 11px; font-weight: 600; text-decoration: none; cursor: pointer; width: 48px; }
+.soc svg { width: 42px; height: 42px; display: block; }
+.socmsg .msg { margin-top: 10px; }

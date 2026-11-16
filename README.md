@@ -41,6 +41,11 @@ Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 - Dating: solo maggiorenni (controllo sul server), biglietti pubblici con pallino rosa/azzurro, sblocco e risposta solo per gli iscritti, anonimato finché entrambi non scelgono «Voglio conoscerti».
 - Risposte: chi ha sbloccato un pin può lasciare al creatore testo, foto, video (max 60 s) o audio; il creatore riceve un'email.
 
+## 5. Gruppi, capsula del tempo, caccia al tesoro, banner (aggiornamento 10)
+1. SQL Editor: eseguire `supabase/migrations/20261116190000_gruppi_capsule_caccia_banner.sql`.
+2. Per diventare amministratore (banner e lista iscritti) eseguire una volta, con la propria email:
+   `insert into public.app_admins(user_id) select id from auth.users where email = 'LA-TUA-EMAIL' on conflict do nothing;`
+
 ## Come funziona la sicurezza
 - La tabella dei contenuti è leggibile solo dal proprietario (Row Level Security).
 - Gli altri usano due funzioni: `get_teaser` (titolo, indizio, punto sulla mappa) e `unlock`, che controlla **sul server** permessi, distanza, precisione GPS, password (bcrypt) e blocca dopo 5 errori in 15 minuti.

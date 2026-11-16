@@ -2,7 +2,7 @@
 create role anon nologin; create role authenticated nologin;
 create schema extensions; create schema auth; create schema storage;
 grant usage on schema public, auth, storage, extensions to anon, authenticated;
-create table auth.users (id uuid primary key, email text, phone text);
+create table auth.users (id uuid primary key, email text, phone text, created_at timestamptz default now(), last_sign_in_at timestamptz, email_confirmed_at timestamptz);
 create function auth.jwt() returns jsonb language sql stable as
   $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
 create function auth.uid() returns uuid language sql stable as

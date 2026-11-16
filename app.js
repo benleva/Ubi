@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611162118';
+import { CONFIG } from './config.js?v=202611162130';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.22';
+const APP_VERSION = 'v.23';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -18,7 +18,11 @@ const badge = (t, extra = '') => { const x = TYPES[t] || TYPES.photo; return `<s
 // Dating: pallino rosa (lei) o azzurro (lui)
 const GENDER = { f: { c: '#ff5fa2', n: 'lei' }, m: { c: '#4fb3ff', n: 'lui' } };
 const datingBadge = (g, extra = '') => { const x = GENDER[g] || { c: '#b06ad9', n: '' }; return `<span class="tico ${extra}" style="background:${x.c}" title="Dating${x.n ? ` · ${x.n}` : ''}">♥</span>`; };
-const pinBadge = (c, extra = '') => (c.is_dating ? datingBadge(c.gender, extra) : badge(c.media_type, extra));
+const iconBadge = (ch, color, title, extra = '') => `<span class="tico ${extra}" style="background:${color}" title="${title}">${ch}</span>`;
+const pinBadge = (c, extra = '') => (c.is_dating ? datingBadge(c.gender, extra)
+  : c.hunt_step ? iconBadge(String(c.hunt_step), '#c0392b', `Caccia al tesoro · tappa ${c.hunt_step}`, extra)
+  : c.unlock_at && Date.parse(c.unlock_at) > Date.now() ? iconBadge('⏳', '#8a6d3b', 'Capsula del tempo', extra)
+  : badge(c.media_type, extra));
 const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
 const setDatingTheme = (on) => document.body.classList.toggle('dating', !!on);
 const TAGS_SUGGESTED = ['famiglia', 'amore', 'anniversario', 'amici', 'ricordo', 'sport', 'panorama', 'tramonto',
@@ -137,7 +141,7 @@ async function supabaseBackend() {
     },
     async listMine() {
       const u = await B.user();
-      return must(await sb.from('contents').select('id,share_slug,title,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled')
+      return must(await sb.from('contents').select('id,share_slug,title,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled,unlock_at,open_anywhere,hunt_id,hunt_step')
         .eq('owner_id', u.id).order('created_at', { ascending: false }));
     },
     async create(d) {
@@ -153,6 +157,7 @@ async function supabaseBackend() {
         id, owner_id: u.id, title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
         external_url: d.external_url || null, duration_seconds: d.duration ?? null, lat: d.lat, lng: d.lng,
         unlock_radius_m: d.radius, location_source: d.source, visibility: d.visibility, password_hash: d.password || null,
+        unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere), hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null,
         text_body: d.text_body || null, tags: d.tags || [], is_dating: !!d.is_dating, replies_enabled: d.replies_enabled !== false,
       };
       const res = await sb.from('contents').insert(row).select('share_slug').single();
@@ -171,12 +176,37 @@ async function supabaseBackend() {
       return data;   // { sent, skipped, failed, errors }
     },
     // --- rubrica
-    async listContacts() { return must(await sb.from('address_book').select('id,name,email').order('name')) || []; },
+    async listContacts() { return must(await sb.from('address_book').select('id,name,email,groups').order('name')) || []; },
     async saveContact(c) {
       const u = await B.user();
-      if (c.id) must(await sb.from('address_book').update({ name: c.name, email: c.email }).eq('id', c.id));
-      else must(await sb.from('address_book').insert({ owner_id: u.id, name: c.name, email: c.email }));
+      const row = { name: c.name, email: c.email, ...(c.groups ? { groups: c.groups } : {}) };
+      if (c.id) must(await sb.from('address_book').update(row).eq('id', c.id));
+      else must(await sb.from('address_book').insert({ owner_id: u.id, ...row }));
     },
+    // --- caccia al tesoro
+    async listHunts() { return must(await sb.from('hunts').select('*').order('created_at', { ascending: false })) || []; },
+    async getHunt(id) { return must(await sb.from('hunts').select('*').eq('id', id).maybeSingle()); },
+    async createHunt(h) { return must(await sb.from('hunts').insert({ title: h.title, prize: h.prize, max_winners: h.max_winners }).select('*').single()); },
+    async deleteHunt(id) { must(await sb.from('hunts').delete().eq('id', id)); },
+    async huntSteps(id) { return must(await sb.from('contents').select('share_slug,title,hunt_step').eq('hunt_id', id).order('hunt_step')) || []; },
+    async huntWinners(id) { return must(await sb.rpc('hunt_winners_list', { p_hunt: id })) || []; },
+    async huntRedeem(id, code) { return (must(await sb.rpc('hunt_redeem', { p_hunt: id, p_code: code })) || [])[0]; },
+    async myHuntPrize(slug) { return (must(await sb.rpc('my_hunt_prize', { p_slug: slug })) || [])[0] || null; },
+    // --- amministratore: banner e iscritti
+    async isAdmin() { try { return !!must(await sb.rpc('is_admin')); } catch { return false; } },
+    async listAds() { return must(await sb.from('ads').select('*').order('sort').order('created_at')) || []; },
+    async saveAd(a) {
+      const row = { title: a.title, body: a.body || null, link_url: a.link_url || null, image_url: a.image_url || null, color: a.color, active: a.active, sort: a.sort || 0 };
+      if (a.id) must(await sb.from('ads').update(row).eq('id', a.id)); else must(await sb.from('ads').insert(row));
+    },
+    async deleteAd(id) { must(await sb.from('ads').delete().eq('id', id)); },
+    async uploadAdImage(blob) {
+      const u = await B.user();
+      const path = `${u.id}/ads/${crypto.randomUUID()}.jpg`;
+      must(await sb.storage.from('avatars').upload(path, blob, { contentType: 'image/jpeg', upsert: false }));
+      return sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+    },
+    async adminUsers() { return must(await sb.rpc('admin_users')) || []; },
     async deleteContact(id) { must(await sb.from('address_book').delete().eq('id', id)); },
     // --- profilo, autore, messaggi
     avatarUrl(path) { return path ? sb.storage.from('avatars').getPublicUrl(path).data.publicUrl : null; },
@@ -233,6 +263,7 @@ async function supabaseBackend() {
         duration_seconds: kindIsFile ? (d.file ? d.duration : old.duration_seconds) : null,
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, location_source: d.source,
         visibility: d.visibility, tags: d.tags || [], replies_enabled: d.replies_enabled !== false,
+        unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
       };
       if (d.passwordAction === 'set') patch.password_hash = d.password;
       if (d.passwordAction === 'remove') patch.password_hash = null;
@@ -375,6 +406,7 @@ function demoBackend() {
         media_path: d.file ? id : null, external_url: d.external_url || null, lat: d.lat, lng: d.lng, unlock_radius_m: d.radius,
         visibility: d.visibility, recipients: d.recipients, password_hash: d.password ? await sha(d.password) : null,
         text_body: d.text_body || null, tags: d.tags || [], created_at: new Date().toISOString(),
+        unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
       });
       save(); return slug;
     },
@@ -387,6 +419,20 @@ function demoBackend() {
     async repliesFor() { return []; },
     async myReplies() { return []; },
     async myDatingPhotos() { return []; },
+    async listHunts() { return []; },
+    async getHunt() { return null; },
+    async createHunt() { throw new Error('La caccia al tesoro non è disponibile nella demo.'); },
+    async deleteHunt() {},
+    async huntSteps() { return []; },
+    async huntWinners() { return []; },
+    async huntRedeem() { return { status: 'not_found' }; },
+    async myHuntPrize() { return null; },
+    async isAdmin() { return false; },
+    async listAds() { return []; },
+    async saveAd() { throw new Error('Non disponibile nella demo.'); },
+    async deleteAd() {},
+    async uploadAdImage() { throw new Error('Non disponibile nella demo.'); },
+    async adminUsers() { return []; },
     async addDatingPhoto() { throw new Error('Le foto dating non sono disponibili nella demo.'); },
     async removeDatingPhoto() {},
     async datingPhotosOf() { return []; },
@@ -396,8 +442,8 @@ function demoBackend() {
     async saveContact(c) {
       const bk = B._book();
       if (bk.some((x) => x.email === c.email && x.id !== c.id)) throw new Error('duplicate key value violates unique constraint');
-      if (c.id) Object.assign(bk.find((x) => x.id === c.id), { name: c.name, email: c.email });
-      else bk.push({ id: crypto.randomUUID(), name: c.name, email: c.email });
+      if (c.id) Object.assign(bk.find((x) => x.id === c.id), { name: c.name, email: c.email, groups: c.groups || [] });
+      else bk.push({ id: crypto.randomUUID(), name: c.name, email: c.email, groups: c.groups || [] });
       save();
     },
     async deleteContact(id) { db.book[db.user.id] = B._book().filter((x) => x.id !== id); save(); },
@@ -481,6 +527,7 @@ function demoBackend() {
         already_unlocked: !!u && db.unlocks.some((x) => x.c === c.id && x.u === u.id),
         author: db.profiles[c.owner_id]?.display_name || null, tags: c.tags || [],
         author_id: c.owner_id, author_avatar: db.profiles[c.owner_id]?.avatar_path || null,
+        unlock_at: c.unlock_at || null, open_anywhere: !!c.open_anywhere,
       };
     },
     async unlock(slug, pos, password) {
@@ -489,6 +536,8 @@ function demoBackend() {
       if (!c || !canAccess(c, u)) return { status: 'not_found' };
       const ok = async (d) => ({ status: 'ok', distance_m: d, external_url: c.external_url, text_body: c.text_body, url: c.media_path ? URL.createObjectURL(await getBlob(c.media_path) || new Blob()) : null });
       if (c.owner_id === u.id || db.unlocks.some((x) => x.c === c.id && x.u === u.id)) return ok(null);
+      if (c.unlock_at && Date.now() < Date.parse(c.unlock_at)) return { status: 'too_early' };
+      if (c.unlock_at && c.open_anywhere) { db.unlocks.push({ c: c.id, u: u.id }); save(); return ok(null); }
       if (!pos || pos.acc > 100) return { status: 'gps_inaccurate' };
       const d = Math.round(distanceM(c.lat, c.lng, pos.lat, pos.lng));
       if (d > c.unlock_radius_m + Math.min(pos.acc, 30)) return { status: 'too_far', distance_m: d };
@@ -547,8 +596,18 @@ async function routeInner() {
   if (page === 'foto' && arg) return viewDatingPhotos(arg);
   if (page === 'new') {
     if (arg === 'dating' && !isDating(prof)) { location.hash = '#/dating'; return; }
-    return viewNew(null, { dating: arg === 'dating' });
+    if (arg && arg.startsWith('caccia-')) {
+      const id = arg.slice(7);
+      const h = await B.getHunt(id); if (!h) { location.hash = '#/cacce'; return; }
+      const steps = await B.huntSteps(id);
+      return viewNew(null, { hunt: { id, title: h.title, step: steps.length ? Math.max(...steps.map((x) => x.hunt_step)) + 1 : 1 } });
+    }
+    return viewNew(null, { dating: arg === 'dating', capsule: arg === 'capsula' });
   }
+  if (page === 'capsule') return viewCapsules();
+  if (page === 'cacce') return viewHunts();
+  if (page === 'caccia' && arg) return viewHunt(arg);
+  if (page === 'admin') return viewAdmin(arg);
   if (page === 'profilo') return viewMyProfile(prof);
   if (page === 'rubrica') return viewBook();
   if (page === 'u' && arg) return viewAuthor(arg);
@@ -795,6 +854,9 @@ async function viewHome(user, prof) {
     <div id="mm"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
+    <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
+    <div id="adminrow" class="row" style="margin-top:10px" hidden><a href="#/admin/banner" class="btn ghost">📣 Banner pubblicitari</a><a href="#/admin/iscritti" class="btn ghost">👥 Iscritti (Excel)</a></div>
+    <div id="adslot" style="margin-top:10px"></div>
     <a href="#/dating" class="btn full datingbtn" style="margin-top:10px">💗 Ubi Dating · incontra chi ama i tuoi luoghi</a>
     ${inviteBox(false)}
     <h2 style="margin-top:22px">I miei contenuti</h2>
@@ -803,6 +865,8 @@ async function viewHome(user, prof) {
   $('#out').onclick = async (e) => { e.preventDefault(); await B.signOut(); location.hash = '#/'; route(); };
   homeMap();
   bindInvite(app);
+  drawAdSlot($('#adslot'));
+  B.isAdmin().then((ok) => { if (ok && $('#adminrow')) $('#adminrow').hidden = false; });
   let items;
   try { items = await B.listMine(); } catch (err) { msg($('#list'), errText(err)); return; }
   if (!items.length) { $('#list').innerHTML = '<div class="card center muted">Non hai ancora lasciato nulla.<br>Inizia da un luogo che conta per te.</div>'; return; }
@@ -836,13 +900,10 @@ function shareSheet(title, slug, container) {
   const old = container.querySelector('.share'); if (old) { old.remove(); return; }
   container.insertAdjacentHTML('beforeend', `
     <div class="share"><p class="linkbox">${esc(url)}</p>
-      <div class="actions">
-        <button data-s="copy">Copia link</button>
-        <a class="btn" style="background:#25d366" target="_blank" rel="noopener"
-           href="https://wa.me/?text=${encodeURIComponent(`${title} — aprilo quando arrivi sul posto: ${url}`)}">WhatsApp</a>
-        ${navigator.share ? '<button data-s="native" class="ghost">Altro…</button>' : ''}
-      </div></div>`);
+      <div class="actions"><button data-s="copy">Copia link</button></div>
+      ${socialButtons(url, `${title} — aprilo quando arrivi sul posto:`)}</div>`);
   const box = container.querySelector('.share');
+  bindSocials(box);
   box.onclick = async (e) => {
     const b = e.target.closest('button'); if (!b) return;
     e.stopPropagation();
@@ -853,8 +914,10 @@ function shareSheet(title, slug, container) {
 
 async function viewNew(ed = null, opts = {}) {
   const dating = !!opts.dating;
+  const hunt = opts.hunt || null;                      // { id, title, step }: tappa di una caccia al tesoro
+  const capsuleOn = !!opts.capsule || !!(ed && ed.unlock_at);
   const maxTags = dating ? MAX_TAGS_DATING : MAX_TAGS;
-  const s = { sel: new Set(), book: [], tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: dating ? 'public' : 'restricted' };
+  const s = { sel: new Set(), book: [], tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: dating || hunt ? 'public' : 'restricted' };
   if (ed) {
     Object.assign(s, {
       tags: new Set(ed.tags || []), kind: ['photo', 'video', 'audio'].includes(ed.media_type) ? 'file' : ed.media_type,
@@ -862,7 +925,14 @@ async function viewNew(ed = null, opts = {}) {
     });
   }
   app.innerHTML = `
-    <h1>${dating ? (ed ? '💗 Modifica il biglietto' : '💗 Nuovo biglietto dating') : (ed ? 'Modifica contenuto' : 'Nuovo contenuto')}</h1>
+    <h1>${dating ? (ed ? '💗 Modifica il biglietto' : '💗 Nuovo biglietto dating')
+      : hunt ? `🗺️ Tappa ${hunt.step} · ${esc(hunt.title)}`
+      : opts.capsule && !ed ? '⏳ Nuova capsula del tempo' : (ed ? 'Modifica contenuto' : 'Nuovo contenuto')}</h1>
+    ${hunt ? `<div class="card datingtips" style="background:#fff8ee;border-color:#f3d9b8"><b>Come funziona la tappa</b><ul class="small">
+      <li>Nel campo <b>Indizio</b> scrivi cosa si vede prima di arrivare (es. «Dove il tram fa capolinea»).</li>
+      <li>Nel <b>contenuto</b> (testo, foto o video) metti l'indizio per la tappa ${hunt.step + 1} oppure, se è l'ultima, un messaggio di congratulazioni.</li>
+      <li>Le tappe dalla 2 in poi compaiono sulla mappa <b>solo dopo aver trovato la precedente</b>.</li>
+      <li>Chi sblocca l'<b>ultima tappa</b> riceve un <b>codice premio unico</b> da mostrarti.</li></ul></div>` : ''}
     ${ed ? '<div class="msg info">Il link già condiviso resta lo stesso: chi lo apre vedrà la versione aggiornata.</div>' : ''}
     ${dating ? `<div class="card datingtips"><b>Come funziona il biglietto</b>
       <ul class="small"><li>Lo lasci in un luogo che ami: sulla mappa appare con il tuo pallino ${datingBadge('f', 'sm')}${datingBadge('m', 'sm')}.</li>
@@ -912,11 +982,18 @@ async function viewNew(ed = null, opts = {}) {
       <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="newtag" maxlength="24" placeholder="Aggiungi un tag tuo…" enterkeyhint="done">
         <button id="addtag" type="button" class="ghost" style="flex:0 0 auto">＋</button></div>
     </div>
+    <div class="card" ${dating || hunt ? 'hidden' : ''}><h2>⏳ Capsula del tempo <span class="muted small">(facoltativo)</span></h2>
+      <label class="inline"><input type="checkbox" id="capsule" ${capsuleOn ? 'checked' : ''}><span>Si può aprire solo <b>da una data e un'ora</b> nel futuro (compleanni, anniversari, «da aprire tra 10 anni»…)</span></label>
+      <div id="capbox" ${capsuleOn ? '' : 'hidden'}>
+        <label for="unlockat">Si apre dal</label><input id="unlockat" type="datetime-local">
+        <label class="inline"><input type="checkbox" id="anywhere" ${ed && ed.open_anywhere ? 'checked' : ''}><span>Dopo quella data si può aprire <b>anche da lontano</b>, senza andare sul posto</span></label>
+        <p class="muted small">Prima della data chi lo riceve vede solo titolo, indizio e il conto alla rovescia.</p></div></div>
     ${dating ? `<div class="card"><h2>4 · Chi può aprirlo</h2>
       <div class="msg info small">💗 I biglietti dating sono <b>visibili a tutti</b> sulla mappa, ma solo gli iscritti a Ubi Dating (18+) che arrivano sul posto possono aprirli e risponderti. Ti avvisiamo via email a ogni risposta.</div></div>` : ''}
     <div class="card" ${dating ? 'hidden' : ''}><h2>4 · Chi può aprirlo</h2>
       <div class="seg" id="vis"><button data-v="restricted" class="on">Persone scelte</button><button data-v="public">Tutti</button><button data-v="hidden">Solo io</button></div>
       <div id="v-restricted">
+        <div id="groupbox" hidden><label>👥 Gruppi <span class="muted small">(un tocco seleziona tutti i membri)</span></label><div class="chips" id="groupchips"></div></div>
         <label>Dalla tua rubrica <span class="muted small" id="seln"></span></label>
         <div class="chips" id="book"><span class="muted small">Carico la rubrica…</span></div>
         <details class="quickadd"><summary>＋ Aggiungi un contatto alla rubrica</summary>
@@ -1081,6 +1158,20 @@ async function viewNew(ed = null, opts = {}) {
     $('#book').innerHTML = s.book.length ? s.book.map((c) => `<button type="button" class="chip ${s.sel.has(c.email) ? 'on' : ''}" data-e="${esc(c.email)}" title="${esc(c.email)}">${esc(c.name)}</button>`).join('')
       : '<span class="muted small">La rubrica è vuota: aggiungi qui sotto i contatti che usi spesso.</span>';
     $('#seln').textContent = s.sel.size ? `(${s.sel.size} selezionat${s.sel.size === 1 ? 'o' : 'i'})` : '';
+    const groups = [...new Set(s.book.flatMap((c) => c.groups || []))].sort();
+    $('#groupbox').hidden = !groups.length;
+    $('#groupchips').innerHTML = groups.map((g) => {
+      const members = s.book.filter((c) => (c.groups || []).includes(g));
+      const all = members.every((c) => s.sel.has(c.email));
+      return `<button type="button" class="chip ${all ? 'on' : ''}" data-g="${esc(g)}">👥 ${esc(g)} (${members.length})</button>`;
+    }).join('');
+  };
+  $('#groupchips').onclick = (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const members = s.book.filter((c) => (c.groups || []).includes(b.dataset.g));
+    const all = members.every((c) => s.sel.has(c.email));
+    members.forEach((c) => (all ? s.sel.delete(c.email) : s.sel.add(c.email)));
+    drawBook();
   };
   $('#book').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; const em = b.dataset.e; if (s.sel.has(em)) s.sel.delete(em); else s.sel.add(em); drawBook(); };
   let bookReady = false;
@@ -1123,6 +1214,14 @@ async function viewNew(ed = null, opts = {}) {
     msg($('#lm'), 'Posizione attuale. Per spostarla: trascina lo spillo, tocca un altro punto, cerca un indirizzo, usa il GPS o scrivi le coordinate.', 'info');
   }
 
+  // --- capsula del tempo
+  const toLocalInput = (d) => { const x = new Date(d); return new Date(x.getTime() - x.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
+  $('#unlockat').min = toLocalInput(Date.now() + 60000);
+  if (ed && ed.unlock_at) $('#unlockat').value = toLocalInput(ed.unlock_at);
+  else if (opts.capsule) $('#unlockat').value = toLocalInput(Date.now() + 365 * 86400000);
+  $('#capsule').onchange = () => { $('#capbox').hidden = !$('#capsule').checked; };
+  if (hunt && !ed) $('#vis button[data-v="public"]').click();
+
   // --- salvataggio
   $('#save').onclick = async () => {
     const err = (t) => msg($('#sm'), t);
@@ -1135,6 +1234,14 @@ async function viewNew(ed = null, opts = {}) {
     } else if (!s.file && !(ed && ['photo', 'video', 'audio'].includes(ed.media_type))) return err('Scegli una foto, un video o un audio.');
     if (s.lat == null) return err('Indica il luogo: GPS, indirizzo, coordinate o tocco sulla mappa.');
     const title = $('#title').value.trim(); if (!title) return err('Dai un titolo al contenuto.');
+    let unlock_at = null;
+    if (!dating && !hunt && $('#capsule').checked) {
+      const v = $('#unlockat').value;
+      if (!v) return err('Capsula del tempo: scegli la data e l\'ora di apertura.');
+      unlock_at = new Date(v).toISOString();
+      const unchanged = ed && ed.unlock_at && Math.abs(Date.parse(ed.unlock_at) - Date.parse(unlock_at)) < 60000;
+      if (!unchanged && Date.parse(unlock_at) <= Date.now()) return err('Capsula del tempo: la data deve essere nel futuro.');
+    }
     if (s.vis === 'restricted' && ed && !bookReady) return err('Attendi un attimo: sto caricando la rubrica.');
     if (dating) s.vis = 'public';
     const recipients = s.vis === 'restricted' ? [...new Set([...s.sel, ...$('#emails').value.toLowerCase().split(/[\s,;]+/).filter(Boolean)])] : [];
@@ -1148,6 +1255,8 @@ async function viewNew(ed = null, opts = {}) {
       external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
       visibility: dating ? 'public' : s.vis, recipients: dating ? [] : recipients, password: $('#pwd').value,
       is_dating: dating, replies_enabled: dating ? true : $('#replies').checked,
+      unlock_at, open_anywhere: !!unlock_at && $('#anywhere').checked,
+      hunt_id: hunt ? hunt.id : null, hunt_step: hunt ? hunt.step : null,
     };
     try {
       if (ed) {
@@ -1158,6 +1267,7 @@ async function viewNew(ed = null, opts = {}) {
         return;
       }
       const slug = await B.create(data);
+      if (hunt) { location.hash = `#/caccia/${hunt.id}`; return; }
       const me = await B.profile().catch(() => null);
       viewCreated(title, slug, data.visibility === 'restricted'
         ? { recipients: data.recipients, title, hint: data.hint, slug, author: me?.display_name } : null);
@@ -1244,9 +1354,22 @@ async function viewContent(slug, user) {
     return;
   }
   setDatingTheme(t.is_dating);
-  const header = t.is_dating
+  if (t.hunt_locked && !t.is_owner) {
+    app.innerHTML = `<h1>🗺️ ${esc(t.title)}</h1><div class="card center"><p style="font-size:42px;margin:0">🔒</p>
+      <p>Questa è la <b>tappa ${t.hunt_step}</b> della caccia al tesoro «${esc(t.hunt_title || '')}».</p>
+      <p class="muted">Trova e sblocca prima la tappa ${t.hunt_step - 1}: dopo, questa comparirà sulla mappa.</p>
+      <a class="btn" href="#/">Vai alla mappa</a></div>`;
+    return;
+  }
+  const huntLine = t.hunt_id ? `<div class="msg info small">🗺️ Caccia al tesoro «${esc(t.hunt_title || '')}» · tappa <b>${t.hunt_step}</b> di ${t.hunt_steps}</div>` : '';
+  const opensAt = t.unlock_at ? new Date(t.unlock_at) : null;
+  const early = opensAt && Date.now() < opensAt.getTime() && !t.is_owner;
+  const anywhereNow = opensAt && t.open_anywhere && Date.now() >= opensAt.getTime();
+  const capLine = opensAt ? `<div class="msg info small">⏳ Capsula del tempo · si apre dal <b>${opensAt.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })}</b> alle <b>${opensAt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</b>${t.open_anywhere ? ', anche da lontano' : ', sul posto'}</div>` : '';
+  const header0 = t.is_dating
     ? `<h1>${datingBadge(t.gender)} ${esc(t.title)}</h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
     : `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
+  const header = header0 + huntLine + capLine;
   const showUnlocked = (r, d) => {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
@@ -1254,9 +1377,11 @@ async function viewContent(slug, user) {
       ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica o sostituisci il contenuto</a>
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
+      <div id="prizebox"></div>
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     if (user) replySection(t, slug, $('#replybox')).catch((err) => msg($('#replybox'), errText(err)));
+    if (user && t.hunt_id) huntPrizeBox(t, slug, $('#prizebox')).catch(() => {});
     if ($('#delpin')) $('#delpin').onclick = async () => {
       const b = $('#delpin');
       if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma: elimina per sempre'; return; }
@@ -1297,8 +1422,20 @@ async function viewContent(slug, user) {
       <div id="um"></div>
       ${!user ? '<button class="full" id="login">Accedi per sbloccare</button>'
         : (t.is_dating && !t.is_owner && !t.i_am_dating) ? '<div class="msg info small">I biglietti dating si aprono solo se sei iscritto a Ubi Dating (riservato ai maggiorenni).</div><a class="btn full accent" href="#/dating">💗 Iscriviti a Ubi Dating</a>'
-        : '<button class="full accent" id="unlock">🔓 Sblocca qui</button>'}
+        : early ? `<div class="capsule center"><div style="font-size:44px">⏳</div><p>Questa capsula si apre tra</p><div class="countdown" id="countdown">…</div>
+            <p class="muted small">${t.open_anywhere ? 'Quel giorno potrai aprirla da dove vuoi.' : 'Quel giorno dovrai essere sul posto.'}</p></div>`
+        : `<button class="full accent" id="unlock">${anywhereNow ? '🔓 Apri la capsula' : '🔓 Sblocca qui'}</button>`}
     </div>`;
+  if (early) {
+    const tick = () => {
+      const el = $('#countdown'); if (!el) { clearInterval(iv); return; }
+      let s = Math.max(0, Math.floor((opensAt.getTime() - Date.now()) / 1000));
+      if (!s) { clearInterval(iv); route(); return; }
+      const dd = Math.floor(s / 86400); s %= 86400; const hh = Math.floor(s / 3600); s %= 3600; const mm = Math.floor(s / 60); s %= 60;
+      el.textContent = `${dd ? `${dd} g ` : ''}${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    };
+    const iv = setInterval(tick, 1000); tick();
+  }
   if (!user) { $('#login').onclick = () => { setPending(location.hash); viewLogin(); }; }
 
   let me = null, meMarker = null, map = null;
@@ -1333,7 +1470,7 @@ async function viewContent(slug, user) {
   btn.onclick = async () => {
     btn.disabled = true; msg($('#um'), '');
     try {
-      const pos = me || await getPos();
+      const pos = anywhereNow ? (me || null) : (me || await getPos());
       const r = await B.unlock(slug, pos, $('#pwd')?.value || null);
       const M = {
         too_far: `Sei a ${fmtDist(r.distance_m ?? 0)}: avvicinati ancora.`,
@@ -1342,6 +1479,8 @@ async function viewContent(slug, user) {
         rate_limited: 'Troppi tentativi: riprova tra 15 minuti.', not_found: 'Contenuto non disponibile.',
         login_required: 'Accedi per sbloccare.',
         dating_required: 'Questo biglietto si apre solo se sei iscritto a Ubi Dating (18+). <a href="#/dating">Iscriviti</a>',
+        too_early: 'È una capsula del tempo: non si può ancora aprire.',
+        hunt_locked: 'Trova prima la tappa precedente della caccia al tesoro.',
       };
       if (r.status === 'ok') return showUnlocked(r, r.distance_m);
       msg($('#um'), M[r.status] || r.status);
@@ -1395,10 +1534,244 @@ async function viewDatingPhotos(userId) {
     <p class="center"><a href="#/dating">Torna a Ubi Dating</a></p>`;
 }
 
+// ======================= CAPSULA DEL TEMPO =======================
+const fmtWhen = (d) => new Date(d).toLocaleString('it-IT', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+async function viewCapsules() {
+  app.innerHTML = `<h1>⏳ Capsula del tempo</h1>
+    <div class="card datingtips" style="background:#fbf6ec;border-color:#eadcc0"><b>Un messaggio per il futuro.</b>
+      <ul class="small"><li>Lasci un video, una foto o una lettera in un luogo e scegli <b>da quando</b> si potrà aprire: tra un mese, al compleanno dei 18 anni, tra dieci anni.</li>
+      <li>Fino a quel momento chi lo riceve vede solo il titolo e il conto alla rovescia.</li>
+      <li>Decidi tu se, arrivata la data, serve andare sul posto oppure si apre <b>anche da lontano</b>.</li></ul></div>
+    <a href="#/new/capsula" class="btn accent full">＋ Crea una capsula del tempo</a>
+    <h2 style="margin-top:22px">Le mie capsule</h2><div id="caps"><p class="muted center">Carico…</p></div>
+    <p class="center"><a href="#/">Torna a Ubi</a></p>`;
+  try {
+    const list = (await B.listMine()).filter((c) => c.unlock_at).sort((a, b) => Date.parse(a.unlock_at) - Date.parse(b.unlock_at));
+    $('#caps').innerHTML = list.length ? list.map((c) => {
+      const open = Date.parse(c.unlock_at) <= Date.now();
+      return `<div class="card"><div class="item"><div class="ico">${iconBadge(open ? '🔓' : '⏳', open ? '#2e7d32' : '#8a6d3b', '')}</div>
+        <div><div class="t">${esc(c.title)}</div><div class="meta">${open ? 'Aperta dal' : 'Si apre il'} ${fmtWhen(c.unlock_at)}${c.open_anywhere ? ' · da ovunque' : ' · sul posto'}</div></div></div>
+        <div class="actions"><a class="btn" href="#/c/${esc(c.share_slug)}">Apri</a><a class="btn ghost" href="#/edit/${esc(c.share_slug)}">Modifica</a></div></div>`;
+    }).join('') : '<div class="card center muted">Non hai ancora creato capsule del tempo.</div>';
+  } catch (err) { msg($('#caps'), errText(err)); }
+}
+
+// ======================= CACCIA AL TESORO =======================
+async function huntPrizeBox(t, slug, box) {
+  if (!box) return;
+  if (t.is_owner) { box.innerHTML = `<a class="btn ghost full" href="#/caccia/${esc(t.hunt_id)}" style="margin-bottom:10px">🗺️ Gestisci la caccia e i premi</a>`; return; }
+  const p = await B.myHuntPrize(slug);
+  if (!p || !document.body.contains(box)) return;
+  if (!p.is_last) { box.innerHTML = `<div class="msg ok">🗺️ Tappa ${t.hunt_step} di ${p.steps} trovata! La tappa ${t.hunt_step + 1} ora compare sulla mappa: segui l'indizio qui sopra.</div>`; return; }
+  if (p.code) {
+    box.innerHTML = `<div class="card prize center"><div style="font-size:46px">🏆</div><h2>Hai completato «${esc(p.hunt_title)}»!</h2>
+      <p>Hai vinto: <b>${esc(p.prize)}</b></p><div class="prizecode">${esc(p.code)}</div>
+      ${p.redeemed_at ? `<p class="muted">Premio già ritirato il ${fmtWhen(p.redeemed_at)}.</p>` : '<p><b>Mostra questo codice</b> a chi ha organizzato la caccia per ritirare il premio. Il codice è solo tuo e vale una volta.</p>'}</div>`;
+    return;
+  }
+  box.innerHTML = `<div class="card center"><h2>🏁 Hai completato «${esc(p.hunt_title)}»!</h2><p class="muted">${p.sold_out ? 'Peccato: i premi sono già stati vinti tutti. Grazie per aver giocato!' : 'Complimenti!'}</p></div>`;
+}
+async function viewHunts() {
+  app.innerHTML = `<h1>🗺️ Caccia al tesoro</h1>
+    <div class="card datingtips" style="background:#fff8ee;border-color:#f3d9b8"><b>Una promo da giocare in città.</b>
+      <ul class="small"><li>Crei la caccia e scegli il <b>premio</b> (es. «una birra media o una maglietta») e quanti vincitori al massimo.</li>
+      <li>Aggiungi le <b>tappe</b> (es. 3): ognuna è un pin con un indizio. La tappa successiva compare solo dopo aver trovato la precedente.</li>
+      <li>Chi sblocca l'ultima riceve un <b>codice unico</b>: lo verifichi qui e lo segni come ritirato.</li></ul></div>
+    <div class="card"><form id="hf"><h2>Nuova caccia</h2>
+      <label for="ht">Nome</label><input id="ht" maxlength="80" required placeholder="Es. La caccia del Kymera">
+      <label for="hp">Premio</label><input id="hp" maxlength="200" required placeholder="Es. Una birra media o una maglietta">
+      <label for="hm">Numero massimo di vincitori</label><input id="hm" type="number" min="1" max="10000" value="30">
+      <div id="hm2"></div><button class="full accent" type="submit">Crea la caccia</button></form></div>
+    <h2 style="margin-top:22px">Le mie cacce</h2><div id="hl"><p class="muted center">Carico…</p></div>
+    <p class="center"><a href="#/">Torna a Ubi</a></p>`;
+  $('#hf').onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const h = await B.createHunt({ title: $('#ht').value.trim(), prize: $('#hp').value.trim(), max_winners: Math.max(1, +$('#hm').value || 30) });
+      location.hash = `#/caccia/${h.id}`;
+    } catch (err) { msg($('#hm2'), errText(err)); }
+  };
+  try {
+    const list = await B.listHunts();
+    $('#hl').innerHTML = list.length ? list.map((h) => `<a class="card item" href="#/caccia/${esc(h.id)}" style="text-decoration:none;color:inherit">
+      <div class="ico">${iconBadge('🗺', '#c0392b', '')}</div><div><div class="t">${esc(h.title)}</div><div class="meta">🏆 ${esc(h.prize)} · max ${h.max_winners} vincitori</div></div></a>`).join('')
+      : '<div class="card center muted">Nessuna caccia ancora.</div>';
+  } catch (err) { msg($('#hl'), errText(err)); }
+}
+async function viewHunt(id) {
+  app.innerHTML = '<p class="muted center">Carico…</p>';
+  const h = await B.getHunt(id);
+  if (!h) { app.innerHTML = '<div class="card center">Caccia non trovata. <a href="#/cacce">Le mie cacce</a></div>'; return; }
+  const [steps, winners] = await Promise.all([B.huntSteps(id), B.huntWinners(id)]);
+  const next = steps.length ? Math.max(...steps.map((x) => x.hunt_step)) + 1 : 1;
+  app.innerHTML = `<h1>🗺️ ${esc(h.title)}</h1>
+    <p class="muted">🏆 ${esc(h.prize)} · vincitori: <b>${winners.length}/${h.max_winners}</b></p>
+    <div class="card"><h2>Tappe</h2>
+      ${steps.length ? steps.map((x) => `<div class="item"><div class="ico">${iconBadge(String(x.hunt_step), '#c0392b', '')}</div><div style="flex:1"><div class="t">${esc(x.title)}</div></div>
+        <a class="btn ghost" href="#/c/${esc(x.share_slug)}">Apri</a></div>`).join('') : '<p class="muted">Nessuna tappa: aggiungi la prima.</p>'}
+      ${next <= 20 ? `<a class="btn accent full" href="#/new/caccia-${esc(id)}" style="margin-top:10px">＋ Aggiungi la tappa ${next}</a>` : ''}
+      ${steps.length ? `<p class="muted small">Condividi il link della <b>tappa 1</b> (o lasciala visibile a tutti sulla mappa): le altre si scoprono giocando.</p>` : ''}</div>
+    <div class="card"><h2>✅ Verifica un codice premio</h2>
+      <div class="row"><input id="code" maxlength="6" placeholder="Es. A1B2C3" style="text-transform:uppercase;font-size:20px;letter-spacing:3px"><button class="accent" id="chk" style="flex:0 0 auto">Verifica</button></div>
+      <div id="cm"></div></div>
+    <div class="card"><h2>Vincitori</h2>
+      ${winners.length ? `<table class="tbl"><tr><th>Codice</th><th>Nome</th><th>Vinto</th><th>Ritirato</th></tr>${winners.map((w) => `<tr><td><b>${esc(w.code)}</b></td><td>${esc(w.name || '—')}</td><td>${fmtWhen(w.won_at)}</td><td>${w.redeemed_at ? '✅' : '—'}</td></tr>`).join('')}</table>`
+        : '<p class="muted">Ancora nessun vincitore.</p>'}</div>
+    <p class="center small"><a href="#/cacce">Le mie cacce</a> · <a href="#" id="hdel">Elimina la caccia</a></p>`;
+  $('#chk').onclick = async () => {
+    const code = $('#code').value.trim(); if (!code) return;
+    try {
+      const r = await B.huntRedeem(id, code);
+      const M = { ok: ['ok', `✅ Codice valido! Consegna «${esc(r.prize)}» a <b>${esc(r.name || 'il vincitore')}</b>. Segnato come ritirato.`],
+        already: ['err', `⚠️ Codice già usato il ${r.redeemed_at ? fmtWhen(r.redeemed_at) : ''}${r.name ? ` da ${esc(r.name)}` : ''}.`],
+        not_found: ['err', '❌ Codice non valido per questa caccia.'] };
+      const [k, t] = M[r.status] || ['err', esc(r.status)];
+      msg($('#cm'), t, k);
+      if (r.status === 'ok') setTimeout(() => viewHunt(id), 2500);
+    } catch (err) { msg($('#cm'), errText(err)); }
+  };
+  $('#hdel').onclick = async (e) => {
+    e.preventDefault();
+    if (e.target.dataset.confirm !== '1') { e.target.dataset.confirm = '1'; e.target.textContent = 'Conferma: elimina la caccia (le tappe restano come pin normali)'; return; }
+    try { await B.deleteHunt(id); location.hash = '#/cacce'; } catch (err) { msg($('#cm'), errText(err)); }
+  };
+}
+
+// ======================= BANNER PUBBLICITARI =======================
+let adTimer = null;
+async function drawAdSlot(box) {
+  if (!box) return;
+  let ads = [];
+  try { ads = (await B.listAds()).filter((a) => a.active); } catch { return; }
+  if (!ads.length || !document.body.contains(box)) return;
+  const card = (a) => `<a class="adbanner" style="background:${esc(a.color)}" ${a.link_url ? `href="${esc(a.link_url)}" target="_blank" rel="noopener sponsored"` : ''}>
+      ${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}<span class="adtxt"><b>${esc(a.title)}</b>${a.body ? `<span>${esc(a.body)}</span>` : ''}</span><span class="adtag">Sponsor</span></a>`;
+  let i = Math.floor(Math.random() * ads.length);
+  box.innerHTML = card(ads[i]);
+  clearInterval(adTimer);
+  if (ads.length > 1) adTimer = setInterval(() => {
+    if (!document.body.contains(box)) { clearInterval(adTimer); return; }
+    i = (i + 1) % ads.length;
+    box.firstElementChild.classList.add('fade');
+    setTimeout(() => { if (document.body.contains(box)) box.innerHTML = card(ads[i]); }, 600);
+  }, 9000);   // rotazione lenta: un banner ogni 9 secondi
+}
+
+// ======================= AMMINISTRATORE =======================
+async function viewAdmin(tab) {
+  if (!(await B.isAdmin())) { app.innerHTML = '<div class="card center">Pagina riservata all\'amministratore. <a href="#/">Torna a Ubi</a></div>'; return; }
+  const t = tab === 'iscritti' ? 'iscritti' : 'banner';
+  app.innerHTML = `<h1>⚙️ Amministrazione</h1>
+    <div class="seg"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a></div>
+    <div id="adm" style="margin-top:12px"><p class="muted center">Carico…</p></div>
+    <p class="center"><a href="#/">Torna a Ubi</a></p>`;
+  if (t === 'iscritti') return adminUsersTab($('#adm'));
+  return adminAdsTab($('#adm'));
+}
+async function adminUsersTab(box) {
+  const rows = await B.adminUsers();
+  const d = (x) => (x ? new Date(x).toLocaleDateString('it-IT') : '');
+  box.innerHTML = `<div class="card"><p><b>${rows.length}</b> iscritti · <b>${rows.filter((r) => r.ubi_dating).length}</b> in Ubi Dating</p>
+    <button class="accent full" id="xls">📥 Scarica per Excel</button><p class="muted small">Il file si apre con Excel, Numbers o Fogli Google.</p></div>
+    <div class="card" style="overflow-x:auto"><table class="tbl"><tr><th>Email</th><th>Nome</th><th>Iscritto</th><th>Ultimo accesso</th><th>Dating</th><th>Pin</th></tr>
+    ${rows.map((r) => `<tr><td>${esc(r.email)}</td><td>${esc(r.nome || '')}</td><td>${d(r.iscritto_il)}</td><td>${d(r.ultimo_accesso)}</td><td>${r.ubi_dating ? '💗' : ''}</td><td>${r.pin_creati}</td></tr>`).join('')}</table></div>`;
+  $('#xls').onclick = () => {
+    const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const head = ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati'];
+    const lines = [head.map(q).join(';'), ...rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati].map(q).join(';'))];
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `iscritti-ubi-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.append(a); a.click(); a.remove();
+  };
+}
+async function adminAdsTab(box) {
+  const ads = await B.listAds();
+  let editing = null, img = null;
+  box.innerHTML = `<div class="card"><form id="af"><h2 id="aft">Nuovo banner</h2>
+      <label for="at">Nome</label><input id="at" maxlength="60" required placeholder="Es. Kymera">
+      <label for="ab">Testo breve</label><input id="ab" maxlength="120" placeholder="Es. Birre artigianali in centro">
+      <label for="al">Link (sito, Instagram, mappa…)</label><input id="al" type="url" placeholder="https://…">
+      <label for="ac">Colore di sfondo</label><input id="ac" type="color" value="#1f3a5f">
+      <label>Logo o immagine (facoltativo)</label><input id="ai" type="file" accept="image/*"><div id="aprev"></div>
+      <label class="inline"><input type="checkbox" id="aa" checked><span>Attivo (compare in home a rotazione)</span></label>
+      <div id="am"></div><div class="row"><button class="accent" type="submit" id="asave">Salva banner</button><button class="ghost" type="button" id="acancel" hidden>Annulla</button></div></form></div>
+    <p class="muted small">Anteprima: il banner ha la stessa larghezza del pulsante Ubi Dating e ruota lentamente (uno ogni 9 secondi).</p>
+    <div id="alist">${ads.map((a) => `<div class="card" data-id="${esc(a.id)}"><div class="adbanner" style="background:${esc(a.color)}">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}<span class="adtxt"><b>${esc(a.title)}</b>${a.body ? `<span>${esc(a.body)}</span>` : ''}</span><span class="adtag">${a.active ? 'Attivo' : 'Spento'}</span></div>
+      <div class="actions"><button class="ghost" data-a="edit">✏️ Modifica</button><button class="ghost" data-a="toggle">${a.active ? '⏸ Spegni' : '▶️ Accendi'}</button><button class="danger" data-a="del">🗑</button></div></div>`).join('') || '<div class="card center muted">Nessun banner. Crea il primo qui sopra (es. Chiara, Kymera).</div>'}</div>`;
+  $('#ai').onchange = async () => {
+    const f = $('#ai').files[0]; if (!f) return;
+    try { img = await fitImage(f, 400); $('#aprev').innerHTML = `<img src="${URL.createObjectURL(img)}" style="max-height:60px;margin-top:8px">`; } catch (err) { msg($('#am'), errText(err)); }
+  };
+  $('#acancel').onclick = () => adminAdsTab(box);
+  $('#af').onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const old = ads.find((a) => a.id === editing);
+      const image_url = img ? await B.uploadAdImage(img) : (old?.image_url || null);
+      await B.saveAd({ id: editing, title: $('#at').value.trim(), body: $('#ab').value.trim(), link_url: $('#al').value.trim(), color: $('#ac').value, active: $('#aa').checked, image_url, sort: old?.sort || 0 });
+      adminAdsTab(box);
+    } catch (err) { msg($('#am'), errText(err)); }
+  };
+  $('#alist').onclick = async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const a = ads.find((x) => x.id === b.closest('.card').dataset.id); if (!a) return;
+    try {
+      if (b.dataset.a === 'edit') {
+        editing = a.id; $('#at').value = a.title; $('#ab').value = a.body || ''; $('#al').value = a.link_url || ''; $('#ac').value = a.color; $('#aa').checked = a.active;
+        $('#aft').textContent = 'Modifica banner'; $('#acancel').hidden = false; window.scrollTo(0, 0); return;
+      }
+      if (b.dataset.a === 'toggle') { await B.saveAd({ ...a, active: !a.active }); return adminAdsTab(box); }
+      if (b.dataset.a === 'del') {
+        if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma'; return; }
+        await B.deleteAd(a.id); return adminAdsTab(box);
+      }
+    } catch (err) { alertIn(b.closest('.card'), errText(err)); }
+  };
+}
+
 // ======================= INVITA UN AMICO (card con QR) =======================
 const INVITE_URL = 'https://ubipin.it';
 const INVITE_IMG = 'invito-ubi.png';
 const INVITE_TEXT = 'Ti presento Ubi: lascia foto, video e messaggi in un luogo, si aprono solo quando ci arrivi. Provala:';
+// ---------- Pulsanti social con icona: WhatsApp, Facebook, X, Telegram, Instagram (+ menu del telefono)
+const SOCIAL_SVG = {
+  wa: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#25D366"/><path d="M12 5.2a6.8 6.8 0 0 0-5.9 10.2L5.2 18.8l3.5-.9A6.8 6.8 0 1 0 12 5.2z" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M9.6 8.6c.2-.4.4-.4.6-.4h.4c.1 0 .3 0 .4.3l.6 1.4c.1.2 0 .4-.1.5l-.4.5c-.1.1-.1.3 0 .4.5.9 1.2 1.6 2.1 2.1.1.1.3.1.4 0l.5-.5c.1-.2.3-.2.5-.1l1.4.6c.2.1.3.3.2.5l-.1.5c-.1.5-.8 1-1.4 1-1 .1-2.6-.4-3.9-1.7S8.6 11 8.7 10c0-.6.6-1.2.9-1.4z" fill="#fff"/></svg>',
+  fb: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path d="M13.4 19.5v-6h2l.3-2.4h-2.3V9.6c0-.7.2-1.2 1.2-1.2h1.2V6.3c-.2 0-1-.1-1.8-.1-1.8 0-3 1.1-3 3.1v1.8H9v2.4h2v6z" fill="#fff"/></svg>',
+  x: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#000"/><path d="M7 6.5h3.1l2.5 3.4 2.9-3.4h1.3l-3.6 4.2 4.3 5.8h-3.1l-2.7-3.7-3.2 3.7H7.2l3.9-4.5z" fill="#fff"/></svg>',
+  tg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#26A5E4"/><path d="M5.5 11.6l11.6-4.5c.5-.2 1 .1.8.9l-2 9.3c-.1.6-.5.8-1 .5l-3-2.2-1.4 1.4c-.2.2-.3.3-.6.3l.2-3.1 5.6-5c.2-.2 0-.3-.3-.1L8.5 13.4l-3-.9c-.6-.2-.6-.6 0-.9z" fill="#fff"/></svg>',
+  ig: '<svg viewBox="0 0 24 24"><defs><linearGradient id="igg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".35" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><circle cx="12" cy="12" r="12" fill="url(#igg)"/><rect x="6.5" y="6.5" width="11" height="11" rx="3.2" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="15.3" cy="8.7" r=".8" fill="#fff"/></svg>',
+  more: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#687385"/><circle cx="7.5" cy="12" r="1.5" fill="#fff"/><circle cx="12" cy="12" r="1.5" fill="#fff"/><circle cx="16.5" cy="12" r="1.5" fill="#fff"/></svg>',
+};
+function socialButtons(url, text) {
+  const u = encodeURIComponent(url), t = encodeURIComponent(text);
+  const a = (k, href, label) => `<a class="soc" href="${href}" target="_blank" rel="noopener" aria-label="${label}" title="${label}">${SOCIAL_SVG[k]}<span>${label}</span></a>`;
+  return `<div class="socials" data-url="${esc(url)}" data-text="${esc(text)}">
+    ${a('wa', `https://wa.me/?text=${t}%20${u}`, 'WhatsApp')}
+    ${a('fb', `https://www.facebook.com/sharer/sharer.php?u=${u}`, 'Facebook')}
+    ${a('x', `https://x.com/intent/post?text=${t}&url=${u}`, 'X')}
+    ${a('tg', `https://t.me/share/url?url=${u}&text=${t}`, 'Telegram')}
+    <button type="button" class="soc" data-soc="ig" aria-label="Instagram" title="Instagram">${SOCIAL_SVG.ig}<span>Instagram</span></button>
+    <button type="button" class="soc" data-soc="more" aria-label="Altro" title="Altro">${SOCIAL_SVG.more}<span>Altro</span></button>
+  </div><div class="socmsg"></div>`;
+}
+// Instagram non ha un link di condivisione: copiamo il link e apriamo l'app (storia → sticker «Link»)
+function bindSocials(root = document) {
+  root.querySelectorAll('.socials').forEach((box) => {
+    box.onclick = async (e) => {
+      const b = e.target.closest('button[data-soc]'); if (!b) return;
+      const url = box.dataset.url, text = box.dataset.text, out = box.nextElementSibling;
+      if (b.dataset.soc === 'more') {
+        if (navigator.share) { try { await navigator.share({ title: 'Ubi', text, url }); } catch { /* annullato */ } }
+        else { try { await navigator.clipboard.writeText(`${text} ${url}`); msg(out, 'Link copiato ✓', 'ok'); } catch { msg(out, esc(url), 'info'); } }
+        return;
+      }
+      try { await navigator.clipboard.writeText(url); } catch { /* lo mostriamo comunque */ }
+      msg(out, `Link copiato ✓ Su Instagram: crea una <b>storia</b> → tocca l'icona degli sticker → <b>Link</b> → incolla. Nei post e nei messaggi diretti puoi incollarlo nel testo.<br><span class="small">${esc(url)}</span>`, 'ok');
+      if (/iphone|ipad|android/i.test(navigator.userAgent)) setTimeout(() => { location.href = 'instagram://story-camera'; }, 900);
+    };
+  });
+}
+
 // Condivide l'invito con il menu del telefono (WhatsApp, Instagram, Messaggi, Telegram, email…)
 async function shareInvite(dating = false, out = null) {
   const url = dating ? `${INVITE_URL}/#/dating` : INVITE_URL;
@@ -1427,12 +1800,12 @@ function inviteBox(dating = false) {
   return `<div class="card invitebox"><b>📲 Invita un amico</b>
     <div class="row" style="margin-top:10px">
       <button type="button" class="accent" data-invite="${dating ? 'd' : 'u'}">📤 Condividi</button>
-      <a class="btn" style="background:#25d366;border-color:#25d366;color:#fff" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}">WhatsApp</a>
-      ${dating ? '' : '<a class="btn ghost" href="#/invita">QR</a>'}
-    </div><div class="invmsg"></div></div>`;
+      ${dating ? '' : '<a class="btn ghost" href="#/invita">🔳 Card con QR</a>'}
+    </div><div class="invmsg"></div>${socialButtons(url, text)}</div>`;
 }
 // Collega i pulsanti "Condividi" presenti nella pagina
 function bindInvite(root = document) {
+  bindSocials(root);
   root.querySelectorAll('[data-invite]').forEach((b) => {
     b.onclick = () => shareInvite(b.dataset.invite === 'd', b.closest('.invitebox')?.querySelector('.invmsg'));
   });
@@ -1449,9 +1822,11 @@ function viewInvite() {
       <a class="btn ghost" href="${INVITE_IMG}" download="Ubi-card.png">Salva immagine</a>
     </div>
     <div id="im"></div>
+    <div class="card" style="margin-top:12px">${socialButtons(INVITE_URL, INVITE_TEXT)}</div>
     <div class="card small" style="margin-top:16px"><b>Vuoi la card nel Wallet?</b> Salva l'immagine, poi con un'app gratuita come <i>Pass2U Wallet</i> crea una card con QR <code>${INVITE_URL}</code> e aggiungila al Wallet.</div>
     <p class="center"><a href="#/">Torna a Ubi</a></p>`;
   $('#share').onclick = () => shareInvite(false, $('#im'));
+  bindSocials(app);
   $('#copy').onclick = async () => {
     try { await navigator.clipboard.writeText(INVITE_URL); msg($('#im'), 'Link copiato ✓', 'ok'); }
     catch { msg($('#im'), INVITE_URL, 'info'); }
@@ -1792,41 +2167,50 @@ async function viewMyProfile(prof) {
 }
 
 async function viewBook() {
-  let list = [], editing = null, q = '';
+  let list = [], editing = null, q = '', gsel = null;
+  const parseGroups = (v) => [...new Set(v.split(',').map((x) => x.trim().toLowerCase().replace(/[<>"]/g, '').slice(0, 30)).filter(Boolean))].slice(0, 10);
   app.innerHTML = `
     <h1>📒 La mia rubrica</h1>
-    <p class="muted">I contatti a cui mandi i pin più spesso. Quando crei un pin con "Persone scelte" li trovi come pulsanti da toccare. La rubrica la vedi solo tu.</p>
+    <p class="muted">I contatti a cui mandi i pin più spesso. Quando crei un pin con "Persone scelte" li trovi come pulsanti da toccare, e con i <b>gruppi</b> li selezioni tutti insieme. La rubrica la vedi solo tu.</p>
     <div class="card"><form id="f">
       <h2 id="ftitle">Nuovo contatto</h2>
       <label for="cname">Nome</label><input id="cname" maxlength="60" required placeholder="Es. Maria">
       <label for="cemail">Email</label><input id="cemail" type="email" required placeholder="maria@esempio.it">
       <p class="muted small">Usa l'email con cui la persona accede (o accederà) a Ubi.</p>
+      <label for="cgroups">👥 Gruppi <span class="muted small">(facoltativi, separati da virgola)</span></label>
+      <input id="cgroups" list="glist" maxlength="200" placeholder="Es. famiglia, calcetto, amici"><datalist id="glist"></datalist>
+      <p class="muted small">Con i gruppi, quando crei un pin selezioni tutti i membri con un solo tocco.</p>
       <div id="m"></div>
       <div class="row"><button class="accent" type="submit" id="csave">Aggiungi</button><button class="ghost" type="button" id="ccancel" hidden>Annulla</button></div>
     </form></div>
+    <div class="chips" id="gfilter"></div>
     <input id="q" type="search" placeholder="🔎 Cerca nella rubrica" style="margin:6px 0 4px">
     <div id="list"><p class="muted center">Carico…</p></div>
     <p class="center"><a href="#/">Torna alla mappa</a></p>`;
   const resetForm = () => { editing = null; $('#f').reset(); $('#ftitle').textContent = 'Nuovo contatto'; $('#csave').textContent = 'Aggiungi'; $('#ccancel').hidden = true; };
   const draw = () => {
-    const rows = list.filter((c) => !q || c.name.toLowerCase().includes(q) || c.email.includes(q));
+    const all = [...new Set(list.flatMap((c) => c.groups || []))].sort();
+    $('#glist').innerHTML = all.map((g) => `<option value="${esc(g)}">`).join('');
+    $('#gfilter').innerHTML = all.length ? `<button type="button" class="chip ${gsel ? '' : 'on'}" data-g="">Tutti</button>` + all.map((g) => `<button type="button" class="chip ${gsel === g ? 'on' : ''}" data-g="${esc(g)}">👥 ${esc(g)} (${list.filter((c) => (c.groups || []).includes(g)).length})</button>`).join('') : '';
+    const rows = list.filter((c) => (!q || c.name.toLowerCase().includes(q) || c.email.includes(q)) && (!gsel || (c.groups || []).includes(gsel)));
     $('#list').innerHTML = !list.length ? '<div class="card center muted">Nessun contatto. Aggiungi il primo qui sopra.</div>'
       : !rows.length ? '<p class="muted center">Nessun risultato.</p>'
       : `<p class="muted small">${list.length} contatt${list.length === 1 ? 'o' : 'i'}</p>` + rows.map((c) => `
         <div class="card item" data-id="${esc(c.id)}">${avatarHtml(null, c.name, 38)}
-          <div style="flex:1;min-width:0"><div class="t">${esc(c.name)}</div><div class="meta ellipsis">${esc(c.email)}</div></div>
+          <div style="flex:1;min-width:0"><div class="t">${esc(c.name)}</div><div class="meta ellipsis">${esc(c.email)}</div>${(c.groups || []).length ? `<div class="meta small">👥 ${c.groups.map(esc).join(', ')}</div>` : ''}</div>
           <button class="ghost" data-a="edit" style="min-height:38px;padding:6px 10px">✏️</button>
           <button class="danger" data-a="del" style="min-height:38px;padding:6px 10px">🗑</button></div>`).join('');
   };
   const load = async () => { try { list = await B.listContacts(); draw(); } catch (err) { msg($('#list'), errText(err)); } };
   $('#q').oninput = () => { q = $('#q').value.trim().toLowerCase(); draw(); };
+  $('#gfilter').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; gsel = b.dataset.g || null; draw(); };
   $('#ccancel').onclick = () => { resetForm(); msg($('#m'), ''); };
   $('#f').onsubmit = async (e) => {
     e.preventDefault();
     const name = $('#cname').value.trim(), email = $('#cemail').value.trim().toLowerCase();
     if (!EMAIL_RE.test(email)) return msg($('#m'), 'Email non valida.');
     try {
-      await B.saveContact({ id: editing, name, email });
+      await B.saveContact({ id: editing, name, email, groups: parseGroups($('#cgroups').value) });
       msg($('#m'), editing ? 'Contatto aggiornato ✓' : `${esc(name)} aggiunto ✓`, 'ok'); resetForm(); load();
     } catch (err) { msg($('#m'), authErr(err)); }
   };
@@ -1834,7 +2218,7 @@ async function viewBook() {
     const b = e.target.closest('button'); if (!b) return;
     const c = list.find((x) => x.id === b.closest('.card').dataset.id); if (!c) return;
     if (b.dataset.a === 'edit') {
-      editing = c.id; $('#cname').value = c.name; $('#cemail').value = c.email;
+      editing = c.id; $('#cname').value = c.name; $('#cemail').value = c.email; $('#cgroups').value = (c.groups || []).join(', ');
       $('#ftitle').textContent = 'Modifica contatto'; $('#csave').textContent = 'Salva'; $('#ccancel').hidden = false; window.scrollTo(0, 0);
     }
     if (b.dataset.a === 'del') {
@@ -1986,6 +2370,30 @@ const FAQ_GUIDE = [
     <li>Chi ha creato il pin riceve un'<b>email</b> e trova la risposta aprendo il pin.</li>
     <li>Quando crei un pin puoi disattivare le risposte (casella in fondo, sezione 4).</li>
     <li>Puoi ritirare la tua risposta quando vuoi; il creatore può eliminarla.</li></ol>`],
+  ['👥 Gruppi: mandare un pin a più persone insieme', `<ol>
+    <li>Apri <b>📒 La mia rubrica</b> e, in ogni contatto, scrivi uno o più <b>gruppi</b> separati da virgola (es. <code>famiglia, calcetto</code>).</li>
+    <li>Quando crei un pin con <b>Persone scelte</b>, sopra i contatti trovi i pulsanti <b>👥 famiglia (5)</b>: un tocco seleziona tutti i membri, un secondo tocco li toglie.</li>
+    <li>Tutti ricevono l'email con il link e solo loro potranno sbloccarlo.</li></ol>`],
+  ['⏳ Capsula del tempo', `<ol>
+    <li>Da home tocca <b>⏳ Capsula del tempo</b> → <b>Crea una capsula</b> (oppure, in qualsiasi nuovo pin, spunta <i>Capsula del tempo</i>).</li>
+    <li>Scegli <b>data e ora</b> di apertura: fino ad allora si vedono solo titolo, indizio e conto alla rovescia.</li>
+    <li>Decidi se, arrivata la data, bisogna essere <b>sul posto</b> oppure si apre <b>anche da lontano</b>.</li>
+    <li>Idee: una lettera per i 18 anni di tuo figlio, un video per il decimo anniversario, un messaggio da riaprire tra un anno nello stesso posto.</li></ol>`],
+  ['🗺️ Caccia al tesoro (anche per locali e pub)', `<ol>
+    <li>Da home tocca <b>🗺️ Caccia al tesoro</b>, dai un nome, scrivi il <b>premio</b> (es. «una birra media o una maglietta») e quanti vincitori al massimo.</li>
+    <li>Aggiungi le <b>tappe</b> (es. 3). In ognuna: nel campo <i>Indizio</i> cosa si vede prima, nel contenuto l'indizio per la tappa successiva.</li>
+    <li>La tappa 2 compare sulla mappa solo dopo aver trovato la 1, la 3 dopo la 2.</li>
+    <li>Chi sblocca l'ultima riceve un <b>codice unico</b>. Il gestore lo scrive in <i>Verifica un codice premio</i>: se è valido viene segnato come ritirato e non si può riusare.</li>
+    <li>Pubblicizza il link della tappa 1 sui social o con un QR nel locale.</li></ol>`],
+  ['📤 Condividere su WhatsApp, Facebook, X, Telegram e Instagram', `<ol>
+    <li>Sotto ogni pin creato, e nel riquadro <b>Invita un amico</b>, trovi le icone dei social: un tocco apre l'app con il link già pronto.</li>
+    <li><b>Instagram</b> non permette di condividere un link con un tocco: Ubi lo <b>copia</b> e apre Instagram. Crea una <b>storia</b>, tocca l'icona degli sticker → <b>Link</b> e incolla. Nei messaggi diretti basta incollarlo.</li>
+    <li><b>Altro</b> apre il menu di condivisione del telefono (Messaggi, email, Signal…).</li></ol>`],
+  ['📸 Mettere un post o un reel di Instagram in un pin', `<ol>
+    <li>Su Instagram apri il post o il reel e tocca l'icona <b>Condividi</b> (l'aeroplanino ✈️) → <b>Copia link</b>. Per un profilo: ⋯ in alto → <b>Copia URL del profilo</b>.</li>
+    <li>In Ubi crea un nuovo pin, scegli il tipo <b>Link</b> e <b>incolla</b> (va bene anche tutto il testo copiato: il link lo troviamo noi).</li>
+    <li>Scegli il luogo e salva: chi sblocca il pin vedrà il pulsante <b>Apri il link</b>, che apre Instagram.</li>
+    <li>Nota: i post di <b>profili privati</b> li vede solo chi ti segue, e Instagram può chiedere di accedere.</li></ol>`],
   ['💗 Ubi Dating', `<ol>
     <li>Riservato ai <b>maggiorenni</b>. Si entra da <b>💗 Ubi Dating</b> in home: indichi genere e data di nascita e accetti i consensi. Sei responsabile di ciò che pubblichi e degli incontri che fai.</li>
     <li>Lasci un <b>biglietto</b> in un luogo che ami (meglio un video dal vivo): sulla mappa appare con un pallino <b>rosa</b> (lei) o <b>azzurro</b> (lui), visibile a tutti.</li>
