@@ -302,3 +302,6 @@ create policy "media: leggo se proprietario o sbloccato" on storage.objects
       select 1 from public.unlocks u
       where u.user_id = auth.uid()
         and u.content_id::text = (storage.foldername(name))[2])));
+
+-- Aggiorna subito l API di Supabase con le nuove tabelle
+notify pgrst, 'reload schema';
