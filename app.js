@@ -5,7 +5,14 @@ const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const EMAIL_RE = /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/;
-const ICON = { photo: '📷', video: '🎬', audio: '🎧', link: '🔗' };
+const TYPES = {
+  photo: { l: 'I', c: '#2f6fd6', n: 'Immagine' },
+  video: { l: 'V', c: '#d64545', n: 'Video' },
+  text:  { l: 'T', c: '#7b4fc9', n: 'Testo' },
+  link:  { l: 'L', c: '#2e9b6b', n: 'Link' },
+  audio: { l: 'A', c: '#e0901f', n: 'Audio' },
+};
+const badge = (t, extra = '') => { const x = TYPES[t] || TYPES.photo; return `<span class="tico ${extra}" style="background:${x.c}" title="${x.n}">${x.l}</span>`; };
 const VIS = { public: 'Pubblico', hidden: 'Solo io', restricted: 'Destinatari scelti' };
 
 function distanceM(lat1, lng1, lat2, lng2) {
@@ -96,6 +103,7 @@ async function supabaseBackend() {
         id, owner_id: u.id, title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
         external_url: d.external_url || null, duration_seconds: d.duration ?? null, lat: d.lat, lng: d.lng,
         unlock_radius_m: d.radius, location_source: d.source, visibility: d.visibility, password_hash: d.password || null,
+        text_body: d.text_body || null,
       };
       const res = await sb.from('contents').insert(row).select('share_slug').single();
       if (res.error) { if (media_path) await sb.storage.from('media').remove([media_path]); throw res.error; }
@@ -107,6 +115,9 @@ async function supabaseBackend() {
       must(await sb.from('contents').delete().eq('id', c.id));
     },
     async teaser(slug) { return (must(await sb.rpc('get_teaser', { p_slug: slug })) || [])[0] || null; },
+    async mapContents(b) {
+      return must(await sb.rpc('map_contents', { p_min_lat: b.s, p_min_lng: b.w, p_max_lat: b.n, p_max_lng: b.e })) || [];
+    },
     async unlock(slug, pos, password) {
       const r = (must(await sb.rpc('unlock', {
         p_slug: slug, p_lat: pos?.lat ?? null, p_lng: pos?.lng ?? null, p_accuracy_m: pos?.acc ?? null, p_password: password || null,
@@ -174,11 +185,17 @@ function demoBackend() {
         id, share_slug: slug, owner_id: db.user.id, title: d.title, hint: d.hint || null, media_type: d.media_type,
         media_path: d.file ? id : null, external_url: d.external_url || null, lat: d.lat, lng: d.lng, unlock_radius_m: d.radius,
         visibility: d.visibility, recipients: d.recipients, password_hash: d.password ? await sha(d.password) : null,
-        created_at: new Date().toISOString(),
+        text_body: d.text_body || null, created_at: new Date().toISOString(),
       });
       save(); return slug;
     },
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
+    async mapContents(b) {
+      const u = db.user;
+      return db.contents.filter((c) => canAccess(c, u) && c.lat >= b.s && c.lat <= b.n && c.lng >= b.w && c.lng <= b.e)
+        .map((c) => ({ share_slug: c.share_slug, title: c.title, media_type: c.media_type, lat: c.lat, lng: c.lng,
+          is_owner: c.owner_id === u.id, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u.id) }));
+    },
     async teaser(slug) {
       const u = db.user; const c = db.contents.find((x) => x.share_slug === slug);
       if (!c || !canAccess(c, u)) return null;
@@ -193,7 +210,7 @@ function demoBackend() {
       const u = db.user; if (!u) return { status: 'login_required' };
       const c = db.contents.find((x) => x.share_slug === slug);
       if (!c || !canAccess(c, u)) return { status: 'not_found' };
-      const ok = async (d) => ({ status: 'ok', distance_m: d, external_url: c.external_url, url: c.media_path ? URL.createObjectURL(await getBlob(c.media_path) || new Blob()) : null });
+      const ok = async (d) => ({ status: 'ok', distance_m: d, external_url: c.external_url, text_body: c.text_body, url: c.media_path ? URL.createObjectURL(await getBlob(c.media_path) || new Blob()) : null });
       if (c.owner_id === u.id || db.unlocks.some((x) => x.c === c.id && x.u === u.id)) return ok(null);
       if (!pos || pos.acc > 100) return { status: 'gps_inaccurate' };
       const d = Math.round(distanceM(c.lat, c.lng, pos.lat, pos.lng));
@@ -379,19 +396,74 @@ function viewNewPassword() {
   };
 }
 
+// Mappa iniziale: segnaposto dei contenuti che l'utente può vedere nell'area inquadrata.
+let lastView = null;   // ricorda centro e zoom tra una visita e l'altra
+async function homeMap() {
+  const el = $('#hmap');
+  await waitLeaflet();
+  if (!document.body.contains(el)) return;
+  const map = makeMap(el, 42.5, 12.5, 6);
+  if (!map) return;
+  const layer = L.layerGroup().addTo(map);
+  let me = null, timer = null, first = true;
+  const icon = (c) => L.divIcon({
+    className: '', iconSize: [34, 34], iconAnchor: [17, 17],
+    html: badge(c.media_type, `pin${c.is_owner ? ' mine' : ''}${c.is_owner || c.unlocked ? '' : ' locked'}`),
+  });
+  const load = async () => {
+    const b = map.getBounds().pad(0.3);
+    try {
+      const rows = await B.mapContents({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() });
+      if (!document.body.contains(el)) return;
+      layer.clearLayers();
+      rows.forEach((c) => {
+        L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
+          .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
+          .addTo(layer);
+      });
+      if (first && rows.length && !lastView && !me) {
+        map.fitBounds(rows.map((c) => [c.lat, c.lng]), { padding: [40, 40], maxZoom: 16 });
+      }
+      first = false;
+      msg($('#mm'), rows.length ? '' : 'Nessun contenuto in questa zona: sposta la mappa o lasciane uno tu.', 'info');
+    } catch (err) { msg($('#mm'), errText(err)); }
+  };
+  map.on('moveend', () => {
+    lastView = { c: map.getCenter(), z: map.getZoom() };
+    clearTimeout(timer); timer = setTimeout(load, 300);
+  });
+  const centerOnMe = async (zoom) => {
+    try {
+      const p = await getPos(); me = p;
+      L.circleMarker([p.lat, p.lng], { radius: 7, color: '#1f3a5f', fillOpacity: 0.9 }).addTo(map);
+      map.setView([p.lat, p.lng], zoom);
+    } catch (err) { msg($('#mm'), errText(err)); }
+  };
+  $('#nearme').onclick = () => centerOnMe(16);
+  if (lastView) map.setView(lastView.c, lastView.z); else load();
+  if (!lastView) getPos().then((p) => { if (document.body.contains(el) && first !== null) { me = p; L.circleMarker([p.lat, p.lng], { radius: 7, color: '#1f3a5f', fillOpacity: 0.9 }).addTo(map); map.setView([p.lat, p.lng], 15); } }).catch(() => {});
+}
+
 async function viewHome(user, prof) {
   app.innerHTML = `
-    <h1>Ciao ${esc(prof.display_name || '')}</h1>
+    <div class="homebar"><h1>Ciao ${esc(prof.display_name || '')}</h1>
+      <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></div>
+    <div id="hmap" class="map home"></div>
+    <div class="legend">${Object.values(TYPES).map((x) => `<span><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}</span>`).join('')}
+      <span><span class="tico sm mine" style="background:#888">·</span>Miei</span></div>
+    <div id="mm"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
+    <h2 style="margin-top:22px">I miei contenuti</h2>
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
   $('#out').onclick = async (e) => { e.preventDefault(); await B.signOut(); location.hash = '#/'; route(); };
+  homeMap();
   let items;
   try { items = await B.listMine(); } catch (err) { msg($('#list'), errText(err)); return; }
   if (!items.length) { $('#list').innerHTML = '<div class="card center muted">Non hai ancora lasciato nulla.<br>Inizia da un luogo che conta per te.</div>'; return; }
   $('#list').innerHTML = items.map((c, i) => `
     <div class="card" data-i="${i}">
-      <div class="item"><div class="ico">${ICON[c.media_type]}</div>
+      <div class="item"><div class="ico">${badge(c.media_type)}</div>
         <div><div class="t">${esc(c.title)}</div>
         <div class="meta">${VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString('it-IT')}</div></div></div>
       <div class="actions">
@@ -437,9 +509,12 @@ async function viewNew() {
   app.innerHTML = `
     <h1>Nuovo contenuto</h1>
     <div class="card"><h2>1 · Cosa vuoi lasciare</h2>
-      <div class="seg" id="kind"><button class="on" data-k="file">Dalla galleria</button><button data-k="link">Link (YouTube…)</button></div>
+      <div class="seg" id="kind"><button class="on" data-k="file">Galleria</button><button data-k="text">Testo</button><button data-k="link">Link</button></div>
       <div id="k-file"><label for="file">Foto, video (max ${CONFIG.MAX_VIDEO_SECONDS} s) o audio</label>
         <input id="file" type="file" accept="image/*,video/*,audio/*"></div>
+      <div id="k-text" hidden><label for="txt">Il tuo testo</label>
+        <textarea id="txt" maxlength="2000" rows="6" placeholder="Es. una dedica, le istruzioni per lo scatto, l'indizio per la caccia al tesoro…"></textarea>
+        <p class="muted small"><span id="txtn">0</span>/2000 caratteri</p></div>
       <div id="k-link" hidden><label for="url">Indirizzo del video</label>
         <input id="url" type="url" inputmode="url" placeholder="https://youtu.be/…">
         <p class="muted small">Per i video più lunghi di ${CONFIG.MAX_VIDEO_SECONDS} secondi: caricali su YouTube (anche "non in elenco") e incolla qui il link.</p></div>
@@ -477,9 +552,10 @@ async function viewNew() {
     const b = e.target.closest('button'); if (!b) return;
     s.kind = b.dataset.k;
     [...$('#kind').children].forEach((x) => x.classList.toggle('on', x === b));
-    $('#k-file').hidden = s.kind !== 'file'; $('#k-link').hidden = s.kind !== 'link';
+    $('#k-file').hidden = s.kind !== 'file'; $('#k-link').hidden = s.kind !== 'link'; $('#k-text').hidden = s.kind !== 'text';
     $('#preview').innerHTML = ''; msg($('#pm'), '');
   };
+  $('#txt').oninput = () => { $('#txtn').textContent = $('#txt').value.length; };
   $('#file').onchange = async () => {
     const f = $('#file').files[0]; s.file = null; s.duration = null; $('#preview').innerHTML = ''; msg($('#pm'), '');
     if (!f) return;
@@ -547,6 +623,8 @@ async function viewNew() {
     if (s.kind === 'link') {
       external_url = $('#url').value.trim();
       if (!/^https:\/\/\S+\.\S+/.test(external_url)) return err('Inserisci un link valido che inizi con https://');
+    } else if (s.kind === 'text') {
+      if (!$('#txt').value.trim()) return err('Scrivi il testo da lasciare in quel luogo.');
     } else if (!s.file) return err('Scegli una foto, un video o un audio.');
     if (s.lat == null) return err('Indica il luogo: GPS, coordinate o tocco sulla mappa.');
     const title = $('#title').value.trim(); if (!title) return err('Dai un titolo al contenuto.');
@@ -557,7 +635,8 @@ async function viewNew() {
     const btn = $('#save'); btn.disabled = true; btn.textContent = s.file ? 'Carico il file…' : 'Salvo…';
     try {
       const slug = await B.create({
-        file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'link' ? 'link' : s.media_type, duration: s.kind === 'file' ? s.duration : null,
+        file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'file' ? s.media_type : s.kind, duration: s.kind === 'file' ? s.duration : null,
+        text_body: s.kind === 'text' ? $('#txt').value.trim() : null,
         external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
         visibility: s.vis, recipients, password: $('#pwd').value,
       });
@@ -567,15 +646,17 @@ async function viewNew() {
 }
 
 function viewCreated(title, slug) {
+  history.replaceState(null, '', location.pathname + '#/fatto');  // così '＋' e 'Torna alla mappa' funzionano
   app.innerHTML = `
     <div class="hero"><span class="pin"></span><h1>Fissato!</h1>
       <p class="muted">«${esc(title)}» ora vive in quel luogo. Manda il link: si aprirà solo sul posto.</p></div>
     <div class="card" id="sh"></div>
-    <a class="btn ghost full" href="#/">Torna ai miei contenuti</a>`;
+    <a class="btn ghost full" href="#/">Torna alla mappa</a>`;
   shareSheet(title, slug, $('#sh'));
 }
 
 function renderMedia(type, r) {
+  if (type === 'text') return `<div class="textbody">${esc(r.text_body || '').replace(/\n/g, '<br>')}</div>`;
   if (type === 'link' || (!r.url && r.external_url)) {
     const id = youTubeId(r.external_url);
     return `${id ? `<iframe src="https://www.youtube-nocookie.com/embed/${id}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="Video"></iframe>` : ''}
@@ -595,12 +676,12 @@ async function viewContent(slug, user) {
     app.innerHTML = '<div class="card center"><h2>Contenuto non disponibile</h2><p class="muted">Non esiste, è stato rimosso, oppure non sei tra i destinatari.</p><a class="btn" href="#/">Vai a Ubi</a></div>';
     return;
   }
-  const header = `<h1>${ICON[t.media_type]} ${esc(t.title)}</h1>${t.author ? `<p class="muted">da ${esc(t.author)}</p>` : ''}${t.hint ? `<div class="msg info">${esc(t.hint)}</div>` : ''}`;
+  const header = `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? `<p class="muted">da ${esc(t.author)}</p>` : ''}${t.hint ? `<div class="msg info">${esc(t.hint)}</div>` : ''}`;
   const showUnlocked = (r, d) => {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
       <div class="card media">${renderMedia(t.media_type, r)}</div>
-      <a class="btn ghost full" href="#/">${user ? 'I miei contenuti' : 'Scopri Ubi'}</a>`;
+      <a class="btn ghost full" href="#/">${user ? 'Torna alla mappa' : 'Scopri Ubi'}</a>`;
   };
   if (user && (t.is_owner || t.already_unlocked)) {
     try { const r = await B.unlock(slug, null, null); if (r.status === 'ok') return showUnlocked(r, null); } catch { /* prosegue */ }
