@@ -1,5 +1,5 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161340';
+import { CONFIG } from './config.js?v=202611161505';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
 const APP_VERSION = 'v.13';
@@ -1236,7 +1236,8 @@ async function viewMyProfile(prof) {
       <button class="full accent" type="submit">Salva il profilo</button>
     </form></div>
     <a class="btn ghost full" href="#/rubrica">📒 La mia rubrica</a>
-    <p class="center"><a href="#/u/${esc(p.id || '')}">Vedi come ti vedono gli altri</a> · <a href="#/">Torna alla mappa</a></p>`;
+    <p class="center"><a href="#/u/${esc(p.id || '')}">Vedi come ti vedono gli altri</a> · <a href="#/">Torna alla mappa</a></p>
+    <p class="center small"><a href="privacy.html">Informativa privacy</a> · Per eliminare l'account scrivi a <a href="mailto:info@ubipin.it">info@ubipin.it</a></p>`;
   $('#avf').onchange = async () => {
     const f = $('#avf').files[0]; if (!f) return;
     try {

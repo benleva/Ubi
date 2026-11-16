@@ -8,7 +8,7 @@ supabase/migrations/20261116090000_ubi_schema.sql   database, regole di sicurezz
 index.html, app.js, …    sito statico nella cartella principale (pubblicato da GitHub Pages)
   config.js              unico file da modificare (chiavi Supabase)
   app.js                 logica dell'app
-  privacy.html           BOZZA di informativa: da completare
+  privacy.html           informativa privacy (titolare: Andrea Pernarcic)
 test/                    test del database (Postgres locale)
 ```
 
