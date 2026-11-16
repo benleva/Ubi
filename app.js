@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161312';
+import { CONFIG } from './config.js?v=202611161314';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.11';
+const APP_VERSION = 'v.12';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -437,6 +437,7 @@ async function route() {
 async function routeInner() {
   stopWatch();
   refreshInbox();
+  window.scrollTo(0, 0);   // ogni nuova schermata si apre dall'inizio
   if (B.recovery) return viewNewPassword();
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
   if (page === 'faq') return viewFaq(arg);
