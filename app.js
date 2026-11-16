@@ -250,6 +250,7 @@ async function routeInner() {
   stopWatch();
   if (B.recovery) return viewNewPassword();
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
+  if (page === 'faq') return viewFaq(arg);
   const user = await B.user();
   if (page === 'c' && arg) {
     if (user) {
@@ -816,6 +817,124 @@ async function viewContent(slug, user) {
     } catch (err) { msg($('#um'), errText(err)); }
     btn.disabled = false;
   };
+}
+
+
+// ======================= GUIDA E IDEE (FAQ) =======================
+const FAQ_GUIDE = [
+  ['Cos’è Ubi?', `<p>Ubi ti permette di <b>lasciare un contenuto in un luogo</b>: una foto, un video (fino a 60 secondi), un audio, un testo o un link. Chi lo riceve lo vede sulla mappa, ma può <b>aprirlo solo quando arriva lì</b> con il telefono.</p>`],
+  ['1 · Registrati e installa l’app', `<ol>
+    <li>Apri Ubi, tocca <b>Registrati</b>: nome, email, password (almeno 8 caratteri) e i due consensi.</li>
+    <li>Resti collegato: non dovrai rifare l'accesso su quel telefono.</li>
+    <li><b>Mettila nella schermata Home</b>, così si apre come un'app:<br>
+      iPhone (Safari): tasto Condividi <b>⬆</b> → <b>Aggiungi alla schermata Home</b>.<br>
+      Android (Chrome): menu <b>⋮</b> → <b>Installa app</b> o <b>Aggiungi a schermata Home</b>.</li>
+    <li>Quando il telefono chiede l'accesso alla <b>posizione</b>, rispondi <b>Consenti</b>: serve per fissare e sbloccare i contenuti.</li></ol>`],
+  ['2 · La mappa', `<ol>
+    <li>Dopo l'accesso vedi la mappa con i <b>tuoi contenuti</b>, quelli <b>pubblici</b> e quelli che qualcuno ha lasciato <b>per te</b>.</li>
+    <li>Ogni cerchio indica il tipo: <b>I</b> immagine, <b>V</b> video, <b>T</b> testo, <b>L</b> link, <b>A</b> audio. I tuoi hanno il bordo scuro.</li>
+    <li><b>Tocca un cerchio</b> per aprire la scheda del contenuto.</li>
+    <li>Il pulsante <b>📍</b> in alto riporta la mappa dove sei tu.</li>
+    <li><b>Filtri</b>: sotto la mappa tocca un tipo (es. <i>Video</i>) e/o uno o più <b>#tag</b> (es. <i>#tramonto</i>) per vedere solo quei contenuti. Si combinano: <i>Video + #tramonto</i> mostra solo i video di tramonti. <b>Tutti i tag</b> azzera.</li></ol>`],
+  ['3 · Lascia un contenuto', `<ol>
+    <li>Tocca <b>＋ Lascia un contenuto in un luogo</b>.</li>
+    <li><b>Cosa</b>: <i>Galleria</i> (foto, video max 60 s, audio), <i>Testo</i> (fino a 2000 caratteri) o <i>Link</i> (per video lunghi su YouTube o altre pagine).</li>
+    <li><b>Dove</b>, in tre modi: <i>Usa la mia posizione</i> se sei sul posto; scrivi le <i>coordinate</i> (es. <code>41.8902, 12.4922</code>); oppure <i>tocca la mappa</i> e trascina lo spillo.</li>
+    <li><b>Raggio</b>: da quanti metri si sblocca (consigliato 30–50 m; in città il GPS può sbagliare di qualche decina di metri).</li>
+    <li><b>Titolo</b> e <b>indizio</b>: l'indizio si vede <i>prima</i> dello sblocco e aiuta a trovare il punto.</li>
+    <li><b>Tag</b>: tocca quelli adatti o scrivine di tuoi (max 8). Servono a ritrovare i contenuti con i filtri.</li>
+    <li><b>Chi può aprirlo</b>: <i>Persone scelte</i> (le loro email), <i>Tutti</i> o <i>Solo io</i>. Puoi aggiungere una <b>password</b>.</li>
+    <li>Tocca <b>Fissa nel luogo</b>.</li></ol>`],
+  ['4 · Condividi', `<ol>
+    <li>Dopo il salvataggio, o dalla lista con <b>Condividi</b>, hai il <b>link</b> del contenuto.</li>
+    <li>Mandalo con <b>WhatsApp</b>, <b>Copia link</b> o <b>Altro…</b> (SMS, email, social).</li>
+    <li>Se hai scelto <i>Persone scelte</i>, chi riceve il link deve accedere a Ubi <b>con la stessa email</b> che hai indicato.</li>
+    <li>Se c'è una password, comunicala a parte (o lasciala come indovinello!).</li></ol>`],
+  ['5 · Sblocca un contenuto', `<ol>
+    <li>Apri il link (o tocca il cerchio sulla mappa).</li>
+    <li>Vedi il titolo, l'indizio, la mappa e <b>quanti metri mancano</b>. <b>Indicazioni per arrivarci</b> apre il navigatore.</li>
+    <li>Quando la distanza diventa verde (<i>Sei arrivato</i>), tocca <b>🔓 Sblocca qui</b> e inserisci la password se richiesta.</li>
+    <li>Una volta sbloccato, puoi <b>rivederlo ovunque</b>, anche da casa.</li>
+    <li>Se dice <i>GPS impreciso</i>: spostati all'aperto, lontano da edifici alti, e riprova.</li></ol>`],
+  ['6 · Gestisci i tuoi contenuti', `<ul>
+    <li>Sotto la mappa trovi <b>I miei contenuti</b>: <b>Condividi</b>, <b>Apri</b> (tu li vedi sempre) o <b>Elimina</b> (tocca due volte per confermare: il file viene cancellato).</li></ul>`],
+  ['7 · Account e accesso', `<ul>
+    <li>Resti collegato finché non tocchi <b>Esci</b> in fondo alla pagina.</li>
+    <li><b>Password dimenticata?</b> In <i>Accedi</i> scrivi l'email e tocca il pulsante: ti arriva un link per sceglierne una nuova. Aprilo con lo <b>stesso browser</b> in cui usi Ubi.</li>
+    <li>Se usi Ubi dalla schermata Home su iPhone, la prima volta dovrai accedere anche lì.</li></ul>`],
+  ['8 · Privacy e sicurezza', `<ul>
+    <li>La posizione del telefono è usata <b>solo mentre usi l'app</b> e non viene salvata nel profilo.</li>
+    <li>I file sono in un archivio privato: chi non è autorizzato <b>non può scaricarli</b>, neanche conoscendo il link.</li>
+    <li>La distanza e la password sono <b>verificate dal server</b>, non solo dal telefono.</li>
+    <li>Pubblica solo contenuti <b>tuoi</b> e con il permesso delle persone riprese.</li></ul>`],
+  ['Limiti utili da sapere', `<ul>
+    <li>Video: massimo <b>60 secondi</b> (per i più lunghi usa un link YouTube, anche "non in elenco").</li>
+    <li>File: massimo <b>50 MB</b>. Testo: <b>2000</b> caratteri. Tag: <b>8</b> per contenuto.</li>
+    <li>Raggio di sblocco: da 10 a 500 metri.</li></ul>`],
+];
+
+const FAQ_IDEAS = [
+  ['👨‍👩‍👧 Famiglia', 'famiglia, ricordo, anniversario', `<ul>
+    <li><b>Auguri sul posto</b>: un video di buon compleanno o di anniversario da aprire al ristorante della festa o nel luogo del "sì".</li>
+    <li><b>Ricordi per i figli</b>: un video nel parco dove giocavano da piccoli, da scoprire quando ci torneranno da grandi.</li>
+    <li><b>Regali</b>: un indizio in ogni stanza o nel quartiere che porta al regalo nascosto.</li>
+    <li><b>Istruzioni</b>: nella casa al mare, "come accendere lo scaldabagno" o "dove si buttano i rifiuti", da aprire solo lì. (Mai codici di allarmi o casseforti!)</li>
+    <li><b>Messaggi dei nonni</b>: un audio con una storia di famiglia nel paese d'origine.</li></ul>`],
+  ['❤️ Coppia', 'amore, anniversario', `<ul>
+    <li>Una dedica sulla panchina del primo appuntamento, con password = la data in cui vi siete conosciuti.</li>
+    <li>Una proposta di matrimonio: il video si sblocca solo arrivati al belvedere.</li>
+    <li>Una mappa dei vostri luoghi: un contenuto per ogni tappa della vostra storia.</li></ul>`],
+  ['📷 Fotografi', 'fotografia, panorama, tramonto', `<ul>
+    <li><b>Farsi conoscere</b>: lascia le tue foto migliori, <i>pubbliche</i>, nei punti in cui le hai scattate, con nel testo il link al tuo sito o profilo. Chi passa di lì scopre il tuo lavoro.</li>
+    <li><b>"Replica lo scatto"</b>: usa il tipo <i>Testo</i> (o una foto con indizio) e scrivi:
+      <ol><li>punto esatto e <b>direzione</b> (es. "verso nord-ovest, la cupola allineata al lampione");</li>
+      <li><b>ora e luce</b> (es. "20 minuti dopo il tramonto, ottobre");</li>
+      <li><b>attrezzatura</b>: obiettivo e lunghezza focale;</li>
+      <li><b>impostazioni</b>: ISO, tempo, diaframma, filtri, cavalletto sì/no;</li>
+      <li>un consiglio di composizione.</li></ol></li>
+    <li><b>Workshop</b>: un percorso di tappe con un esercizio fotografico in ognuna.</li></ul>`],
+  ['⚽ Sport', 'sport, amici, ricordo', `<ul>
+    <li>Il <b>tuo</b> video della partita girato dagli spalti, lasciato fuori dallo stadio: chi c'era può rivivere il gol.</li>
+    <li>Il <b>gol di tuo figlio</b> al campetto, da riscoprire tra qualche anno.</li>
+    <li>Gare di motori (es. Formula 1 a Monza): il tuo racconto <b>audio</b> della gara vista da una curva, lasciato in quella curva.</li>
+    <li>Una <b>premiazione emblematica</b>: foto e ricordi della squadra nel luogo della festa.</li>
+    <li>Percorsi di corsa o bici: un consiglio a ogni tappa ("qui inizia la salita, gestisci il fiato").</li>
+    <li>⚠️ Usa solo video e foto <b>girati da te</b>: le riprese TV e le immagini ufficiali sono protette dal diritto d'autore.</li></ul>`],
+  ['🗺️ Caccia al tesoro', 'caccia al tesoro, amici, famiglia', `<ol>
+    <li>Scegli <b>4–8 tappe</b> raggiungibili a piedi e il premio finale.</li>
+    <li>Per ogni tappa crea un contenuto <i>Testo</i> (o un audio/video) con <b>l'indizio della tappa successiva</b>.</li>
+    <li>Nel campo <b>Indizio</b> (visibile prima dello sblocco) scrivi un aiuto per trovare il punto esatto.</li>
+    <li>Usa un <b>raggio piccolo</b> (20–30 m) e il tag <b>#caccia al tesoro</b>.</li>
+    <li>Visibilità: <i>Persone scelte</i> con le email dei giocatori, oppure <i>Tutti</i> con una <b>password</b> che si trova nella tappa precedente.</li>
+    <li>Dai ai giocatori <b>solo il link della prima tappa</b>: il resto lo scopriranno camminando.</li>
+    <li>Prova il percorso tu prima di lanciarlo (tu vedi sempre i tuoi contenuti).</li></ol>`],
+  ['🏛️ Guide e turismo', 'guida, monumento, storia, arte', `<ul>
+    <li>Un breve video o audio di spiegazione davanti a ogni punto di interesse (es. ingressi e dettagli del Colosseo).</li>
+    <li>Testi con curiosità che si aprono solo sul posto: il visitatore guarda il monumento mentre legge.</li>
+    <li>Presto: tour a tappe che le guide potranno vendere.</li></ul>`],
+  ['✈️ Viaggi e quotidiano', 'ricordo, natura, mare, montagna, cibo', `<ul>
+    <li>Un diario di viaggio: un contenuto "Solo io" in ogni luogo visitato, da ritrovare sulla mappa.</li>
+    <li>Il piatto da ordinare in quella trattoria, il sentiero giusto per la cima, il punto migliore per il tramonto.</li>
+    <li>Lo stesso luogo nelle quattro stagioni: torna e lascia una foto ogni volta.</li></ul>`],
+];
+
+function viewFaq() {
+  stopWatch();
+  const det = ([q, a], open = false) => `<details class="faq"${open ? ' open' : ''}><summary>${q}</summary><div>${a}</div></details>`;
+  app.innerHTML = `
+    <h1>Guida e idee</h1>
+    <p class="muted">Tutto quello che serve per usare Ubi, passo passo, e qualche idea per iniziare.</p>
+    <div class="seg" id="faqtabs"><button class="on" data-t="g">Come si usa</button><button data-t="i">Idee</button></div>
+    <div id="faq-g">${FAQ_GUIDE.map((x, i) => det(x, i === 0)).join('')}</div>
+    <div id="faq-i" hidden>${FAQ_IDEAS.map(([t, tags, body]) => `<details class="faq"><summary>${t}</summary><div>${body}
+      <p class="muted small">Tag consigliati: ${tags.split(', ').map((x) => '#' + x).join(' ')}</p></div></details>`).join('')}</div>
+    <a class="btn full" href="#/" style="margin-top:16px">Torna a Ubi</a>`;
+  $('#faqtabs').onclick = (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...$('#faqtabs').children].forEach((x) => x.classList.toggle('on', x === b));
+    $('#faq-g').hidden = b.dataset.t !== 'g'; $('#faq-i').hidden = b.dataset.t !== 'i';
+  };
+  window.scrollTo(0, 0);
 }
 
 // ======================= AVVIO =======================

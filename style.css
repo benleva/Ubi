@@ -88,3 +88,14 @@ button.chip.on { background: var(--brand); color: #fff; border-color: var(--bran
 .chip.static { min-height: 0; padding: 3px 10px; font-size: 13px; font-weight: 600; color: var(--brand); background: #eef3f9; border-color: transparent; cursor: default; }
 .chips.types button.chip { padding-left: 6px; font-size: 13px; }
 .chips.types button.chip.on { background: #1b2430; border-color: #1b2430; }
+.faqbtn { margin-left: auto; color: #fff; text-decoration: none; font-weight: 800; font-size: 14px; border: 1.5px solid rgba(255,255,255,.7);
+  border-radius: 999px; padding: 6px 14px; }
+details.faq { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); margin: 10px 0; }
+details.faq summary { cursor: pointer; padding: 14px 16px; font-weight: 700; list-style: none; position: relative; padding-right: 40px; }
+details.faq summary::-webkit-details-marker { display: none; }
+details.faq summary::after { content: '+'; position: absolute; right: 16px; top: 10px; font-size: 22px; color: var(--muted); }
+details.faq[open] summary::after { content: '–'; }
+details.faq > div { padding: 0 16px 14px; }
+details.faq ol, details.faq ul { padding-left: 20px; margin: 6px 0; }
+details.faq li { margin: 6px 0; }
+#faqtabs { margin: 12px 0; }
