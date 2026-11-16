@@ -134,3 +134,5 @@ a.card.item { text-decoration: none; color: var(--ink); }
 details.quickadd { margin: 6px 0 4px; }
 details.quickadd summary { cursor: pointer; color: var(--brand); font-weight: 700; font-size: 14px; padding: 6px 0; }
 .ver { font-size: 12px; font-weight: 700; opacity: .75; margin-left: 6px; align-self: flex-end; margin-bottom: 4px; letter-spacing: 0; }
+
+.addrpick { text-align: left; margin-top: 6px; font-size: 14px; font-weight: 500; }

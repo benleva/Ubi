@@ -1,5 +1,5 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161505';
+import { CONFIG } from './config.js?v=202611161520';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
 const APP_VERSION = 'v.13';
@@ -779,6 +779,9 @@ async function viewNew(ed = null) {
     </div>
     <div class="card"><h2>2 · Dove</h2>
       <button class="full" id="gps" type="button">📍 Usa la mia posizione attuale</button>
+      <label for="addr">…oppure cerca un indirizzo o un luogo</label>
+      <div class="row"><input id="addr" type="search" enterkeyhint="search" autocomplete="off" placeholder="Es. Alghero, via Sant'Antioco"><button id="find" type="button" class="ghost" style="flex:0 0 auto">🔎 Cerca</button></div>
+      <div id="addrres"></div>
       <label for="coords">…oppure scrivi le coordinate</label>
       <div class="row"><input id="coords" inputmode="decimal" placeholder="41.8902, 12.4922"><button id="setc" type="button" class="ghost" style="flex:0 0 auto">Imposta</button></div>
       <p class="muted small">…oppure tocca un punto sulla mappa (puoi anche trascinare lo spillo).</p>
@@ -896,6 +899,32 @@ async function viewNew(ed = null) {
     try { const p = await getPos(); setPoint(p.lat, p.lng, 'gps', p.acc); } catch (err) { msg($('#lm'), errText(err)); }
     $('#gps').disabled = false;
   };
+  // Ricerca indirizzo (OpenStreetMap Nominatim: gratuito, max 1 richiesta al secondo, solo su comando)
+  const pickPlace = (r) => {
+    $('#addrres').innerHTML = '';
+    setPoint(+r.lat, +r.lon, 'map');
+    if (map) map.setView([s.lat, s.lng], 18);
+    msg($('#lm'), `Trovato: ${esc(r.display_name)}. Ora trascina lo spillo (o tocca la mappa) nel punto esatto.`, 'ok');
+  };
+  const findAddr = async () => {
+    const q = $('#addr').value.trim();
+    if (q.length < 3) return msg($('#lm'), 'Scrivi almeno città e via, es. "Alghero, via Sant\'Antioco".');
+    $('#find').disabled = true; $('#addrres').innerHTML = ''; msg($('#lm'), 'Cerco l\'indirizzo…', 'info');
+    try {
+      const u = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=it&q=' + encodeURIComponent(q);
+      const res = await withTimeout(fetch(u, { headers: { accept: 'application/json' } }), 15000);
+      if (!res.ok) throw new Error('Ricerca non disponibile in questo momento, riprova tra poco.');
+      const list = await res.json();
+      if (!list.length) { msg($('#lm'), 'Nessun risultato. Prova a scrivere anche la città, oppure una via vicina, e poi sposta lo spillo.'); return; }
+      if (list.length === 1) return pickPlace(list[0]);
+      msg($('#lm'), 'Scegli il risultato giusto:', 'info');
+      $('#addrres').innerHTML = list.map((r, i) => `<button type="button" class="ghost full addrpick" data-i="${i}">${esc(r.display_name)}</button>`).join('');
+      $('#addrres').querySelectorAll('[data-i]').forEach((b) => { b.onclick = () => pickPlace(list[+b.dataset.i]); });
+    } catch (err) { msg($('#lm'), errText(err)); }
+    finally { setTimeout(() => { $('#find').disabled = false; }, 1100); }
+  };
+  $('#find').onclick = findAddr;
+  $('#addr').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); findAddr(); } };
   $('#setc').onclick = () => {
     const m = $('#coords').value.replace(/\s/g, '').match(/^(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)$/);
     const lat = m && +m[1], lng = m && +m[2];
@@ -952,7 +981,7 @@ async function viewNew(ed = null) {
     $('#emails').value = (ed.recipients || []).join(', ');
     $('#radius').value = s.radius; $('#rout').textContent = `${s.radius} m`;
     setPoint(ed.lat, ed.lng, ed.location_source || 'map');
-    msg($('#lm'), 'Posizione attuale. Per spostarla: trascina lo spillo, tocca un altro punto, usa il GPS o scrivi le coordinate.', 'info');
+    msg($('#lm'), 'Posizione attuale. Per spostarla: trascina lo spillo, tocca un altro punto, cerca un indirizzo, usa il GPS o scrivi le coordinate.', 'info');
   }
 
   // --- salvataggio
@@ -965,7 +994,7 @@ async function viewNew(ed = null) {
     } else if (s.kind === 'text') {
       if (!$('#txt').value.trim()) return err('Scrivi il testo da lasciare in quel luogo.');
     } else if (!s.file && !(ed && ['photo', 'video', 'audio'].includes(ed.media_type))) return err('Scegli una foto, un video o un audio.');
-    if (s.lat == null) return err('Indica il luogo: GPS, coordinate o tocco sulla mappa.');
+    if (s.lat == null) return err('Indica il luogo: GPS, indirizzo, coordinate o tocco sulla mappa.');
     const title = $('#title').value.trim(); if (!title) return err('Dai un titolo al contenuto.');
     if (s.vis === 'restricted' && ed && !bookReady) return err('Attendi un attimo: sto caricando la rubrica.');
     const recipients = s.vis === 'restricted' ? [...new Set([...s.sel, ...$('#emails').value.toLowerCase().split(/[\s,;]+/).filter(Boolean)])] : [];
@@ -1412,7 +1441,7 @@ const FAQ_GUIDE = [
   ['3 · Lascia un contenuto', `<ol>
     <li>Tocca <b>＋ Lascia un contenuto in un luogo</b>.</li>
     <li><b>Cosa</b>: <i>Galleria</i> (foto, video max 60 s, audio), <i>Testo</i> (fino a 2000 caratteri) o <i>Link</i> (qualsiasi indirizzo: video su YouTube o altri siti, percorsi Wikiloc/Komoot, pagine web, mappe; puoi incollare anche il messaggio di condivisione).</li>
-    <li><b>Dove</b>, in tre modi: <i>Usa la mia posizione</i> se sei sul posto; scrivi le <i>coordinate</i> (es. <code>41.8902, 12.4922</code>); oppure <i>tocca la mappa</i> e trascina lo spillo.</li>
+    <li><b>Dove</b>, in quattro modi: <i>Usa la mia posizione</i> se sei sul posto; <i>cerca un indirizzo</i> (es. <code>Alghero, via Sant'Antioco</code>) e poi trascina lo spillo nel punto esatto; scrivi le <i>coordinate</i> (es. <code>41.8902, 12.4922</code>); oppure <i>tocca la mappa</i> e trascina lo spillo.</li>
     <li><b>Raggio</b>: da quanti metri si sblocca (consigliato 30–50 m; in città il GPS può sbagliare di qualche decina di metri).</li>
     <li><b>Titolo</b> e <b>indizio</b>: l'indizio si vede <i>prima</i> dello sblocco e aiuta a trovare il punto.</li>
     <li><b>Tag</b>: tocca quelli adatti o scrivine di tuoi (max 8). Servono a ritrovare i contenuti con i filtri.</li>
