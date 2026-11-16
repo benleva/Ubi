@@ -14,7 +14,7 @@ const TYPES = {
 };
 const badge = (t, extra = '') => { const x = TYPES[t] || TYPES.photo; return `<span class="tico ${extra}" style="background:${x.c}" title="${x.n}">${x.l}</span>`; };
 const TAGS_SUGGESTED = ['famiglia', 'amore', 'anniversario', 'amici', 'ricordo', 'sport', 'panorama', 'tramonto',
-  'monumento', 'storia', 'arte', 'natura', 'mare', 'montagna', 'città', 'cibo', 'fotografia', 'musica', 'guida', 'caccia al tesoro'];
+  'monumento', 'storia', 'arte', 'natura', 'mare', 'montagna', 'trekking', 'sentiero', 'passeggiata', 'mappa interattiva', 'città', 'cibo', 'fotografia', 'musica', 'guida', 'caccia al tesoro'];
 const MAX_TAGS = 8;
 const normTag = (t) => String(t).toLowerCase().replace(/[,;#<>"]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24);
 const tagChips = (tags, cls = 'static') => (tags && tags.length) ? `<div class="chips">${tags.map((t) => `<span class="chip ${cls}">#${esc(t)}</span>`).join('')}</div>` : '';
@@ -1041,9 +1041,10 @@ const FAQ_IDEAS = [
     <li>Un breve video o audio di spiegazione davanti a ogni punto di interesse (es. ingressi e dettagli del Colosseo).</li>
     <li>Testi con curiosità che si aprono solo sul posto: il visitatore guarda il monumento mentre legge.</li>
     <li>Presto: tour a tappe che le guide potranno vendere.</li></ul>`],
-  ['✈️ Viaggi e quotidiano', 'ricordo, natura, mare, montagna, cibo', `<ul>
+  ['✈️ Viaggi e quotidiano', 'ricordo, natura, mare, montagna, trekking, sentiero, passeggiata, mappa interattiva, cibo', `<ul>
     <li>Un diario di viaggio: un contenuto "Solo io" in ogni luogo visitato, da ritrovare sulla mappa.</li>
     <li>Il piatto da ordinare in quella trattoria, il sentiero giusto per la cima, il punto migliore per il tramonto.</li>
+    <li><b>Trekking</b>: all'inizio del sentiero lascia un <i>Link</i> alla mappa interattiva del percorso (Wikiloc, Komoot…) e, lungo la strada, consigli sui bivi e sui punti panoramici.</li>
     <li>Lo stesso luogo nelle quattro stagioni: torna e lascia una foto ogni volta.</li></ul>`],
 ];
 
