@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161931';
+import { CONFIG } from './config.js?v=202611162118';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.21';
+const APP_VERSION = 'v.22';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -56,7 +56,7 @@ function getPos() {
     if (!navigator.geolocation) return reject(new Error('Questo browser non supporta la geolocalizzazione.'));
     navigator.geolocation.getCurrentPosition(
       (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
-      (e) => reject(new Error(e.code === 1 ? 'Permesso posizione negato: abilitalo nelle impostazioni del browser.' : 'Posizione non disponibile, riprova all\'aperto.')),
+      (e) => reject(Object.assign(new Error(e.code === 1 ? 'Il telefono non permette a Ubi di usare la posizione.' : 'Posizione non disponibile: riprova all\'aperto, con il Wi-Fi acceso.'), { geoHelp: true })),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
   });
 }
@@ -509,7 +509,8 @@ let appReady = false;
 let watchId = null;
 const stopWatch = () => { if (watchId != null) { navigator.geolocation.clearWatch(watchId); watchId = null; } };
 const msg = (el, text, kind = 'err') => { el.innerHTML = text ? `<div class="msg ${kind}">${text}</div>` : ''; };
-const errText = (e) => esc(e?.message || String(e));
+const GEO_HELP = ' <a href="#/faq/posizione">Come attivare la posizione →</a>';
+const errText = (e) => esc(e?.message || String(e)) + (e?.geoHelp ? GEO_HELP : '');
 
 async function route() {
   try { await routeInner(); } catch (err) {
@@ -1315,7 +1316,7 @@ async function viewContent(slug, user) {
   if (navigator.geolocation) {
     watchId = navigator.geolocation.watchPosition(
       (p) => update({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
-      () => { $('#dtxt').textContent = 'Posizione non disponibile: consenti l\'accesso alla posizione.'; },
+      (e) => { $('#dtxt').innerHTML = (e && e.code === 1 ? 'Il telefono non permette a Ubi di usare la posizione.' : 'Posizione non disponibile: riprova all\'aperto.') + GEO_HELP; },
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
   }
   waitLeaflet().then(() => {
@@ -1920,6 +1921,24 @@ async function viewThread(other, slug) {
 // ======================= GUIDA E IDEE (FAQ) =======================
 const FAQ_GUIDE = [
   ['Cos’è Ubi?', `<p>Ubi ti permette di <b>lasciare un contenuto in un luogo</b>: una foto, un video (fino a 60 secondi), un audio, un testo o un link. Chi lo riceve lo vede sulla mappa, ma può <b>aprirlo solo quando arriva lì</b> con il telefono.</p>`],
+  ['📍 La posizione non funziona? Come attivarla', `<p>Se Ubi dice che <b>non riesce a trovare la tua posizione</b>, di solito è perché il telefono non ha ancora dato il permesso a Safari (o a Chrome). Si sistema una volta sola.</p>
+    <p><b>iPhone e iPad (Safari)</b></p>
+    <ol>
+      <li>Apri <b>Impostazioni</b> (l'icona grigia con l'ingranaggio ⚙️).</li>
+      <li>Tocca <b>Privacy e sicurezza</b> → <b>Localizzazione</b> e controlla che l'interruttore in alto sia <b>attivo</b>.</li>
+      <li>Nella stessa pagina scorri l'elenco fino a <b>Siti web di Safari</b>: scegli <b>Mentre usi l'app</b> e attiva <b>Posizione esatta</b> (senza, la posizione è troppo approssimativa per sbloccare i pin).</li>
+      <li>Torna a <b>Impostazioni</b> e scendi fino a <b>Safari</b> (sui modelli più recenti: <b>Impostazioni → App → Safari</b>).</li>
+      <li>Scorri <b>fino in fondo</b>, alla sezione <b>Impostazioni per i siti web</b>, tocca <b>Posizione</b> e scegli <b>Chiedi</b> oppure <b>Consenti</b>.</li>
+      <li>Torna su Safari, <b>ricarica ubipin.it</b> e, quando compare la richiesta, tocca <b>Consenti</b>.</li>
+    </ol>
+    <p class="muted small">Scorciatoia: con ubipin.it aperto in Safari, tocca l'icona a sinistra dell'indirizzo (<b>aA</b> o ☰) → <b>Impostazioni sito web</b> → <b>Posizione</b> → <b>Consenti</b>. Se usi Ubi dall'icona nella schermata Home valgono le stesse impostazioni di Safari: dopo averle cambiate chiudi Ubi e riaprila.</p>
+    <p><b>Android (Chrome)</b></p>
+    <ol>
+      <li>Scorri dall'alto dello schermo e attiva <b>Posizione</b> (o da <b>Impostazioni → Posizione</b>, con <b>Precisione della posizione</b> attiva).</li>
+      <li>Con ubipin.it aperto in Chrome, tocca l'icona a sinistra dell'indirizzo → <b>Autorizzazioni</b> (o <b>Impostazioni sito</b>) → <b>Posizione</b> → <b>Consenti</b>.</li>
+      <li>Ricarica la pagina.</li>
+    </ol>
+    <p><b>Il permesso c'è ma la posizione è imprecisa?</b> Esci all'aperto, lontano da palazzi alti, tieni acceso il Wi-Fi (aiuta anche se non sei connesso) e aspetta qualche secondo: per sbloccare serve una precisione di almeno 100 metri.</p>`],
   ['1 · Registrati e installa l’app', `<ol>
     <li>Apri Ubi, tocca <b>Registrati</b>: nome, email, password (almeno 8 caratteri) e i due consensi.</li>
     <li>Resti collegato: non dovrai rifare l'accesso su quel telefono.</li>
@@ -2053,9 +2072,12 @@ function viewOptout(esito) {
     <a class="btn full" href="#/">Vai a Ubi</a>`;
 }
 
-function viewFaq() {
+function viewFaq(arg) {
   stopWatch();
-  const det = ([q, a], open = false) => `<details class="faq"${open ? ' open' : ''}><summary>${q}</summary><div>${a}</div></details>`;
+  const det = ([q, a], open = false) => {
+    const isGeo = q.startsWith('📍 La posizione');
+    return `<details class="faq"${isGeo ? ' id="faq-posizione"' : ''}${open || (isGeo && arg === 'posizione') ? ' open' : ''}><summary>${q}</summary><div>${a}</div></details>`;
+  };
   app.innerHTML = `
     <h1>Guida e idee</h1>
     <p class="muted">Tutto quello che serve per usare Ubi, passo passo, e qualche idea per iniziare.</p>
@@ -2069,7 +2091,7 @@ function viewFaq() {
     [...$('#faqtabs').children].forEach((x) => x.classList.toggle('on', x === b));
     $('#faq-g').hidden = b.dataset.t !== 'g'; $('#faq-i').hidden = b.dataset.t !== 'i';
   };
-  window.scrollTo(0, 0);
+  if (arg === 'posizione') $('#faq-posizione').scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0);
 }
 
 // ======================= AVVIO =======================

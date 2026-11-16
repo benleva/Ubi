@@ -167,3 +167,4 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 
 .invitebox { margin-top: 12px; }
 .invitebox .row > * { flex: 1; }
+#faq-posizione { scroll-margin-top: 80px; }
