@@ -48,6 +48,7 @@ Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 - Limite noto: chi falsifica il GPS del telefono può aggirare la distanza. Rischio accettato per l'MVP.
 
 ## Prossimi passi
+- **DA FARE (risparmio spazio, richiesto il 16/11/2026):** ridurre in automatico le foto dei pin prima del caricamento (lato lungo ~2000 px, JPEG, ~400 KB) e abbassare il limite video da 50 a 25 MB con un suggerimento a registrare in qualità più bassa. Serve per restare nel piano gratuito di Supabase (1 GB file, 5 GB traffico/mese).
 - Fase 2: catene "stesso luogo, altro tempo" (`parent_id` già nel database).
 - Fase 3: replica dello scatto (dati EXIF).
 - **Ubi Night** (clone): contenuti con scadenza, conferma maggiore età, consenso reciproco prima di rivelare l'identità, accesso legato a un locale e a una serata.
