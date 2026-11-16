@@ -138,6 +138,37 @@ async function supabaseBackend() {
       if (d.recipients.length) must(await sb.from('content_recipients').insert(d.recipients.map((email) => ({ content_id: id, email }))));
       return res.data.share_slug;
     },
+    // --- profilo, autore, messaggi
+    avatarUrl(path) { return path ? sb.storage.from('avatars').getPublicUrl(path).data.publicUrl : null; },
+    async saveMyProfile(d) {
+      const u = await B.user();
+      const old = await B.profile();
+      let avatar_path = old?.avatar_path || null;
+      if (d.avatarBlob) {
+        const path = `${u.id}/avatar-${Date.now()}.jpg`;
+        must(await sb.storage.from('avatars').upload(path, d.avatarBlob, { contentType: 'image/jpeg', upsert: false }));
+        avatar_path = path;
+      } else if (d.removeAvatar) avatar_path = null;
+      must(await sb.from('profiles').update({
+        display_name: d.display_name, bio: d.bio || null, contact_website: d.website || null, contact_instagram: d.instagram || null,
+        contact_whatsapp: d.whatsapp || null, contact_email: d.email || null, avatar_path,
+      }).eq('id', u.id));
+      if (old?.avatar_path && old.avatar_path !== avatar_path) await sb.storage.from('avatars').remove([old.avatar_path]);
+    },
+    async getAuthor(id) { return (must(await sb.rpc('get_author', { p_user: id })) || [])[0] || null; },
+    async authorPins(id) { return must(await sb.rpc('author_pins', { p_user: id })) || []; },
+    async unreadCount() { return must(await sb.rpc('unread_count')) || 0; },
+    async conversations() { return must(await sb.rpc('my_conversations')) || []; },
+    async thread(other) {
+      const me = (await B.user()).id;
+      return must(await sb.from('messages').select('id,sender_id,recipient_id,body,created_at,read_at,content_id')
+        .or(`and(sender_id.eq.${me},recipient_id.eq.${other}),and(sender_id.eq.${other},recipient_id.eq.${me})`)
+        .order('created_at', { ascending: true }).limit(300)) || [];
+    },
+    async markRead(other) { must(await sb.rpc('mark_read', { p_other: other })); },
+    async sendMessage(other, body, contentId) {
+      must(await sb.from('messages').insert({ recipient_id: other, body, content_id: contentId || null }));
+    },
     async getForEdit(slug) {
       const u = await B.user();
       const c = must(await sb.from('contents').select('*, content_recipients(email)').eq('share_slug', slug).eq('owner_id', u.id).maybeSingle());
@@ -240,7 +271,7 @@ function demoBackend() {
     async resetPassword() { throw new Error('Nella demo il recupero password non è disponibile.'); },
     async updatePassword() {},
     async signOut() { db.user = null; save(); },
-    async profile() { return db.profiles[db.user.id] || null; },
+    async profile() { const p = db.profiles[db.user.id]; return p ? { ...p, id: db.user.id } : null; },
     async saveProfile(name) { db.profiles[db.user.id] = { display_name: name, privacy_version: CONFIG.PRIVACY_VERSION }; save(); },
     async listMine() { return db.contents.filter((c) => c.owner_id === db.user.id).sort((a, b) => b.created_at.localeCompare(a.created_at)); },
     async create(d) {
@@ -255,6 +286,52 @@ function demoBackend() {
       save(); return slug;
     },
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
+    avatarUrl(path) { return path || null; },   // nella demo la foto è salvata come dataURL
+    async saveMyProfile(d) {
+      const p = db.profiles[db.user.id];
+      let avatar_path = p.avatar_path || null;
+      if (d.avatarBlob) avatar_path = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(d.avatarBlob); });
+      else if (d.removeAvatar) avatar_path = null;
+      Object.assign(p, { display_name: d.display_name, bio: d.bio || null, contact_website: d.website || null, contact_instagram: d.instagram || null,
+        contact_whatsapp: d.whatsapp || null, contact_email: d.email || null, avatar_path });
+      save();
+    },
+    _canContact(other) {
+      const u = db.user; if (!u || other === u.id) return false;
+      db.messages = db.messages || [];
+      return db.contents.some((c) => c.owner_id === other && canAccess(c, u)) || db.messages.some((m) => m.s === other && m.r === u.id);
+    },
+    async getAuthor(id) {
+      const p = db.profiles[id]; const me = db.user.id === id;
+      if (!p || !(me || B._canContact(id))) return null;
+      return { id, display_name: p.display_name, bio: p.bio, website: p.contact_website, instagram: p.contact_instagram,
+        whatsapp: p.contact_whatsapp, email: p.contact_email, can_message: B._canContact(id), is_me: me, avatar_path: p.avatar_path };
+    },
+    async authorPins(id) {
+      return db.contents.filter((c) => c.owner_id === id && canAccess(c, db.user)).sort((a, b) => b.created_at.localeCompare(a.created_at))
+        .map((c) => ({ share_slug: c.share_slug, title: c.title, media_type: c.media_type, tags: c.tags || [], created_at: c.created_at }));
+    },
+    async unreadCount() { db.messages = db.messages || []; return db.messages.filter((m) => m.r === db.user.id && !m.read).length; },
+    async conversations() {
+      db.messages = db.messages || []; const me = db.user.id; const map = new Map();
+      db.messages.filter((m) => m.s === me || m.r === me).forEach((m) => {
+        const o = m.s === me ? m.r : m.s;
+        const c = map.get(o) || { other_id: o, other_name: db.profiles[o]?.display_name, unread: 0 };
+        c.last_body = m.body; c.last_at = m.at; c.last_from_me = m.s === me; if (m.r === me && !m.read) c.unread++;
+        map.set(o, c);
+      });
+      return [...map.values()].sort((a, b) => b.last_at.localeCompare(a.last_at));
+    },
+    async thread(o) {
+      const me = db.user.id; db.messages = db.messages || [];
+      return db.messages.filter((m) => (m.s === me && m.r === o) || (m.s === o && m.r === me))
+        .map((m) => ({ sender_id: m.s, recipient_id: m.r, body: m.body, created_at: m.at, content_id: m.c }));
+    },
+    async markRead(o) { (db.messages || []).forEach((m) => { if (m.r === db.user.id && m.s === o) m.read = true; }); save(); },
+    async sendMessage(o, body, cid) {
+      if (!B._canContact(o)) throw new Error('Non puoi scrivere a questo utente.');
+      db.messages.push({ s: db.user.id, r: o, body, c: cid || null, at: new Date().toISOString() }); save();
+    },
     async getForEdit(slug) {
       const c = db.contents.find((x) => x.share_slug === slug && x.owner_id === db.user.id);
       return c ? { ...c, has_password: !!c.password_hash, duration_seconds: c.duration_seconds ?? null } : null;
@@ -288,6 +365,7 @@ function demoBackend() {
         requires_password: !!c.password_hash, is_owner: !!u && c.owner_id === u.id,
         already_unlocked: !!u && db.unlocks.some((x) => x.c === c.id && x.u === u.id),
         author: db.profiles[c.owner_id]?.display_name || null, tags: c.tags || [],
+        author_id: c.owner_id, author_avatar: db.profiles[c.owner_id]?.avatar_path || null,
       };
     },
     async unlock(slug, pos, password) {
@@ -327,6 +405,7 @@ async function route() {
 }
 async function routeInner() {
   stopWatch();
+  refreshInbox();
   if (B.recovery) return viewNewPassword();
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
   if (page === 'faq') return viewFaq(arg);
@@ -345,6 +424,9 @@ async function routeInner() {
   const pending = popPending();
   if (pending && pending !== location.hash) { location.hash = pending; return; }
   if (page === 'new') return viewNew();
+  if (page === 'profilo') return viewMyProfile(prof);
+  if (page === 'u' && arg) return viewAuthor(arg);
+  if (page === 'messaggi') return arg ? viewThread(arg, location.hash.split('/')[3]) : viewInbox();
   if (page === 'edit' && arg) {
     const c = await B.getForEdit(arg);
     if (!c) { app.innerHTML = '<div class="card center"><h2>Non puoi modificare questo contenuto</h2><p class="muted">Solo chi l\'ha creato può modificarlo.</p><a class="btn" href="#/">Torna alla mappa</a></div>'; return; }
@@ -572,13 +654,15 @@ async function homeMap() {
 async function viewHome(user, prof) {
   app.innerHTML = `
     <div class="homebar"><h1>Ciao ${esc(prof.display_name || '')}</h1>
-      <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></div>
+      <span class="row" style="flex:0 0 auto;gap:8px"><a href="#/profilo" class="me" aria-label="Il mio profilo">${avatarHtml(prof.avatar_path, prof.display_name, 44)}</a>
+      <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></span></div>
     <div id="hmap" class="map home"></div>
     <div class="chips types" id="typebar">${Object.entries(TYPES).map(([k, x]) => `<button class="chip" data-k="${k}"><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}</button>`).join('')}
       <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei</button></div>
     <div id="tagcloud" class="chips cloud"></div>
     <div id="mm"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
+    <a href="#/profilo" class="btn ghost full" style="margin-top:10px">👤 Il mio profilo: foto, presentazione e contatti</a>
     <h2 style="margin-top:22px">I miei contenuti</h2>
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
@@ -872,7 +956,7 @@ async function viewContent(slug, user) {
     app.innerHTML = '<div class="card center"><h2>Contenuto non disponibile</h2><p class="muted">Non esiste, è stato rimosso, oppure non sei tra i destinatari.</p><a class="btn" href="#/">Vai a Ubi</a></div>';
     return;
   }
-  const header = `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? `<p class="muted">da ${esc(t.author)}</p>` : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
+  const header = `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const showUnlocked = (r, d) => {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
@@ -948,6 +1032,178 @@ async function viewContent(slug, user) {
 }
 
 
+// ======================= PROFILO, AUTORE, MESSAGGI =======================
+function avatarHtml(path, name, size = 40) {
+  const url = path ? B.avatarUrl(path) : null;
+  const initial = esc((name || '?').trim().charAt(0).toUpperCase() || '?');
+  return url ? `<img class="avatar" src="${esc(url)}" alt="" style="width:${size}px;height:${size}px">`
+    : `<span class="avatar ph" style="width:${size}px;height:${size}px;font-size:${Math.round(size / 2.2)}px">${initial}</span>`;
+}
+function authorLine(t, user) {
+  const prof = user && t.author_id ? `href="#/u/${esc(t.author_id)}"` : '';
+  return `<div class="authorline">${prof ? `<a ${prof}>` : ''}${avatarHtml(t.author_avatar, t.author, 36)}${prof ? '</a>' : ''}
+    <span>da ${prof ? `<a ${prof}><b>${esc(t.author)}</b></a>` : `<b>${esc(t.author)}</b>`}</span>
+    ${user && !t.is_owner && t.author_id ? `<a class="btn ghost small-btn" href="#/messaggi/${esc(t.author_id)}/${esc(location.hash.split('/')[2] || '')}">✉️ Scrivi</a>` : ''}</div>`;
+}
+async function refreshInbox() {
+  const a = $('#inbox'); if (!a) return;
+  let u = null; try { u = await B.user(); } catch { /* niente */ }
+  a.hidden = !u; if ($('#mybtn')) $('#mybtn').hidden = !u; if (!u) return;
+  try { const n = await B.unreadCount(); $('#unread').textContent = n > 9 ? '9+' : String(n); $('#unread').hidden = !n; } catch { $('#unread').hidden = true; }
+}
+// Riduce la foto a 400 px e la ricodifica in JPEG: più leggera e senza dati nascosti (GPS, modello del telefono…).
+function resizeImage(file, max = 400) {
+  return new Promise((res, rej) => {
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const side = Math.round(Math.min(max, img.width, img.height));
+      const c = document.createElement('canvas'); c.width = side; c.height = side;   // ritaglio quadrato centrato
+      const sx = (img.width - Math.min(img.width, img.height)) / 2, sy = (img.height - Math.min(img.width, img.height)) / 2;
+      c.getContext('2d').drawImage(img, sx, sy, Math.min(img.width, img.height), Math.min(img.width, img.height), 0, 0, side, side);
+      c.toBlob((b) => (b ? res(b) : rej(new Error('Immagine non leggibile'))), 'image/jpeg', 0.85);
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => rej(new Error('Formato immagine non supportato: prova con JPG o PNG.'));
+    img.src = url;
+  });
+}
+const normInstagram = (v) => String(v || '').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').replace(/\/.*$/, '');
+function normPhone(v) {
+  let x = String(v || '').replace(/[^\d+]/g, '');
+  if (!x) return '';
+  if (x.startsWith('00')) x = '+' + x.slice(2);
+  if (!x.startsWith('+') && /^3\d{8,9}$/.test(x)) x = '+39' + x;   // cellulare italiano senza prefisso
+  return x;
+}
+
+async function viewMyProfile(prof) {
+  const st = { blob: null, remove: false };
+  const p = prof || {};
+  app.innerHTML = `
+    <h1>Il mio profilo</h1>
+    <p class="muted">Foto, presentazione e contatti sono visibili a chi può vedere i tuoi pin. I contatti sono tutti facoltativi.</p>
+    <div class="card center">
+      <div id="av">${avatarHtml(p.avatar_path, p.display_name, 110)}</div>
+      <div class="actions" style="justify-content:center">
+        <label class="btn ghost" style="flex:0 1 auto">📷 Scegli foto<input id="avf" type="file" accept="image/*" hidden></label>
+        <button class="danger" id="avx" type="button" style="flex:0 1 auto"${p.avatar_path ? '' : ' hidden'}>Togli foto</button>
+      </div>
+    </div>
+    <div class="card"><form id="f">
+      <label for="name">Nome visibile</label><input id="name" required maxlength="60" value="${esc(p.display_name || '')}">
+      <label for="bio">Chi sono (max 300 caratteri)</label>
+      <textarea id="bio" maxlength="300" rows="3" placeholder="Es. Guida turistica a Roma, appassionato di fotografia e trekking.">${esc(p.bio || '')}</textarea>
+      <h2 style="margin-top:18px">Contatti pubblici (facoltativi)</h2>
+      <label for="web">Sito web</label><input id="web" inputmode="url" placeholder="https://…" value="${esc(p.contact_website || '')}">
+      <label for="ig">Instagram</label><input id="ig" placeholder="@nomeutente" value="${esc(p.contact_instagram ? '@' + p.contact_instagram : '')}">
+      <label for="wa">WhatsApp</label><input id="wa" inputmode="tel" placeholder="+39 333 1234567" value="${esc(p.contact_whatsapp || '')}">
+      <label for="em">Email pubblica</label><input id="em" type="email" placeholder="contatti@esempio.it" value="${esc(p.contact_email || '')}">
+      <p class="muted small">Anche senza contatti pubblici, gli altri possono scriverti con i <b>messaggi di Ubi</b>, senza vedere la tua email.</p>
+      <div id="m"></div>
+      <button class="full accent" type="submit">Salva il profilo</button>
+    </form></div>
+    <p class="center"><a href="#/u/${esc(p.id || '')}">Vedi come ti vedono gli altri</a> · <a href="#/">Torna alla mappa</a></p>`;
+  $('#avf').onchange = async () => {
+    const f = $('#avf').files[0]; if (!f) return;
+    try {
+      st.blob = await resizeImage(f); st.remove = false;
+      $('#av').innerHTML = `<img class="avatar" src="${URL.createObjectURL(st.blob)}" alt="" style="width:110px;height:110px">`; $('#avx').hidden = false;
+    } catch (err) { msg($('#m'), errText(err)); }
+  };
+  $('#avx').onclick = () => { st.blob = null; st.remove = true; $('#av').innerHTML = avatarHtml(null, $('#name').value, 110); $('#avx').hidden = true; };
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault();
+    const web = $('#web').value.trim() ? extractUrl($('#web').value) : '';
+    if (web === null) return msg($('#m'), 'Il sito deve essere un indirizzo valido (https://…).');
+    const ig = normInstagram($('#ig').value);
+    if (ig && !/^[A-Za-z0-9._]{1,30}$/.test(ig)) return msg($('#m'), 'Nome Instagram non valido.');
+    const wa = normPhone($('#wa').value);
+    if (wa && !/^\+\d{8,15}$/.test(wa)) return msg($('#m'), 'Numero WhatsApp non valido: usa il prefisso internazionale, es. +39 333 1234567.');
+    const em = $('#em').value.trim().toLowerCase();
+    if (em && !EMAIL_RE.test(em)) return msg($('#m'), 'Email pubblica non valida.');
+    const btn = $('#f button[type=submit]'); btn.disabled = true; btn.textContent = 'Salvo…';
+    try {
+      await B.saveMyProfile({ display_name: $('#name').value.trim(), bio: $('#bio').value.trim(), website: web, instagram: ig, whatsapp: wa, email: em,
+        avatarBlob: st.blob, removeAvatar: st.remove });
+      msg($('#m'), 'Profilo salvato ✓', 'ok');
+    } catch (err) { msg($('#m'), errText(err)); }
+    btn.disabled = false; btn.textContent = 'Salva il profilo';
+  };
+}
+
+async function viewAuthor(id) {
+  app.innerHTML = '<p class="muted center">Carico il profilo…</p>';
+  let a, pins;
+  try { a = await B.getAuthor(id); pins = a ? await B.authorPins(id) : []; } catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
+  if (!a) { app.innerHTML = '<div class="card center"><h2>Profilo non disponibile</h2><p class="muted">Puoi vedere il profilo di chi ha pin che tu puoi aprire.</p><a class="btn" href="#/">Torna alla mappa</a></div>'; return; }
+  const contacts = [
+    a.website && `<a class="btn ghost" href="${esc(a.website)}" target="_blank" rel="noopener noreferrer">🌐 ${esc(hostOf(a.website))}</a>`,
+    a.instagram && `<a class="btn ghost" href="https://www.instagram.com/${esc(a.instagram)}/" target="_blank" rel="noopener noreferrer">📸 @${esc(a.instagram)}</a>`,
+    a.whatsapp && `<a class="btn ghost" href="https://wa.me/${esc(a.whatsapp.replace('+', ''))}" target="_blank" rel="noopener noreferrer">💬 WhatsApp ${esc(a.whatsapp)}</a>`,
+    a.email && `<a class="btn ghost" href="mailto:${esc(a.email)}">✉ ${esc(a.email)}</a>`,
+  ].filter(Boolean);
+  app.innerHTML = `
+    <div class="card center profile">
+      ${avatarHtml(a.avatar_path, a.display_name, 110)}
+      <h1>${esc(a.display_name || 'Utente')}</h1>
+      ${a.bio ? `<p class="bio">${linkify(a.bio)}</p>` : ''}
+      ${contacts.length ? `<div class="contacts">${contacts.join('')}</div>` : ''}
+      ${a.is_me ? '<a class="btn full" href="#/profilo">✏️ Modifica il mio profilo</a>'
+        : a.can_message ? `<a class="btn full accent" style="background:var(--accent)" href="#/messaggi/${esc(a.id)}">✉️ Scrivi a ${esc(a.display_name || '')}</a>` : ''}
+    </div>
+    <h2>${a.is_me ? 'I tuoi pin visibili agli altri' : `I pin di ${esc(a.display_name || '')}`}</h2>
+    ${pins.length ? pins.map((c) => `<a class="card item pinrow" href="#/c/${esc(c.share_slug)}"><div class="ico">${badge(c.media_type)}</div>
+        <div><div class="t">${esc(c.title)}</div>${tagChips(c.tags)}</div></a>`).join('') : '<p class="muted">Nessun pin da mostrare.</p>'}
+    <p class="center"><a href="#/">Torna alla mappa</a></p>`;
+}
+
+async function viewInbox() {
+  app.innerHTML = '<h1>Messaggi</h1><div id="list"><p class="muted center">Carico…</p></div><p class="center"><a href="#/">Torna alla mappa</a></p>';
+  let rows;
+  try { rows = await B.conversations(); } catch (err) { msg($('#list'), errText(err)); return; }
+  $('#list').innerHTML = rows.length ? rows.map((c) => `
+    <a class="card item conv" href="#/messaggi/${esc(c.other_id)}">
+      ${avatarHtml(null, c.other_name, 42)}
+      <div style="flex:1;min-width:0"><div class="t">${esc(c.other_name || 'Utente')}${c.unread ? ` <span class="pill">${c.unread}</span>` : ''}</div>
+        <div class="meta ellipsis">${c.last_from_me ? 'Tu: ' : ''}${esc(c.last_body)}</div></div></a>`).join('')
+    : '<div class="card center muted">Nessun messaggio.<br>Apri il profilo di un autore o un suo pin e tocca <b>✉️ Scrivi</b>.</div>';
+}
+
+async function viewThread(other, slug) {
+  app.innerHTML = '<p class="muted center">Carico…</p>';
+  let a, t = null, msgs;
+  try {
+    a = await B.getAuthor(other);
+    if (slug) t = await B.teaser(slug).catch(() => null);
+    msgs = await B.thread(other);
+    await B.markRead(other); refreshInbox();
+  } catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
+  if (!a) { app.innerHTML = '<div class="card center"><h2>Conversazione non disponibile</h2><a class="btn" href="#/messaggi">Messaggi</a></div>'; return; }
+  const me = (await B.user()).id;
+  const bubbles = () => msgs.map((m) => `<div class="bubble ${m.sender_id === me ? 'mine' : ''}">${linkify(m.body)}
+      <span class="when">${new Date(m.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span></div>`).join('');
+  app.innerHTML = `
+    <div class="authorline"><a href="#/u/${esc(other)}">${avatarHtml(a.avatar_path, a.display_name, 40)}</a>
+      <h1 style="margin:0"><a href="#/u/${esc(other)}" style="color:inherit;text-decoration:none">${esc(a.display_name || 'Utente')}</a></h1></div>
+    ${t ? `<div class="msg info">A proposito di: <a href="#/c/${esc(slug)}"><b>${esc(t.title)}</b></a></div>` : ''}
+    <div class="thread" id="thread">${msgs.length ? bubbles() : '<p class="muted center">Scrivi il primo messaggio.</p>'}</div>
+    ${a.can_message ? `<form id="f" class="card"><textarea id="body" maxlength="1000" rows="3" placeholder="Scrivi un messaggio…" required></textarea>
+      <div id="m"></div><button class="full" type="submit">Invia</button></form>` : '<p class="muted">Non puoi più scrivere a questo utente.</p>'}
+    <p class="center"><a href="#/messaggi">Tutti i messaggi</a></p>`;
+  const th = $('#thread'); th.scrollTop = th.scrollHeight;
+  if (!$('#f')) return;
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault();
+    const body = $('#body').value.trim(); if (!body) return;
+    const btn = $('#f button'); btn.disabled = true;
+    try {
+      await B.sendMessage(other, body, msgs.length ? null : t?.id);
+      msgs = await B.thread(other); $('#thread').innerHTML = bubbles(); $('#body').value = ''; th.scrollTop = th.scrollHeight; msg($('#m'), '');
+    } catch (err) { msg($('#m'), errText(err)); }
+    btn.disabled = false;
+  };
+}
+
 // ======================= GUIDA E IDEE (FAQ) =======================
 const FAQ_GUIDE = [
   ['Cos’è Ubi?', `<p>Ubi ti permette di <b>lasciare un contenuto in un luogo</b>: una foto, un video (fino a 60 secondi), un audio, un testo o un link. Chi lo riceve lo vede sulla mappa, ma può <b>aprirlo solo quando arriva lì</b> con il telefono.</p>`],
@@ -986,6 +1242,12 @@ const FAQ_GUIDE = [
     <li>Se dice <i>GPS impreciso</i>: spostati all'aperto, lontano da edifici alti, e riprova.</li></ol>`],
   ['6 · Gestisci i tuoi contenuti', `<ul>
     <li>Sotto la mappa trovi <b>I miei contenuti</b>: <b>Condividi</b>, <b>Apri</b> (tu li vedi sempre) o <b>Elimina</b> (tocca due volte per confermare: il file viene cancellato).</li></ul>`],
+  ['6b · Il tuo profilo e i messaggi', `<ol>
+    <li>Tocca <b>👤 Profilo</b> in alto (o la tua foto in home): aggiungi una <b>foto</b>, una breve <b>presentazione</b> e, se vuoi, i <b>contatti pubblici</b> (sito, Instagram, WhatsApp, email). Sono tutti facoltativi.</li>
+    <li>Chi apre un tuo pin vede la tua foto e il tuo nome: toccandoli apre il tuo <b>profilo</b>, con i contatti e l'elenco dei tuoi pin pubblici.</li>
+    <li>Nella scheda di un pin tocca <b>✉️ Scrivi</b> per mandare un messaggio privato all'autore. La tua email non viene mostrata.</li>
+    <li>I messaggi arrivano nella busta <b>✉️</b> in alto: il numero arancione indica quelli da leggere.</li>
+    <li>Puoi scrivere a chi ha pin che puoi vedere, e rispondere a chi ti ha scritto.</li></ol>`],
   ['7 · Account e accesso', `<ul>
     <li>Resti collegato finché non tocchi <b>Esci</b> in fondo alla pagina.</li>
     <li><b>Password dimenticata?</b> In <i>Accedi</i> scrivi l'email e tocca il pulsante: ti arriva un link per sceglierne una nuova. Aprilo con lo <b>stesso browser</b> in cui usi Ubi.</li>
