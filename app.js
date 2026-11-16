@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161627';
+import { CONFIG } from './config.js?v=202611161643';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.16';
+const APP_VERSION = 'v.17';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -934,21 +934,30 @@ async function viewNew(ed = null, opts = {}) {
   $('#capvf').onchange = () => handleFile($('#capvf').files[0]);
   $('#cappf').onchange = () => handleFile($('#cappf').files[0]);
   $('#file').onchange = () => handleFile($('#file').files[0]);
+  const clearFile = () => {
+    s.file = null; s.duration = null; $('#preview').innerHTML = ''; msg($('#pm'), '');
+    ['#file', '#capvf', '#cappf'].forEach((k) => { $(k).value = ''; });   // così si può riscegliere anche lo stesso file
+  };
+  const addRemoveBtn = () => {
+    $('#preview').insertAdjacentHTML('beforeend', '<button type="button" class="ghost full" id="rmfile" style="margin-top:8px">✕ Togli il file e scegline un altro</button>');
+    $('#rmfile').onclick = () => { clearFile(); if (ed && ['photo', 'video', 'audio'].includes(ed.media_type)) showCurrentFile(); };
+  };
   const handleFile = async (f) => {
     s.file = null; s.duration = null; $('#preview').innerHTML = ''; msg($('#pm'), '');
+    ['#file', '#capvf', '#cappf'].forEach((k) => { $(k).value = ''; });
     if (!f) return;
     const type = f.type.split('/')[0];
     if (!['image', 'video', 'audio'].includes(type)) return msg($('#pm'), 'Formato non supportato.');
     if (f.size > CONFIG.MAX_FILE_MB * 1048576) return msg($('#pm'), `File troppo grande (max ${CONFIG.MAX_FILE_MB} MB).`);
     const url = URL.createObjectURL(f);
-    if (type === 'image') { $('#preview').innerHTML = `<img src="${url}" alt="anteprima">`; s.media_type = 'photo'; s.file = f; return; }
+    if (type === 'image') { $('#preview').innerHTML = `<img src="${url}" alt="anteprima">`; s.media_type = 'photo'; s.file = f; addRemoveBtn(); return; }
     const el = document.createElement(type); el.controls = true; el.preload = 'metadata'; el.src = url; if (type === 'video') el.playsInline = true;
     const dur = await new Promise((res) => { el.onloadedmetadata = () => res(el.duration); el.onerror = () => res(NaN); setTimeout(() => res(el.duration), 8000); });
     if (!Number.isFinite(dur)) return msg($('#pm'), 'Non riesco a leggere la durata del file. Prova con un altro formato (MP4, M4A, MP3).');
     if (type === 'video' && dur > CONFIG.MAX_VIDEO_SECONDS + 0.5) {
       return msg($('#pm'), `Il video dura ${Math.round(dur)} s: il massimo è ${CONFIG.MAX_VIDEO_SECONDS}. Accorcialo, oppure caricalo su YouTube e usa "Link".`);
     }
-    $('#preview').append(el); s.media_type = type; s.duration = Math.round(dur); s.file = f;
+    $('#preview').append(el); s.media_type = type; s.duration = Math.round(dur); s.file = f; addRemoveBtn();
   };
 
   // --- posizione (i pulsanti funzionano subito; la mappa si aggiunge appena Leaflet è pronto)
@@ -1048,10 +1057,13 @@ async function viewNew(ed = null, opts = {}) {
   };
 
   // --- precompilazione in modifica
+  function showCurrentFile() {
+    $('#preview').innerHTML = `<div class="msg info">File attuale: <b>${esc(TYPES[ed.media_type].n)}</b>. Per sostituirlo scegli un nuovo file qui sopra (o registra/scatta ora): il vecchio verrà cancellato quando salvi.</div>`;
+  }
   if (ed) {
     $(`#kind button[data-k="${s.kind}"]`).click();
     if (s.kind === 'file') {
-      $('#preview').innerHTML = `<div class="msg info">File attuale: <b>${esc(TYPES[ed.media_type].n)}</b>. Scegli un nuovo file solo se vuoi sostituirlo.</div>`;
+      showCurrentFile();
     }
     if (ed.text_body) { $('#txt').value = ed.text_body; $('#txt').oninput(); }
     if (ed.external_url) { $('#url').value = ed.external_url; $('#url').oninput(); }
@@ -1192,11 +1204,19 @@ async function viewContent(slug, user) {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
       <div class="card media">${renderMedia(t.media_type, r)}</div>
-      ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica contenuto e posizione</a>
+      ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica o sostituisci il contenuto</a>
+        <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     if (user) replySection(t, slug, $('#replybox')).catch((err) => msg($('#replybox'), errText(err)));
+    if ($('#delpin')) $('#delpin').onclick = async () => {
+      const b = $('#delpin');
+      if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma: elimina per sempre'; return; }
+      b.disabled = true;
+      try { const c = await B.getForEdit(slug); if (c) await B.remove(c); location.hash = t.is_dating ? '#/dating' : '#/'; }
+      catch (err) { alertIn(b.parentElement, errText(err)); b.disabled = false; }
+    };
   };
   if (user && (t.is_owner || t.already_unlocked)) {
     try {
@@ -1489,8 +1509,14 @@ async function viewDating(user, prof) {
     $('#mine').innerHTML = mine.length ? mine.map((c) => `
       <div class="card"><div class="item"><div class="ico">${datingBadge(prof.dating_gender)}</div>
         <div><div class="t">${esc(c.title)}</div><div class="meta">${fmtDate(c.created_at)}</div></div></div>
-        <div class="actions"><a class="btn" href="#/c/${esc(c.share_slug)}">Apri e vedi le risposte</a><a class="btn ghost" href="#/edit/${esc(c.share_slug)}">Modifica</a></div></div>`).join('')
+        <div class="actions"><a class="btn" href="#/c/${esc(c.share_slug)}">Apri e vedi le risposte</a><a class="btn ghost" href="#/edit/${esc(c.share_slug)}">Modifica</a><button class="danger" data-i="${mine.indexOf(c)}">Elimina</button></div></div>`).join('')
       : '<div class="card center muted">Non hai ancora lasciato biglietti.<br>Scegli un luogo che ami davvero.</div>';
+    $('#mine').onclick = async (e) => {
+      const b = e.target.closest('button[data-i]'); if (!b) return;
+      if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma eliminazione'; return; }
+      b.disabled = true;
+      try { await B.remove(mine[+b.dataset.i]); route(); } catch (err) { alertIn(b.closest('.card'), errText(err)); b.disabled = false; }
+    };
   } catch (err) { msg($('#mine'), errText(err)); }
   const loadMy = async () => {
     try {
