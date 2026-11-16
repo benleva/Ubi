@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161647';
+import { CONFIG } from './config.js?v=202611161829';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.18';
+const APP_VERSION = 'v.19';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -499,6 +499,7 @@ async function routeInner() {
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
   setDatingTheme(page === 'dating' || (page === 'new' && arg === 'dating'));
   if (page === 'faq') return viewFaq(arg);
+  if (page === 'invita') return viewInvite();
   if (page === 'avvisi') return viewOptout(arg);
   const user = await B.user();
   if (page === 'c' && arg) {
@@ -766,6 +767,7 @@ async function viewHome(user, prof) {
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <a href="#/dating" class="btn full datingbtn" style="margin-top:10px">💗 Ubi Dating · incontra chi ama i tuoi luoghi</a>
+    <a href="#/invita" class="btn ghost full" style="margin-top:10px">📲 Invita un amico con il QR di Ubi</a>
     <h2 style="margin-top:22px">I miei contenuti</h2>
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
@@ -1318,6 +1320,46 @@ async function viewContent(slug, user) {
   };
 }
 
+
+// ======================= INVITA UN AMICO (card con QR) =======================
+const INVITE_URL = 'https://ubipin.it';
+const INVITE_IMG = 'invito-ubi.png';
+const INVITE_TEXT = 'Ti presento Ubi: lascia foto, video e messaggi in un luogo, si aprono solo quando ci arrivi. Provala:';
+function viewInvite() {
+  app.innerHTML = `
+    <h1>📲 Invita un amico</h1>
+    <p class="muted">Fagli inquadrare il QR con la fotocamera, oppure condividi la card.</p>
+    <div class="invitecard"><img src="${INVITE_IMG}" alt="Card di Ubi con QR code per aprire ubipin.it"></div>
+    <button class="full accent" id="share">📤 Condividi la card</button>
+    <div class="row" style="margin-top:10px">
+      <a class="btn" style="background:#25d366;border-color:#25d366" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${INVITE_TEXT} ${INVITE_URL}`)}">WhatsApp</a>
+      <button class="ghost" id="copy">Copia link</button>
+      <a class="btn ghost" href="${INVITE_IMG}" download="Ubi-card.png">Salva immagine</a>
+    </div>
+    <div id="im"></div>
+    <div class="card small" style="margin-top:16px"><b>Vuoi la card nel Wallet?</b> Salva l'immagine, poi con un'app gratuita come <i>Pass2U Wallet</i> crea una card con QR <code>${INVITE_URL}</code> e aggiungila al Wallet.</div>
+    <p class="center"><a href="#/">Torna a Ubi</a></p>`;
+  $('#share').onclick = async () => {
+    try {
+      if (navigator.share) {
+        let data = { title: 'Ubi', text: INVITE_TEXT, url: INVITE_URL };
+        try {
+          const blob = await (await fetch(INVITE_IMG)).blob();
+          const file = new File([blob], 'Ubi-card.png', { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) data = { ...data, files: [file] };
+        } catch { /* senza immagine va bene lo stesso */ }
+        await navigator.share(data);
+      } else {
+        await navigator.clipboard.writeText(`${INVITE_TEXT} ${INVITE_URL}`);
+        msg($('#im'), 'Link copiato: incollalo dove vuoi.', 'ok');
+      }
+    } catch (err) { if (err && err.name !== 'AbortError') msg($('#im'), 'Condivisione non riuscita: usa WhatsApp o Copia link.'); }
+  };
+  $('#copy').onclick = async () => {
+    try { await navigator.clipboard.writeText(INVITE_URL); msg($('#im'), 'Link copiato ✓', 'ok'); }
+    catch { msg($('#im'), INVITE_URL, 'info'); }
+  };
+}
 
 // ======================= RISPOSTE AI PIN =======================
 // Controlla un file scelto per una risposta: tipo, dimensione, durata dei video.
