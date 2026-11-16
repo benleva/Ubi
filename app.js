@@ -218,6 +218,13 @@ const msg = (el, text, kind = 'err') => { el.innerHTML = text ? `<div class="msg
 const errText = (e) => esc(e?.message || String(e));
 
 async function route() {
+  try { await routeInner(); } catch (err) {
+    console.error(err);
+    app.insertAdjacentHTML('afterbegin', `<div class="msg err">Errore: ${authErr(err)}</div>`);
+    document.querySelectorAll('button[disabled]').forEach((b) => { b.disabled = false; });
+  }
+}
+async function routeInner() {
   stopWatch();
   if (B.recovery) return viewNewPassword();
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
@@ -259,6 +266,7 @@ const AUTH_ERR = [
   [/password should be|weak password/i, 'Password troppo debole: usa almeno 8 caratteri.'],
   [/rate limit|too many|security purposes/i, 'Troppi tentativi ravvicinati: riprova tra qualche minuto.'],
 ];
+const withTimeout = (p, ms = 20000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('Il server non risponde: controlla la connessione e riprova.')), ms))]);
 const authErr = (e) => { const m = e?.message || String(e); const f = AUTH_ERR.find(([re]) => re.test(m)); return f ? f[1] : esc(m); };
 
 const pwdField = (id, auto, label = 'Password') => `
@@ -295,7 +303,7 @@ function loginForm() {
   const email = () => $('#email').value.trim().toLowerCase();
   $('#f').onsubmit = async (e) => {
     e.preventDefault(); const btn = $('#f button[type=submit]'); btn.disabled = true;
-    try { await B.signInPassword(email(), $('#pwd').value); route(); } catch (err) { msg($('#m'), authErr(err)); btn.disabled = false; }
+    try { await withTimeout(B.signInPassword(email(), $('#pwd').value)); await route(); } catch (err) { msg($('#m'), authErr(err)); btn.disabled = false; }
   };
   const viaEmail = async (fn, okText) => {
     if (!EMAIL_RE.test(email())) return msg($('#m'), 'Scrivi prima la tua email qui sopra.');
@@ -323,8 +331,8 @@ function signupForm() {
     const email = $('#email').value.trim().toLowerCase();
     store.set('ubi_consent', JSON.stringify({ name: $('#name').value.trim(), v: CONFIG.PRIVACY_VERSION }));
     try {
-      const r = await B.signUp(email, $('#pwd').value);
-      if (!r.needsConfirm) return route();
+      const r = await withTimeout(B.signUp(email, $('#pwd').value));
+      if (!r.needsConfirm) { await route(); return; }
       $('#box').innerHTML = `<div class="msg ok">Quasi fatto! Abbiamo mandato un'email di conferma a <b>${esc(email)}</b>.
         Aprila da questo telefono: serve solo la prima volta, poi entrerai con email e password.</div>`;
     } catch (err) { store.set('ubi_consent', null); msg($('#m'), authErr(err)); btn.disabled = false; }
