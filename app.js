@@ -1,5 +1,5 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161523';
+import { CONFIG } from './config.js?v=202611161609';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
 const APP_VERSION = 'v.13';
@@ -766,13 +766,15 @@ async function viewNew(ed = null) {
     <div class="card"><h2>1 · Cosa vuoi lasciare</h2>
       <div class="seg" id="kind"><button class="on" data-k="file">Galleria</button><button data-k="text">Testo</button><button data-k="link">Link</button></div>
       <div id="k-file"><label for="file">Foto, video (max ${CONFIG.MAX_VIDEO_SECONDS} s) o audio</label>
-        <input id="file" type="file" accept="image/*,video/*,audio/*"></div>
+        <input id="file" type="file" accept="image/*,video/*,audio/*">
+        <p class="muted small">Un file per contenuto. <b>Vuoi lasciare tante foto?</b> Crea un album condiviso (Google Foto, iCloud, Drive…), scegli <a href="#" id="toalbum">Link</a> e incolla il link dell'album.</p></div>
       <div id="k-text" hidden><label for="txt">Il tuo testo</label>
         <textarea id="txt" maxlength="2000" rows="6" placeholder="Es. una dedica, le istruzioni per lo scatto, l'indizio per la caccia al tesoro…"></textarea>
         <p class="muted small"><span id="txtn">0</span>/2000 caratteri</p></div>
       <div id="k-link" hidden><label for="url">Link</label>
         <textarea id="url" rows="2" inputmode="url" placeholder="https://…  oppure incolla il messaggio di condivisione"></textarea>
         <p class="muted small">Qualsiasi link: un video (YouTube, Vimeo, Drive…), un percorso da seguire (Wikiloc, Komoot…), un sito, una mappa, un documento.
+        <b>Tante foto in un pin:</b> incolla il link di un album condiviso (Google Foto: album → Condividi → Crea link; iPhone: Foto → album condiviso → Sito web pubblico → copia il link).
         Puoi incollare anche tutto il messaggio di condivisione: il link lo troviamo noi. Per i video più lunghi di ${CONFIG.MAX_VIDEO_SECONDS} secondi caricali su YouTube (anche "non in elenco") e incolla qui il link.</p>
         <div id="urlok" class="small"></div></div>
       <div id="pm"></div><div class="preview" id="preview"></div>
@@ -849,6 +851,7 @@ async function viewNew(ed = null) {
     $('#k-file').hidden = s.kind !== 'file'; $('#k-link').hidden = s.kind !== 'link'; $('#k-text').hidden = s.kind !== 'text';
     $('#preview').innerHTML = ''; msg($('#pm'), '');
   };
+  $('#toalbum').onclick = (e) => { e.preventDefault(); $('#kind button[data-k="link"]').click(); $('#url').focus(); };
   $('#txt').oninput = () => { $('#txtn').textContent = $('#txt').value.length; };
   $('#url').oninput = () => {
     const u = extractUrl($('#url').value);
@@ -1479,7 +1482,12 @@ const FAQ_GUIDE = [
   ['Limiti utili da sapere', `<ul>
     <li>Video: massimo <b>60 secondi</b> (per i più lunghi usa un <i>Link</i> a YouTube o a un altro sito).</li>
     <li>Gli indirizzi web scritti nei testi e negli indizi diventano <b>cliccabili</b>.</li>
-    <li>File: massimo <b>50 MB</b>. Testo: <b>2000</b> caratteri. Tag: <b>8</b> per contenuto.</li>
+    <li>File: massimo <b>50 MB</b>, <b>uno per contenuto</b>. Testo: <b>2000</b> caratteri. Tag: <b>8</b> per contenuto.</li>
+    <li><b>Più foto nello stesso pin?</b> Crea un album condiviso e lascia il suo <i>Link</i>:<br>
+      Google Foto: apri l'album → <b>Condividi</b> → <b>Crea link</b> → copia.<br>
+      iPhone: app Foto → album condiviso → <b>Persone</b> → attiva <b>Sito web pubblico</b> → copia il link.<br>
+      Google Drive: cartella → <b>Condividi</b> → «Chiunque abbia il link» → copia.<br>
+      Il link si apre solo a chi sblocca il pin, ma chiunque lo riceva in altro modo può vederlo: non condividerlo altrove.</li>
     <li>Raggio di sblocco: da 10 a 500 metri.</li></ul>`],
 ];
 
