@@ -79,3 +79,12 @@ h1 .tico { width: 34px; height: 34px; font-size: 17px; margin-right: 4px; positi
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); margin: 10px 2px; }
 .legend > span { display: inline-flex; align-items: center; }
 .textbody { font-size: 18px; line-height: 1.55; white-space: normal; padding: 6px 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.chips.cloud { margin: 4px 0 12px; }
+button.chip, .chip { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 13px; border-radius: 999px;
+  border: 1px solid var(--line); background: #fff; color: var(--ink); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; }
+button.chip.on { background: var(--brand); color: #fff; border-color: var(--brand); }
+.chip .n { margin-left: 6px; font-weight: 400; opacity: .65; font-size: 12px; }
+.chip.static { min-height: 0; padding: 3px 10px; font-size: 13px; font-weight: 600; color: var(--brand); background: #eef3f9; border-color: transparent; cursor: default; }
+.chips.types button.chip { padding-left: 6px; font-size: 13px; }
+.chips.types button.chip.on { background: #1b2430; border-color: #1b2430; }

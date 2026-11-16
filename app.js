@@ -13,6 +13,11 @@ const TYPES = {
   audio: { l: 'A', c: '#e0901f', n: 'Audio' },
 };
 const badge = (t, extra = '') => { const x = TYPES[t] || TYPES.photo; return `<span class="tico ${extra}" style="background:${x.c}" title="${x.n}">${x.l}</span>`; };
+const TAGS_SUGGESTED = ['famiglia', 'amore', 'anniversario', 'amici', 'ricordo', 'sport', 'panorama', 'tramonto',
+  'monumento', 'storia', 'arte', 'natura', 'mare', 'montagna', 'città', 'cibo', 'fotografia', 'musica', 'guida', 'caccia al tesoro'];
+const MAX_TAGS = 8;
+const normTag = (t) => String(t).toLowerCase().replace(/[,;#<>"]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24);
+const tagChips = (tags, cls = 'static') => (tags && tags.length) ? `<div class="chips">${tags.map((t) => `<span class="chip ${cls}">#${esc(t)}</span>`).join('')}</div>` : '';
 const VIS = { public: 'Pubblico', hidden: 'Solo io', restricted: 'Destinatari scelti' };
 
 function distanceM(lat1, lng1, lat2, lng2) {
@@ -87,7 +92,7 @@ async function supabaseBackend() {
     },
     async listMine() {
       const u = await B.user();
-      return must(await sb.from('contents').select('id,share_slug,title,media_type,media_path,visibility,created_at,password_hash')
+      return must(await sb.from('contents').select('id,share_slug,title,media_type,media_path,visibility,created_at,password_hash,tags')
         .eq('owner_id', u.id).order('created_at', { ascending: false }));
     },
     async create(d) {
@@ -103,7 +108,7 @@ async function supabaseBackend() {
         id, owner_id: u.id, title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
         external_url: d.external_url || null, duration_seconds: d.duration ?? null, lat: d.lat, lng: d.lng,
         unlock_radius_m: d.radius, location_source: d.source, visibility: d.visibility, password_hash: d.password || null,
-        text_body: d.text_body || null,
+        text_body: d.text_body || null, tags: d.tags || [],
       };
       const res = await sb.from('contents').insert(row).select('share_slug').single();
       if (res.error) { if (media_path) await sb.storage.from('media').remove([media_path]); throw res.error; }
@@ -185,7 +190,7 @@ function demoBackend() {
         id, share_slug: slug, owner_id: db.user.id, title: d.title, hint: d.hint || null, media_type: d.media_type,
         media_path: d.file ? id : null, external_url: d.external_url || null, lat: d.lat, lng: d.lng, unlock_radius_m: d.radius,
         visibility: d.visibility, recipients: d.recipients, password_hash: d.password ? await sha(d.password) : null,
-        text_body: d.text_body || null, created_at: new Date().toISOString(),
+        text_body: d.text_body || null, tags: d.tags || [], created_at: new Date().toISOString(),
       });
       save(); return slug;
     },
@@ -194,7 +199,7 @@ function demoBackend() {
       const u = db.user;
       return db.contents.filter((c) => canAccess(c, u) && c.lat >= b.s && c.lat <= b.n && c.lng >= b.w && c.lng <= b.e)
         .map((c) => ({ share_slug: c.share_slug, title: c.title, media_type: c.media_type, lat: c.lat, lng: c.lng,
-          is_owner: c.owner_id === u.id, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u.id) }));
+          is_owner: c.owner_id === u.id, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u.id), tags: c.tags || [] }));
     },
     async teaser(slug) {
       const u = db.user; const c = db.contents.find((x) => x.share_slug === slug);
@@ -203,7 +208,7 @@ function demoBackend() {
         id: c.id, title: c.title, hint: c.hint, media_type: c.media_type, lat: c.lat, lng: c.lng, unlock_radius_m: c.unlock_radius_m,
         requires_password: !!c.password_hash, is_owner: !!u && c.owner_id === u.id,
         already_unlocked: !!u && db.unlocks.some((x) => x.c === c.id && x.u === u.id),
-        author: db.profiles[c.owner_id]?.display_name || null,
+        author: db.profiles[c.owner_id]?.display_name || null, tags: c.tags || [],
       };
     },
     async unlock(slug, pos, password) {
@@ -398,6 +403,8 @@ function viewNewPassword() {
 
 // Mappa iniziale: segnaposto dei contenuti che l'utente può vedere nell'area inquadrata.
 let lastView = null;   // ricorda centro e zoom tra una visita e l'altra
+const tagFilter = new Set();   // tag selezionati nella nuvola della mappa
+const typeFilter = new Set();  // tipi selezionati (photo, video, …) e/o 'mine'
 async function homeMap() {
   const el = $('#hmap');
   await waitLeaflet();
@@ -410,22 +417,55 @@ async function homeMap() {
     className: '', iconSize: [34, 34], iconAnchor: [17, 17],
     html: badge(c.media_type, `pin${c.is_owner ? ' mine' : ''}${c.is_owner || c.unlocked ? '' : ' locked'}`),
   });
+  let rows = [];
+  const draw = () => {
+    layer.clearLayers();
+    // filtri: tipo (uno qualsiasi dei selezionati) E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
+    const types = [...typeFilter].filter((k) => k !== 'mine');
+    const shown = rows.filter((c) =>
+      (!types.length || types.includes(c.media_type)) &&
+      (!typeFilter.has('mine') || c.is_owner) &&
+      (!tagFilter.size || (c.tags || []).some((t) => tagFilter.has(t))));
+    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', typeFilter.has(b.dataset.k)));
+    shown.forEach((c) => {
+      L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
+        .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
+        .addTo(layer);
+    });
+    // nuvola: tag presenti nella zona, i più usati prima; i selezionati restano sempre visibili
+    const count = new Map();
+    rows.forEach((c) => (c.tags || []).forEach((t) => count.set(t, (count.get(t) || 0) + 1)));
+    tagFilter.forEach((t) => { if (!count.has(t)) count.set(t, 0); });
+    const list = [...count.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 30);
+    $('#tagcloud').innerHTML = list.length ? `<button class="chip ${tagFilter.size ? '' : 'on'}" data-t="">Tutti i tag</button>` +
+      list.map(([t, n]) => `<button class="chip ${tagFilter.has(t) ? 'on' : ''}" data-t="${esc(t)}">#${esc(t)}<span class="n">${n}</span></button>`).join('') : '';
+    return shown.length;
+  };
+  $('#tagcloud').onclick = (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const t = b.dataset.t;
+    if (!t) tagFilter.clear(); else if (tagFilter.has(t)) tagFilter.delete(t); else tagFilter.add(t);
+    const n = draw();
+    msg($('#mm'), rows.length && !n ? 'Nessun contenuto con questi filtri in questa zona.' : '', 'info');
+  };
+  $('#typebar').onclick = (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const k = b.dataset.k;
+    if (typeFilter.has(k)) typeFilter.delete(k); else typeFilter.add(k);
+    const n = draw();
+    msg($('#mm'), rows.length && !n ? 'Nessun contenuto con questi filtri in questa zona.' : '', 'info');
+  };
   const load = async () => {
     const b = map.getBounds().pad(0.3);
     try {
-      const rows = await B.mapContents({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() });
+      rows = await B.mapContents({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() });
       if (!document.body.contains(el)) return;
-      layer.clearLayers();
-      rows.forEach((c) => {
-        L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
-          .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
-          .addTo(layer);
-      });
+      const shownCount = draw();
       if (first && rows.length && !lastView && !me) {
         map.fitBounds(rows.map((c) => [c.lat, c.lng]), { padding: [40, 40], maxZoom: 16 });
       }
       first = false;
-      msg($('#mm'), rows.length ? '' : 'Nessun contenuto in questa zona: sposta la mappa o lasciane uno tu.', 'info');
+      msg($('#mm'), !rows.length ? 'Nessun contenuto in questa zona: sposta la mappa o lasciane uno tu.' : (!shownCount ? 'Nessun contenuto con questi filtri in questa zona.' : ''), 'info');
     } catch (err) { msg($('#mm'), errText(err)); }
   };
   map.on('moveend', () => {
@@ -449,8 +489,9 @@ async function viewHome(user, prof) {
     <div class="homebar"><h1>Ciao ${esc(prof.display_name || '')}</h1>
       <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></div>
     <div id="hmap" class="map home"></div>
-    <div class="legend">${Object.values(TYPES).map((x) => `<span><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}</span>`).join('')}
-      <span><span class="tico sm mine" style="background:#888">·</span>Miei</span></div>
+    <div class="chips types" id="typebar">${Object.entries(TYPES).map(([k, x]) => `<button class="chip" data-k="${k}"><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}</button>`).join('')}
+      <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei</button></div>
+    <div id="tagcloud" class="chips cloud"></div>
     <div id="mm"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <h2 style="margin-top:22px">I miei contenuti</h2>
@@ -466,6 +507,7 @@ async function viewHome(user, prof) {
       <div class="item"><div class="ico">${badge(c.media_type)}</div>
         <div><div class="t">${esc(c.title)}</div>
         <div class="meta">${VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString('it-IT')}</div></div></div>
+      ${tagChips(c.tags)}
       <div class="actions">
         <button class="ghost" data-a="share">Condividi</button>
         <a class="btn ghost" href="#/c/${esc(c.share_slug)}">Apri</a>
@@ -505,7 +547,7 @@ function shareSheet(title, slug, container) {
 }
 
 async function viewNew() {
-  const s = { kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: 'restricted' };
+  const s = { tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: 'restricted' };
   app.innerHTML = `
     <h1>Nuovo contenuto</h1>
     <div class="card"><h2>1 · Cosa vuoi lasciare</h2>
@@ -534,6 +576,10 @@ async function viewNew() {
       <label for="title">Titolo</label><input id="title" maxlength="120" required placeholder="Es. Buon anniversario">
       <label for="hint">Indizio (visibile prima dello sblocco)</label>
       <textarea id="hint" maxlength="500" placeholder="Es. Dove ci siamo detti sì, vicino alla fontana"></textarea>
+      <label>Tag <span class="muted small" id="tagn">(0/${MAX_TAGS})</span></label>
+      <div class="chips" id="tags"></div>
+      <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="newtag" maxlength="24" placeholder="Aggiungi un tag tuo…" enterkeyhint="done">
+        <button id="addtag" type="button" class="ghost" style="flex:0 0 auto">＋</button></div>
     </div>
     <div class="card"><h2>4 · Chi può aprirlo</h2>
       <div class="seg" id="vis"><button data-v="restricted" class="on">Persone scelte</button><button data-v="public">Tutti</button><button data-v="hidden">Solo io</button></div>
@@ -546,6 +592,28 @@ async function viewNew() {
     <div id="sm"></div>
     <button class="full accent" id="save">Fissa nel luogo</button>
     <p class="center"><a href="#/">Annulla</a></p>`;
+
+  // --- tag
+  const allTags = [...TAGS_SUGGESTED];
+  const drawTags = () => {
+    $('#tags').innerHTML = allTags.map((t) => `<button type="button" class="chip ${s.tags.has(t) ? 'on' : ''}" data-t="${esc(t)}">#${esc(t)}</button>`).join('');
+    $('#tagn').textContent = `(${s.tags.size}/${MAX_TAGS})`;
+  };
+  const toggleTag = (t, forceOn = false) => {
+    if (s.tags.has(t) && !forceOn) s.tags.delete(t);
+    else if (s.tags.size >= MAX_TAGS && !s.tags.has(t)) { msg($('#sm'), `Massimo ${MAX_TAGS} tag per contenuto.`); return; }
+    else s.tags.add(t);
+    msg($('#sm'), ''); drawTags();
+  };
+  $('#tags').onclick = (e) => { const b = e.target.closest('button'); if (b) toggleTag(b.dataset.t); };
+  const addCustom = () => {
+    const t = normTag($('#newtag').value); if (!t) return;
+    if (!allTags.includes(t)) allTags.unshift(t);
+    toggleTag(t, true); $('#newtag').value = '';
+  };
+  $('#addtag').onclick = addCustom;
+  $('#newtag').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } };
+  drawTags();
 
   // --- tipo contenuto
   $('#kind').onclick = (e) => {
@@ -636,7 +704,7 @@ async function viewNew() {
     try {
       const slug = await B.create({
         file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'file' ? s.media_type : s.kind, duration: s.kind === 'file' ? s.duration : null,
-        text_body: s.kind === 'text' ? $('#txt').value.trim() : null,
+        text_body: s.kind === 'text' ? $('#txt').value.trim() : null, tags: [...s.tags],
         external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
         visibility: s.vis, recipients, password: $('#pwd').value,
       });
@@ -676,7 +744,7 @@ async function viewContent(slug, user) {
     app.innerHTML = '<div class="card center"><h2>Contenuto non disponibile</h2><p class="muted">Non esiste, è stato rimosso, oppure non sei tra i destinatari.</p><a class="btn" href="#/">Vai a Ubi</a></div>';
     return;
   }
-  const header = `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? `<p class="muted">da ${esc(t.author)}</p>` : ''}${t.hint ? `<div class="msg info">${esc(t.hint)}</div>` : ''}`;
+  const header = `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? `<p class="muted">da ${esc(t.author)}</p>` : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info">${esc(t.hint)}</div>` : ''}`;
   const showUnlocked = (r, d) => {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
