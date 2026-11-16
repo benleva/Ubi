@@ -46,21 +46,32 @@ function youTubeId(url) { const m = String(url).match(/(?:youtu\.be\/|[?&]v=|sho
 // ======================= BACKEND: SUPABASE =======================
 async function supabaseBackend() {
   const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+  let B = null;
   const sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
-    auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true },
+    auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
   });
+  // Arrivo dal link "password dimenticata": mostriamo la schermata per sceglierne una nuova
+  sb.auth.onAuthStateChange((ev) => { if (ev === 'PASSWORD_RECOVERY' && B) { B.recovery = true; if (appReady) route(); } });
   const must = ({ data, error }) => { if (error) throw error; return data; };
-  const B = {
+  const base = location.origin + location.pathname;
+  B = {
     demo: false,
+    recovery: false,
     async init() {
       await sb.auth.getSession();
       if (location.search.includes('code=')) history.replaceState(null, '', location.pathname + location.hash);
     },
     async user() { const { data } = await sb.auth.getSession(); const u = data.session?.user; return u ? { id: u.id, email: u.email } : null; },
-    async signIn(email) {
-      must(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } }));
-      return { instant: false };
+    async signUp(email, password) {
+      const data = must(await sb.auth.signUp({ email, password, options: { emailRedirectTo: base } }));
+      // Email già registrata: Supabase risponde con un utente senza identità (per non rivelare chi è iscritto)
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) throw new Error('already_registered');
+      return { needsConfirm: !data.session };
     },
+    async signInPassword(email, password) { must(await sb.auth.signInWithPassword({ email, password })); },
+    async signInLink(email) { must(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: base, shouldCreateUser: false } })); },
+    async resetPassword(email) { must(await sb.auth.resetPasswordForEmail(email, { redirectTo: base })); },
+    async updatePassword(password) { must(await sb.auth.updateUser({ password })); B.recovery = false; },
     async signOut() { await sb.auth.signOut(); },
     async profile() { const u = await B.user(); return must(await sb.from('profiles').select('*').eq('id', u.id).maybeSingle()); },
     async saveProfile(name) {
@@ -138,7 +149,20 @@ function demoBackend() {
     demo: true,
     async init() {},
     async user() { return db.user; },
-    async signIn(email) { db.user = { id: 'u_' + (await sha(email)).slice(0, 16), email }; save(); return { instant: true }; },
+    async signUp(email, password) {
+      db.accounts = db.accounts || {};
+      if (db.accounts[email]) throw new Error('already_registered');
+      db.accounts[email] = await sha('ubi:' + password);
+      db.user = { id: 'u_' + (await sha(email)).slice(0, 16), email }; save();
+      return { needsConfirm: false };
+    },
+    async signInPassword(email, password) {
+      if (!db.accounts?.[email] || db.accounts[email] !== await sha('ubi:' + password)) throw new Error('Invalid login credentials');
+      db.user = { id: 'u_' + (await sha(email)).slice(0, 16), email }; save();
+    },
+    async signInLink() { throw new Error('Nella demo usa email e password.'); },
+    async resetPassword() { throw new Error('Nella demo il recupero password non è disponibile.'); },
+    async updatePassword() {},
     async signOut() { db.user = null; save(); },
     async profile() { return db.profiles[db.user.id] || null; },
     async saveProfile(name) { db.profiles[db.user.id] = { display_name: name, privacy_version: CONFIG.PRIVACY_VERSION }; save(); },
@@ -187,6 +211,7 @@ function demoBackend() {
 
 // ======================= VISTE =======================
 let B;
+let appReady = false;
 let watchId = null;
 const stopWatch = () => { if (watchId != null) { navigator.geolocation.clearWatch(watchId); watchId = null; } };
 const msg = (el, text, kind = 'err') => { el.innerHTML = text ? `<div class="msg ${kind}">${text}</div>` : ''; };
@@ -194,68 +219,155 @@ const errText = (e) => esc(e?.message || String(e));
 
 async function route() {
   stopWatch();
+  if (B.recovery) return viewNewPassword();
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
   const user = await B.user();
   if (page === 'c' && arg) {
     if (user) {
-      const p = await B.profile();
-      if (!p || p.privacy_version !== CONFIG.PRIVACY_VERSION) { setPending(location.hash); return viewConsent(); }
+      const p = await ensureProfile();
+      if (!p) { setPending(location.hash); return viewConsent(); }
       if (store.get('ubi_after_login') === location.hash) popPending();
     }
     return viewContent(arg, user);
   }
   if (!user) return viewLogin();
-  const prof = await B.profile();
-  if (!prof || prof.privacy_version !== CONFIG.PRIVACY_VERSION) return viewConsent();
+  const prof = await ensureProfile();
+  if (!prof) return viewConsent();
   const pending = popPending();
   if (pending && pending !== location.hash) { location.hash = pending; return; }
   if (page === 'new') return viewNew();
   return viewHome(user, prof);
 }
 
-function viewLogin(note = '') {
+// Profilo valido? Se l'utente ha accettato i consensi in registrazione, lo salviamo ora.
+async function ensureProfile() {
+  const p = await B.profile();
+  if (p && p.privacy_version === CONFIG.PRIVACY_VERSION) return p;
+  let c = null; try { c = JSON.parse(store.get('ubi_consent')); } catch { /* niente */ }
+  if (c && c.v === CONFIG.PRIVACY_VERSION && c.name) {
+    await B.saveProfile(c.name); store.set('ubi_consent', null);
+    return B.profile();
+  }
+  return null;
+}
+
+const AUTH_ERR = [
+  [/invalid login credentials/i, 'Email o password errate.'],
+  [/already_registered|already registered/i, 'Questa email è già registrata: usa "Accedi".'],
+  [/email not confirmed/i, 'Devi ancora confermare l\'email: apri il messaggio che ti abbiamo mandato (controlla anche lo spam).'],
+  [/signups not allowed|user not found/i, 'Non c\'è un account con questa email: registrati.'],
+  [/password should be|weak password/i, 'Password troppo debole: usa almeno 8 caratteri.'],
+  [/rate limit|too many|security purposes/i, 'Troppi tentativi ravvicinati: riprova tra qualche minuto.'],
+];
+const authErr = (e) => { const m = e?.message || String(e); const f = AUTH_ERR.find(([re]) => re.test(m)); return f ? f[1] : esc(m); };
+
+const pwdField = (id, auto, label = 'Password') => `
+  <label for="${id}">${label}</label>
+  <div class="row" style="flex-wrap:nowrap"><input id="${id}" type="password" autocomplete="${auto}" required minlength="8" maxlength="72">
+  <button type="button" class="ghost" data-show="${id}" style="flex:0 0 auto" aria-label="Mostra password">👁</button></div>`;
+const bindShow = () => document.querySelectorAll('[data-show]').forEach((b) => {
+  b.onclick = () => { const i = $('#' + b.dataset.show); i.type = i.type === 'password' ? 'text' : 'password'; };
+});
+
+function viewLogin(note = '', tab = 'login') {
   app.innerHTML = `
     <div class="hero"><span class="pin"></span><h1>Lascia un ricordo dove è nato</h1>
       <p class="muted">Foto, video e audio fissati in un luogo. Si aprono solo quando ci arrivi.</p></div>
-    <div class="card">
-      ${note ? `<div class="msg info">${note}</div>` : ''}
-      <form id="f">
-        <label for="email">La tua email</label>
-        <input id="email" type="email" autocomplete="email" required placeholder="nome@esempio.it">
-        <div id="m"></div>
-        <button class="full" type="submit">${B.demo ? 'Entra (demo)' : 'Inviami il link di accesso'}</button>
-      </form>
-      <p class="muted small">${B.demo ? 'Modalità demo: i dati restano su questo telefono.' : 'Niente password: ti mandiamo un link via email.'}</p>
-    </div>`;
+    ${note ? `<div class="msg info">${note}</div>` : ''}
+    <div class="seg" id="tabs"><button data-t="login" class="${tab === 'login' ? 'on' : ''}">Accedi</button><button data-t="signup" class="${tab === 'signup' ? 'on' : ''}">Registrati</button></div>
+    <div class="card" id="box"></div>
+    <p class="muted small center">Resti collegato su questo telefono: non dovrai rifare l'accesso.${B.demo ? '<br>Modalità demo: i dati restano su questo telefono.' : ''}</p>`;
+  $('#tabs').onclick = (e) => { const b = e.target.closest('button'); if (b) viewLogin(note, b.dataset.t); };
+  return tab === 'signup' ? signupForm() : loginForm();
+}
+
+function loginForm() {
+  $('#box').innerHTML = `<form id="f">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required placeholder="nome@esempio.it">
+      ${pwdField('pwd', 'current-password')}
+      <div id="m"></div>
+      <button class="full" type="submit">Accedi</button>
+    </form>
+    <div class="actions"><button class="ghost" id="forgot" type="button">Password dimenticata?</button>
+      ${B.demo ? '' : '<button class="ghost" id="magic" type="button">Entra con un link via email</button>'}</div>`;
+  bindShow();
+  const email = () => $('#email').value.trim().toLowerCase();
   $('#f').onsubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); const btn = $('#f button[type=submit]'); btn.disabled = true;
+    try { await B.signInPassword(email(), $('#pwd').value); route(); } catch (err) { msg($('#m'), authErr(err)); btn.disabled = false; }
+  };
+  const viaEmail = async (fn, okText) => {
+    if (!EMAIL_RE.test(email())) return msg($('#m'), 'Scrivi prima la tua email qui sopra.');
+    try { await fn(email()); msg($('#m'), okText, 'ok'); } catch (err) { msg($('#m'), authErr(err)); }
+  };
+  $('#forgot').onclick = () => viaEmail(B.resetPassword, `Ti abbiamo mandato un link per scegliere una nuova password a <b>${esc(email())}</b>.`);
+  if ($('#magic')) $('#magic').onclick = () => viaEmail(B.signInLink, `Link di accesso inviato a <b>${esc(email())}</b>: aprilo da questo telefono.`);
+}
+
+function signupForm() {
+  $('#box').innerHTML = `<form id="f">
+      <label for="name">Come vuoi farti chiamare?</label>
+      <input id="name" required maxlength="60" autocomplete="nickname" placeholder="Es. Andrea">
+      <p class="muted small">Il nome è visibile a chi apre i tuoi contenuti.</p>
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" required placeholder="nome@esempio.it">
+      ${pwdField('pwd', 'new-password', 'Scegli una password (almeno 8 caratteri)')}
+      ${consentBoxes()}
+      <div id="m"></div>
+      <button class="full accent" type="submit">Crea il mio account</button>
+    </form>`;
+  bindShow();
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault(); const btn = $('#f button[type=submit]'); btn.disabled = true;
     const email = $('#email').value.trim().toLowerCase();
-    const btn = $('#f button'); btn.disabled = true;
+    store.set('ubi_consent', JSON.stringify({ name: $('#name').value.trim(), v: CONFIG.PRIVACY_VERSION }));
     try {
-      const r = await B.signIn(email);
-      if (r.instant) return route();
-      msg($('#m'), `Controlla la posta: abbiamo inviato il link a <b>${esc(email)}</b>. Aprilo da questo telefono.`, 'ok');
-    } catch (err) { msg($('#m'), errText(err)); btn.disabled = false; }
+      const r = await B.signUp(email, $('#pwd').value);
+      if (!r.needsConfirm) return route();
+      $('#box').innerHTML = `<div class="msg ok">Quasi fatto! Abbiamo mandato un'email di conferma a <b>${esc(email)}</b>.
+        Aprila da questo telefono: serve solo la prima volta, poi entrerai con email e password.</div>`;
+    } catch (err) { store.set('ubi_consent', null); msg($('#m'), authErr(err)); btn.disabled = false; }
   };
 }
 
-function viewConsent() {
+const consentBoxes = () => `
+  <label class="inline"><input type="checkbox" id="c1" required>
+    <span>Ho letto l'<a href="privacy.html" target="_blank" rel="noopener">informativa privacy</a> e accetto il trattamento dei miei dati per usare il servizio.</span></label>
+  <label class="inline"><input type="checkbox" id="c2" required>
+    <span>Acconsento all'uso della posizione del telefono <b>solo</b> mentre uso l'app, per fissare e sbloccare i contenuti. La posizione non viene salvata nel mio profilo.</span></label>`;
+
+// Mostrata solo se manca il consenso (es. informativa aggiornata).
+async function viewConsent() {
+  let name = ''; try { name = (await B.profile())?.display_name || ''; } catch { /* nuovo utente */ }
   app.innerHTML = `
     <h1>Benvenuto in Ubi</h1>
     <div class="card"><form id="f">
       <label for="name">Come vuoi farti chiamare?</label>
-      <input id="name" required maxlength="60" placeholder="Es. Andrea">
+      <input id="name" required maxlength="60" placeholder="Es. Andrea" value="${esc(name)}">
       <p class="muted small">Il nome è visibile a chi apre i tuoi contenuti.</p>
-      <label class="inline"><input type="checkbox" id="c1" required>
-        <span>Ho letto l'<a href="privacy.html" target="_blank" rel="noopener">informativa privacy</a> e accetto il trattamento dei miei dati per usare il servizio.</span></label>
-      <label class="inline"><input type="checkbox" id="c2" required>
-        <span>Acconsento all'uso della posizione del telefono <b>solo</b> mentre uso l'app, per fissare e sbloccare i contenuti. La posizione non viene salvata nel mio profilo.</span></label>
+      ${consentBoxes()}
       <div id="m"></div>
       <button class="full" type="submit">Continua</button>
     </form></div>`;
   $('#f').onsubmit = async (e) => {
     e.preventDefault();
     try { await B.saveProfile($('#name').value.trim()); route(); } catch (err) { msg($('#m'), errText(err)); }
+  };
+}
+
+function viewNewPassword() {
+  app.innerHTML = `
+    <h1>Nuova password</h1>
+    <div class="card"><form id="f">
+      ${pwdField('pwd', 'new-password', 'Scegli la nuova password (almeno 8 caratteri)')}
+      <div id="m"></div>
+      <button class="full" type="submit">Salva e continua</button>
+    </form></div>`;
+  bindShow();
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault();
+    try { await B.updatePassword($('#pwd').value); B.recovery = false; route(); } catch (err) { msg($('#m'), authErr(err)); }
   };
 }
 
@@ -471,7 +583,7 @@ async function viewContent(slug, user) {
   let t;
   try { t = await B.teaser(slug); } catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
   if (!t) {
-    if (!user) { setPending(location.hash); return viewLogin('Questo contenuto è riservato. Accedi con la tua email: se è per te, lo vedrai.'); }
+    if (!user) { setPending(location.hash); return viewLogin('Questo contenuto è riservato. Accedi o registrati: se è per te, lo vedrai.'); }
     app.innerHTML = '<div class="card center"><h2>Contenuto non disponibile</h2><p class="muted">Non esiste, è stato rimosso, oppure non sei tra i destinatari.</p><a class="btn" href="#/">Vai a Ubi</a></div>';
     return;
   }
@@ -556,6 +668,7 @@ async function viewContent(slug, user) {
     await B.init();
     $('#mode').hidden = !B.demo;
     window.addEventListener('hashchange', route);
+    appReady = true;
     await route();
   } catch (err) {
     app.innerHTML = `<div class="msg err">Errore di avvio: ${errText(err)}</div>`;

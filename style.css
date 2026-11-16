@@ -65,3 +65,4 @@ button:disabled { opacity: .5; cursor: default; }
 .range-out { font-weight: 700; color: var(--brand); }
 .hero { text-align: center; padding: 24px 8px 8px; }
 .hero .pin { width: 44px; height: 44px; margin-bottom: 14px; }
+form button[type=submit] { margin-top: 16px; }
