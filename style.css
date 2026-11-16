@@ -131,3 +131,5 @@ a.card.item { text-decoration: none; color: var(--ink); }
   border: 1.5px solid rgba(255,255,255,.7); border-radius: 999px; padding: 5px 12px; }
 .mybtn + .inboxbtn { margin-left: 6px; }
 @media (max-width: 370px) { .mybtn span { display: none; } }
+details.quickadd { margin: 6px 0 4px; }
+details.quickadd summary { cursor: pointer; color: var(--brand); font-weight: 700; font-size: 14px; padding: 6px 0; }

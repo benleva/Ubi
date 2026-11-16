@@ -138,6 +138,14 @@ async function supabaseBackend() {
       if (d.recipients.length) must(await sb.from('content_recipients').insert(d.recipients.map((email) => ({ content_id: id, email }))));
       return res.data.share_slug;
     },
+    // --- rubrica
+    async listContacts() { return must(await sb.from('address_book').select('id,name,email').order('name')) || []; },
+    async saveContact(c) {
+      const u = await B.user();
+      if (c.id) must(await sb.from('address_book').update({ name: c.name, email: c.email }).eq('id', c.id));
+      else must(await sb.from('address_book').insert({ owner_id: u.id, name: c.name, email: c.email }));
+    },
+    async deleteContact(id) { must(await sb.from('address_book').delete().eq('id', id)); },
     // --- profilo, autore, messaggi
     avatarUrl(path) { return path ? sb.storage.from('avatars').getPublicUrl(path).data.publicUrl : null; },
     async saveMyProfile(d) {
@@ -286,6 +294,16 @@ function demoBackend() {
       save(); return slug;
     },
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
+    _book() { db.book = db.book || {}; db.book[db.user.id] = db.book[db.user.id] || []; return db.book[db.user.id]; },
+    async listContacts() { return [...B._book()].sort((a, b) => a.name.localeCompare(b.name)); },
+    async saveContact(c) {
+      const bk = B._book();
+      if (bk.some((x) => x.email === c.email && x.id !== c.id)) throw new Error('duplicate key value violates unique constraint');
+      if (c.id) Object.assign(bk.find((x) => x.id === c.id), { name: c.name, email: c.email });
+      else bk.push({ id: crypto.randomUUID(), name: c.name, email: c.email });
+      save();
+    },
+    async deleteContact(id) { db.book[db.user.id] = B._book().filter((x) => x.id !== id); save(); },
     avatarUrl(path) { return path || null; },   // nella demo la foto è salvata come dataURL
     async saveMyProfile(d) {
       const p = db.profiles[db.user.id];
@@ -425,6 +443,7 @@ async function routeInner() {
   if (pending && pending !== location.hash) { location.hash = pending; return; }
   if (page === 'new') return viewNew();
   if (page === 'profilo') return viewMyProfile(prof);
+  if (page === 'rubrica') return viewBook();
   if (page === 'u' && arg) return viewAuthor(arg);
   if (page === 'messaggi') return arg ? viewThread(arg, location.hash.split('/')[3]) : viewInbox();
   if (page === 'edit' && arg) {
@@ -453,6 +472,8 @@ const AUTH_ERR = [
   [/email not confirmed/i, 'Devi ancora confermare l\'email: apri il messaggio che ti abbiamo mandato (controlla anche lo spam).'],
   [/signups not allowed|user not found/i, 'Non c\'è un account con questa email: registrati.'],
   [/password should be|weak password/i, 'Password troppo debole: usa almeno 8 caratteri.'],
+  [/duplicate key|unique constraint|23505/i, 'Questa email è già nella tua rubrica.'],
+  [/rubrica piena/i, 'Rubrica piena (massimo 1000 contatti).'],
   [/rate limit|too many|security purposes/i, 'Troppi tentativi ravvicinati: riprova tra qualche minuto.'],
 ];
 const withTimeout = (p, ms = 20000) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('Il server non risponde: controlla la connessione e riprova.')), ms))]);
@@ -662,7 +683,7 @@ async function viewHome(user, prof) {
     <div id="tagcloud" class="chips cloud"></div>
     <div id="mm"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
-    <a href="#/profilo" class="btn ghost full" style="margin-top:10px">👤 Il mio profilo: foto, presentazione e contatti</a>
+    <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <h2 style="margin-top:22px">I miei contenuti</h2>
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
@@ -717,7 +738,7 @@ function shareSheet(title, slug, container) {
 }
 
 async function viewNew(ed = null) {
-  const s = { tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: 'restricted' };
+  const s = { sel: new Set(), book: [], tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: 'restricted' };
   if (ed) {
     Object.assign(s, {
       tags: new Set(ed.tags || []), kind: ['photo', 'video', 'audio'].includes(ed.media_type) ? 'file' : ed.media_type,
@@ -762,7 +783,13 @@ async function viewNew(ed = null) {
     </div>
     <div class="card"><h2>4 · Chi può aprirlo</h2>
       <div class="seg" id="vis"><button data-v="restricted" class="on">Persone scelte</button><button data-v="public">Tutti</button><button data-v="hidden">Solo io</button></div>
-      <div id="v-restricted"><label for="emails">Email dei destinatari</label>
+      <div id="v-restricted">
+        <label>Dalla tua rubrica <span class="muted small" id="seln"></span></label>
+        <div class="chips" id="book"><span class="muted small">Carico la rubrica…</span></div>
+        <details class="quickadd"><summary>＋ Aggiungi un contatto alla rubrica</summary>
+          <div class="row" style="flex-wrap:nowrap;margin-top:8px"><input id="qname" maxlength="60" placeholder="Nome"><input id="qemail" type="email" placeholder="email@esempio.it"></div>
+          <button type="button" class="ghost full" id="qadd" style="margin-top:8px">Salva e seleziona</button><div id="qm"></div></details>
+        <label for="emails">Altre email (facoltative)</label>
         <textarea id="emails" placeholder="maria@esempio.it, luca@esempio.it"></textarea>
         <p class="muted small">Solo chi accede con queste email potrà vederlo. Il link lo mandi tu (WhatsApp, SMS…).</p></div>
       <label for="pwd">${ed && ed.has_password ? 'Nuova password (lascia vuoto per mantenere quella attuale)' : 'Password (facoltativa)'}</label>
@@ -868,6 +895,33 @@ async function viewNew(ed = null) {
     $('#v-restricted').hidden = s.vis !== 'restricted';
   };
 
+  // --- rubrica: pulsanti dei contatti
+  const drawBook = () => {
+    $('#book').innerHTML = s.book.length ? s.book.map((c) => `<button type="button" class="chip ${s.sel.has(c.email) ? 'on' : ''}" data-e="${esc(c.email)}" title="${esc(c.email)}">${esc(c.name)}</button>`).join('')
+      : '<span class="muted small">La rubrica è vuota: aggiungi qui sotto i contatti che usi spesso.</span>';
+    $('#seln').textContent = s.sel.size ? `(${s.sel.size} selezionat${s.sel.size === 1 ? 'o' : 'i'})` : '';
+  };
+  $('#book').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; const em = b.dataset.e; if (s.sel.has(em)) s.sel.delete(em); else s.sel.add(em); drawBook(); };
+  let bookReady = false;
+  B.listContacts().then((list) => {
+    s.book = list; bookReady = true;
+    if (ed) {   // in modifica: i destinatari già in rubrica diventano pulsanti selezionati, gli altri restano nel campo
+      const inBook = new Set(list.map((c) => c.email));
+      const others = (ed.recipients || []).filter((em) => { if (inBook.has(em)) { s.sel.add(em); return false; } return true; });
+      $('#emails').value = others.join(', ');
+    }
+    drawBook();
+  }).catch(() => { $('#book').innerHTML = '<span class="muted small">Rubrica non disponibile.</span>'; });
+  $('#qadd').onclick = async () => {
+    const name = $('#qname').value.trim(), email = $('#qemail').value.trim().toLowerCase();
+    if (!name || !EMAIL_RE.test(email)) return msg($('#qm'), 'Scrivi un nome e un\'email valida.');
+    try {
+      await B.saveContact({ name, email });
+      s.book = await B.listContacts(); s.sel.add(email); drawBook();
+      $('#qname').value = ''; $('#qemail').value = ''; msg($('#qm'), `${esc(name)} aggiunto alla rubrica e selezionato ✓`, 'ok');
+    } catch (err) { msg($('#qm'), authErr(err)); }
+  };
+
   // --- precompilazione in modifica
   if (ed) {
     $(`#kind button[data-k="${s.kind}"]`).click();
@@ -897,10 +951,11 @@ async function viewNew(ed = null) {
     } else if (!s.file && !(ed && ['photo', 'video', 'audio'].includes(ed.media_type))) return err('Scegli una foto, un video o un audio.');
     if (s.lat == null) return err('Indica il luogo: GPS, coordinate o tocco sulla mappa.');
     const title = $('#title').value.trim(); if (!title) return err('Dai un titolo al contenuto.');
-    const recipients = s.vis === 'restricted' ? [...new Set($('#emails').value.toLowerCase().split(/[\s,;]+/).filter(Boolean))] : [];
+    if (s.vis === 'restricted' && ed && !bookReady) return err('Attendi un attimo: sto caricando la rubrica.');
+    const recipients = s.vis === 'restricted' ? [...new Set([...s.sel, ...$('#emails').value.toLowerCase().split(/[\s,;]+/).filter(Boolean)])] : [];
     const bad = recipients.filter((x) => !EMAIL_RE.test(x));
     if (bad.length) return err(`Email non valide: ${esc(bad.join(', '))}`);
-    if (s.vis === 'restricted' && !recipients.length) return err('Aggiungi almeno un destinatario, oppure scegli "Tutti" o "Solo io".');
+    if (s.vis === 'restricted' && !recipients.length) return err('Scegli almeno una persona dalla rubrica o scrivi un\'email, oppure scegli "Tutti" o "Solo io".');
     const btn = $('#save'); btn.disabled = true; btn.textContent = s.file ? 'Carico il file…' : 'Salvo…';
     const data = {
       file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'file' ? s.media_type : s.kind, duration: s.kind === 'file' ? s.duration : null,
@@ -1102,6 +1157,7 @@ async function viewMyProfile(prof) {
       <div id="m"></div>
       <button class="full accent" type="submit">Salva il profilo</button>
     </form></div>
+    <a class="btn ghost full" href="#/rubrica">📒 La mia rubrica</a>
     <p class="center"><a href="#/u/${esc(p.id || '')}">Vedi come ti vedono gli altri</a> · <a href="#/">Torna alla mappa</a></p>`;
   $('#avf').onchange = async () => {
     const f = $('#avf').files[0]; if (!f) return;
@@ -1129,6 +1185,60 @@ async function viewMyProfile(prof) {
     } catch (err) { msg($('#m'), errText(err)); }
     btn.disabled = false; btn.textContent = 'Salva il profilo';
   };
+}
+
+async function viewBook() {
+  let list = [], editing = null, q = '';
+  app.innerHTML = `
+    <h1>📒 La mia rubrica</h1>
+    <p class="muted">I contatti a cui mandi i pin più spesso. Quando crei un pin con "Persone scelte" li trovi come pulsanti da toccare. La rubrica la vedi solo tu.</p>
+    <div class="card"><form id="f">
+      <h2 id="ftitle">Nuovo contatto</h2>
+      <label for="cname">Nome</label><input id="cname" maxlength="60" required placeholder="Es. Maria">
+      <label for="cemail">Email</label><input id="cemail" type="email" required placeholder="maria@esempio.it">
+      <p class="muted small">Usa l'email con cui la persona accede (o accederà) a Ubi.</p>
+      <div id="m"></div>
+      <div class="row"><button class="accent" type="submit" id="csave">Aggiungi</button><button class="ghost" type="button" id="ccancel" hidden>Annulla</button></div>
+    </form></div>
+    <input id="q" type="search" placeholder="🔎 Cerca nella rubrica" style="margin:6px 0 4px">
+    <div id="list"><p class="muted center">Carico…</p></div>
+    <p class="center"><a href="#/">Torna alla mappa</a></p>`;
+  const resetForm = () => { editing = null; $('#f').reset(); $('#ftitle').textContent = 'Nuovo contatto'; $('#csave').textContent = 'Aggiungi'; $('#ccancel').hidden = true; };
+  const draw = () => {
+    const rows = list.filter((c) => !q || c.name.toLowerCase().includes(q) || c.email.includes(q));
+    $('#list').innerHTML = !list.length ? '<div class="card center muted">Nessun contatto. Aggiungi il primo qui sopra.</div>'
+      : !rows.length ? '<p class="muted center">Nessun risultato.</p>'
+      : `<p class="muted small">${list.length} contatt${list.length === 1 ? 'o' : 'i'}</p>` + rows.map((c) => `
+        <div class="card item" data-id="${esc(c.id)}">${avatarHtml(null, c.name, 38)}
+          <div style="flex:1;min-width:0"><div class="t">${esc(c.name)}</div><div class="meta ellipsis">${esc(c.email)}</div></div>
+          <button class="ghost" data-a="edit" style="min-height:38px;padding:6px 10px">✏️</button>
+          <button class="danger" data-a="del" style="min-height:38px;padding:6px 10px">🗑</button></div>`).join('');
+  };
+  const load = async () => { try { list = await B.listContacts(); draw(); } catch (err) { msg($('#list'), errText(err)); } };
+  $('#q').oninput = () => { q = $('#q').value.trim().toLowerCase(); draw(); };
+  $('#ccancel').onclick = () => { resetForm(); msg($('#m'), ''); };
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault();
+    const name = $('#cname').value.trim(), email = $('#cemail').value.trim().toLowerCase();
+    if (!EMAIL_RE.test(email)) return msg($('#m'), 'Email non valida.');
+    try {
+      await B.saveContact({ id: editing, name, email });
+      msg($('#m'), editing ? 'Contatto aggiornato ✓' : `${esc(name)} aggiunto ✓`, 'ok'); resetForm(); load();
+    } catch (err) { msg($('#m'), authErr(err)); }
+  };
+  $('#list').onclick = async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const c = list.find((x) => x.id === b.closest('.card').dataset.id); if (!c) return;
+    if (b.dataset.a === 'edit') {
+      editing = c.id; $('#cname').value = c.name; $('#cemail').value = c.email;
+      $('#ftitle').textContent = 'Modifica contatto'; $('#csave').textContent = 'Salva'; $('#ccancel').hidden = false; window.scrollTo(0, 0);
+    }
+    if (b.dataset.a === 'del') {
+      if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma'; return; }
+      try { await B.deleteContact(c.id); load(); } catch (err) { alertIn(b.closest('.card'), errText(err)); }
+    }
+  };
+  load();
 }
 
 async function viewAuthor(id) {
@@ -1227,7 +1337,7 @@ const FAQ_GUIDE = [
     <li><b>Raggio</b>: da quanti metri si sblocca (consigliato 30–50 m; in città il GPS può sbagliare di qualche decina di metri).</li>
     <li><b>Titolo</b> e <b>indizio</b>: l'indizio si vede <i>prima</i> dello sblocco e aiuta a trovare il punto.</li>
     <li><b>Tag</b>: tocca quelli adatti o scrivine di tuoi (max 8). Servono a ritrovare i contenuti con i filtri.</li>
-    <li><b>Chi può aprirlo</b>: <i>Persone scelte</i> (le loro email), <i>Tutti</i> o <i>Solo io</i>. Puoi aggiungere una <b>password</b>.</li>
+    <li><b>Chi può aprirlo</b>: <i>Persone scelte</i> (tocca i nomi della tua <b>rubrica</b> o scrivi le email), <i>Tutti</i> o <i>Solo io</i>. Puoi aggiungere una <b>password</b>.</li>
     <li>Tocca <b>Fissa nel luogo</b>.</li></ol>`],
   ['4 · Condividi', `<ol>
     <li>Dopo il salvataggio, o dalla lista con <b>Condividi</b>, hai il <b>link</b> del contenuto.</li>
@@ -1246,6 +1356,7 @@ const FAQ_GUIDE = [
     <li>Tocca <b>👤 Profilo</b> in alto (o la tua foto in home): aggiungi una <b>foto</b>, una breve <b>presentazione</b> e, se vuoi, i <b>contatti pubblici</b> (sito, Instagram, WhatsApp, email). Sono tutti facoltativi.</li>
     <li>Chi apre un tuo pin vede la tua foto e il tuo nome: toccandoli apre il tuo <b>profilo</b>, con i contatti e l'elenco dei tuoi pin pubblici.</li>
     <li>Nella scheda di un pin tocca <b>✉️ Scrivi</b> per mandare un messaggio privato all'autore. La tua email non viene mostrata.</li>
+    <li><b>📒 Rubrica</b> (dalla home o dal profilo): salva nome ed email delle persone a cui mandi i pin; nella creazione li scegli con un tocco. Puoi anche aggiungere un contatto al volo dal modulo del pin. La rubrica la vedi solo tu.</li>
     <li>I messaggi arrivano nella busta <b>✉️</b> in alto: il numero arancione indica quelli da leggere.</li>
     <li>Puoi scrivere a chi ha pin che puoi vedere, e rispondere a chi ti ha scritto.</li></ol>`],
   ['7 · Account e accesso', `<ul>
