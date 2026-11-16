@@ -138,6 +138,11 @@ async function supabaseBackend() {
       if (d.recipients.length) must(await sb.from('content_recipients').insert(d.recipients.map((email) => ({ content_id: id, email }))));
       return res.data.share_slug;
     },
+    async notifyRecipients(slug) {
+      const { data, error } = await sb.functions.invoke('notify-recipients', { body: { slug } });
+      if (error) throw error;
+      return data;   // { sent, skipped }
+    },
     // --- rubrica
     async listContacts() { return must(await sb.from('address_book').select('id,name,email').order('name')) || []; },
     async saveContact(c) {
@@ -295,6 +300,7 @@ function demoBackend() {
     },
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
     _book() { db.book = db.book || {}; db.book[db.user.id] = db.book[db.user.id] || []; return db.book[db.user.id]; },
+    async notifyRecipients() { return { sent: 0, skipped: 0, demo: true }; },
     async listContacts() { return [...B._book()].sort((a, b) => a.name.localeCompare(b.name)); },
     async saveContact(c) {
       const bk = B._book();
@@ -967,22 +973,63 @@ async function viewNew(ed = null) {
       if (ed) {
         data.passwordAction = $('#nopwd')?.checked ? 'remove' : (data.password ? 'set' : 'keep');
         const slug = await B.update(ed, data);
+        if (data.visibility === 'restricted' && data.recipients.length) await autoNotify(slug, null);   // avvisa solo i nuovi destinatari
         location.hash = `#/c/${slug}`;
         return;
       }
-      viewCreated(title, await B.create(data));
+      const slug = await B.create(data);
+      const me = await B.profile().catch(() => null);
+      viewCreated(title, slug, data.visibility === 'restricted'
+        ? { recipients: data.recipients, title, hint: data.hint, slug, author: me?.display_name } : null);
     } catch (e) { err(errText(e)); btn.disabled = false; btn.textContent = ed ? 'Salva le modifiche' : 'Fissa nel luogo'; }
   };
 }
 
-function viewCreated(title, slug) {
+// Email già scritta da mandare con la propria app di posta (destinatari in copia nascosta).
+function mailtoHref({ recipients, title, hint, slug, author }) {
+  const url = shareUrl(slug);
+  const body = [
+    'Ciao!',
+    '',
+    `${author || 'Un amico'} ha lasciato per te un contenuto su Ubi: «${title}».`,
+    hint ? `Indizio: ${hint}` : null,
+    '',
+    'Si apre solo quando arrivi sul posto. Apri il link qui sotto per vedere dov\'è:',
+    url,
+    '',
+    'Per aprirlo accedi a Ubi con questo indirizzo email (la prima volta: "Registrati").',
+  ].filter((x) => x !== null).join('\n');
+  return `mailto:?bcc=${encodeURIComponent(recipients.join(','))}&subject=${encodeURIComponent(`📍 ${author || 'Qualcuno'} ha lasciato qualcosa per te su Ubi`)}&body=${encodeURIComponent(body)}`;
+}
+function emailCard(info) {
+  return `<div class="card" id="mailcard"><h2>📧 Avvisa i destinatari via email</h2>
+    <div id="automsg"></div>
+    <p class="muted small">Si apre la tua app di posta con l'email già scritta (${info.recipients.length} destinatar${info.recipients.length === 1 ? 'io' : 'i'} in copia nascosta): devi solo premere Invia.</p>
+    <a class="btn full" href="${esc(mailtoHref(info))}">✉️ Scrivi l'email con la mia posta</a>
+    <p class="muted small" style="margin-top:8px">${info.recipients.map(esc).join(', ')}</p></div>`;
+}
+async function autoNotify(slug, box) {
+  if (!CONFIG.EMAIL_AUTO) return;
+  if (box) msg(box, 'Invio automatico dell\'avviso in corso…', 'info');
+  try {
+    const r = await B.notifyRecipients(slug);
+    if (box) msg(box, r.sent ? `✓ Avviso inviato automaticamente a ${r.sent} person${r.sent === 1 ? 'a' : 'e'}${r.skipped ? ` (${r.skipped} già avvisat${r.skipped === 1 ? 'a' : 'e'} o che non vogliono avvisi)` : ''}.`
+      : 'Nessuna email nuova da inviare (destinatari già avvisati).', 'ok');
+  } catch (err) {
+    if (box) msg(box, 'Invio automatico non riuscito: usa il pulsante qui sotto.', 'err');
+  }
+}
+
+function viewCreated(title, slug, info = null) {
   history.replaceState(null, '', location.pathname + '#/fatto');  // così '＋' e 'Torna alla mappa' funzionano
   app.innerHTML = `
     <div class="hero"><span class="pin"></span><h1>Fissato!</h1>
       <p class="muted">«${esc(title)}» ora vive in quel luogo. Manda il link: si aprirà solo sul posto.</p></div>
+    ${info && info.recipients.length ? emailCard(info) : ''}
     <div class="card" id="sh"></div>
     <a class="btn ghost full" href="#/">Torna alla mappa</a>`;
   shareSheet(title, slug, $('#sh'));
+  if (info && info.recipients.length) autoNotify(slug, $('#automsg'));
 }
 
 function renderMedia(type, r) {
@@ -1016,11 +1063,27 @@ async function viewContent(slug, user) {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
       <div class="card media">${renderMedia(t.media_type, r)}</div>
-      ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica contenuto e posizione</a>` : ''}
+      ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica contenuto e posizione</a>
+        <button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>` : ''}
       <a class="btn ghost full" href="#/">${user ? 'Torna alla mappa' : 'Scopri Ubi'}</a>`;
   };
   if (user && (t.is_owner || t.already_unlocked)) {
-    try { const r = await B.unlock(slug, null, null); if (r.status === 'ok') return showUnlocked(r, null); } catch { /* prosegue */ }
+    try {
+      const r = await B.unlock(slug, null, null);
+      if (r.status === 'ok') {
+        showUnlocked(r, null);
+        if (t.is_owner && $('#mailbtn')) $('#mailbtn').onclick = async () => {
+          const c = await B.getForEdit(slug); const me = await B.profile().catch(() => null);
+          if (!c || c.visibility !== 'restricted' || !(c.recipients || []).length) {
+            return msg($('#mailbox'), 'Questo pin non ha destinatari scelti (è pubblico o solo tuo): condividi il link con WhatsApp o Copia.', 'info');
+          }
+          $('#mailbox').innerHTML = emailCard({ recipients: c.recipients, title: c.title, hint: c.hint, slug, author: me?.display_name });
+          $('#mailbtn').hidden = true;
+          autoNotify(slug, $('#automsg'));
+        };
+        return;
+      }
+    } catch { /* prosegue */ }
   }
 
   app.innerHTML = `${header}
