@@ -99,3 +99,7 @@ details.faq > div { padding: 0 16px 14px; }
 details.faq ol, details.faq ul { padding-left: 20px; margin: 6px 0; }
 details.faq li { margin: 6px 0; }
 #faqtabs { margin: 12px 0; }
+.textbody a, .hint a { word-break: break-all; color: var(--brand); font-weight: 600; }
+.linkcard { display: block; text-decoration: none; color: var(--ink); background: #f3f0ea; border-radius: 12px; padding: 14px; margin-top: 10px; }
+.linkcard .dom { display: block; font-weight: 800; font-size: 17px; }
+.linkcard .u { display: block; font-size: 13px; color: var(--muted); word-break: break-all; margin-top: 4px; }

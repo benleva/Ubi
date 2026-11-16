@@ -53,6 +53,29 @@ const waitLeaflet = () => new Promise((res) => {
   if (window.L) return res();
   let n = 0; const t = setInterval(() => { if (window.L || ++n > 40) { clearInterval(t); res(); } }, 100);
 });
+// Rende cliccabili gli indirizzi web dentro un testo (il resto viene "ripulito" da HTML).
+const URL_RE = /\bhttps?:\/\/[^\s<>"']+/gi;
+function linkify(raw) {
+  const str = String(raw ?? ''); let out = ''; let last = 0;
+  for (const m of str.matchAll(URL_RE)) {
+    let url = m[0]; let trail = '';
+    while (/[.,;:!?)\]]$/.test(url)) { trail = url.slice(-1) + trail; url = url.slice(0, -1); }
+    out += esc(str.slice(last, m.index)) + `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(url)}</a>` + esc(trail);
+    last = m.index + m[0].length;
+  }
+  return (out + esc(str.slice(last))).replace(/\n/g, '<br>');
+}
+// Dal testo incollato (anche un messaggio di condivisione) ricava un link valido, sempre https.
+function extractUrl(input) {
+  const txt = String(input || '').trim();
+  let u = (txt.match(URL_RE) || [])[0];
+  if (!u && /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(txt)) u = 'https://' + txt;   // es. "loc.wiki/t/123"
+  if (!u) return null;
+  u = u.replace(/[.,;:!?)\]]+$/, '').replace(/^http:\/\//i, 'https://');
+  try { const x = new URL(u); return x.protocol === 'https:' ? x.href : null; } catch { return null; }
+}
+const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
+const vimeoId = (u) => { const m = String(u).match(/vimeo\.com\/(?:video\/)?(\d{6,})/); return m ? m[1] : null; };
 function youTubeId(url) { const m = String(url).match(/(?:youtu\.be\/|[?&]v=|shorts\/|embed\/)([\w-]{11})/); return m ? m[1] : null; }
 
 // ======================= BACKEND: SUPABASE =======================
@@ -558,9 +581,11 @@ async function viewNew() {
       <div id="k-text" hidden><label for="txt">Il tuo testo</label>
         <textarea id="txt" maxlength="2000" rows="6" placeholder="Es. una dedica, le istruzioni per lo scatto, l'indizio per la caccia al tesoro…"></textarea>
         <p class="muted small"><span id="txtn">0</span>/2000 caratteri</p></div>
-      <div id="k-link" hidden><label for="url">Indirizzo del video</label>
-        <input id="url" type="url" inputmode="url" placeholder="https://youtu.be/…">
-        <p class="muted small">Per i video più lunghi di ${CONFIG.MAX_VIDEO_SECONDS} secondi: caricali su YouTube (anche "non in elenco") e incolla qui il link.</p></div>
+      <div id="k-link" hidden><label for="url">Link</label>
+        <textarea id="url" rows="2" inputmode="url" placeholder="https://…  oppure incolla il messaggio di condivisione"></textarea>
+        <p class="muted small">Qualsiasi link: un video (YouTube, Vimeo, Drive…), un percorso da seguire (Wikiloc, Komoot…), un sito, una mappa, un documento.
+        Puoi incollare anche tutto il messaggio di condivisione: il link lo troviamo noi. Per i video più lunghi di ${CONFIG.MAX_VIDEO_SECONDS} secondi caricali su YouTube (anche "non in elenco") e incolla qui il link.</p>
+        <div id="urlok" class="small"></div></div>
       <div id="pm"></div><div class="preview" id="preview"></div>
     </div>
     <div class="card"><h2>2 · Dove</h2>
@@ -625,6 +650,10 @@ async function viewNew() {
     $('#preview').innerHTML = ''; msg($('#pm'), '');
   };
   $('#txt').oninput = () => { $('#txtn').textContent = $('#txt').value.length; };
+  $('#url').oninput = () => {
+    const u = extractUrl($('#url').value);
+    $('#urlok').innerHTML = !$('#url').value.trim() ? '' : u ? `<span style="color:var(--ok)">✓ Link trovato: <b>${esc(hostOf(u))}</b></span>` : '<span style="color:var(--err)">Non trovo un link valido (deve iniziare con https://)</span>';
+  };
   $('#file').onchange = async () => {
     const f = $('#file').files[0]; s.file = null; s.duration = null; $('#preview').innerHTML = ''; msg($('#pm'), '');
     if (!f) return;
@@ -690,8 +719,8 @@ async function viewNew() {
     const err = (t) => msg($('#sm'), t);
     let external_url = null;
     if (s.kind === 'link') {
-      external_url = $('#url').value.trim();
-      if (!/^https:\/\/\S+\.\S+/.test(external_url)) return err('Inserisci un link valido che inizi con https://');
+      external_url = extractUrl($('#url').value);
+      if (!external_url) return err('Inserisci un link valido (es. https://…). Puoi incollare anche il messaggio di condivisione.');
     } else if (s.kind === 'text') {
       if (!$('#txt').value.trim()) return err('Scrivi il testo da lasciare in quel luogo.');
     } else if (!s.file) return err('Scegli una foto, un video o un audio.');
@@ -725,11 +754,16 @@ function viewCreated(title, slug) {
 }
 
 function renderMedia(type, r) {
-  if (type === 'text') return `<div class="textbody">${esc(r.text_body || '').replace(/\n/g, '<br>')}</div>`;
+  if (type === 'text') return `<div class="textbody">${linkify(r.text_body)}</div>`;
   if (type === 'link' || (!r.url && r.external_url)) {
-    const id = youTubeId(r.external_url);
-    return `${id ? `<iframe src="https://www.youtube-nocookie.com/embed/${id}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="Video"></iframe>` : ''}
-      <a class="btn full" style="margin-top:10px" href="${esc(r.external_url)}" target="_blank" rel="noopener">Apri il contenuto ↗</a>`;
+    const u = r.external_url || '';
+    const yt = youTubeId(u), vm = vimeoId(u);
+    const embed = yt ? `<iframe src="https://www.youtube-nocookie.com/embed/${yt}" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="Video"></iframe>`
+      : vm ? `<iframe src="https://player.vimeo.com/video/${vm}" allow="autoplay; fullscreen" allowfullscreen title="Video"></iframe>` : '';
+    return `${embed}
+      <a class="linkcard" href="${esc(u)}" target="_blank" rel="noopener noreferrer">
+        <span class="dom">🔗 ${esc(hostOf(u))}</span><span class="u">${esc(u)}</span></a>
+      <a class="btn full" style="margin-top:10px" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Apri il link ↗</a>`;
   }
   if (type === 'photo') return `<img src="${esc(r.url)}" alt="">`;
   if (type === 'video') return `<video src="${esc(r.url)}" controls playsinline autoplay></video>`;
@@ -745,7 +779,7 @@ async function viewContent(slug, user) {
     app.innerHTML = '<div class="card center"><h2>Contenuto non disponibile</h2><p class="muted">Non esiste, è stato rimosso, oppure non sei tra i destinatari.</p><a class="btn" href="#/">Vai a Ubi</a></div>';
     return;
   }
-  const header = `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? `<p class="muted">da ${esc(t.author)}</p>` : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info">${esc(t.hint)}</div>` : ''}`;
+  const header = `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? `<p class="muted">da ${esc(t.author)}</p>` : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const showUnlocked = (r, d) => {
     stopWatch();
     app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
@@ -838,7 +872,7 @@ const FAQ_GUIDE = [
     <li><b>Filtri</b>: sotto la mappa tocca un tipo (es. <i>Video</i>) e/o uno o più <b>#tag</b> (es. <i>#tramonto</i>) per vedere solo quei contenuti. Si combinano: <i>Video + #tramonto</i> mostra solo i video di tramonti. <b>Tutti i tag</b> azzera.</li></ol>`],
   ['3 · Lascia un contenuto', `<ol>
     <li>Tocca <b>＋ Lascia un contenuto in un luogo</b>.</li>
-    <li><b>Cosa</b>: <i>Galleria</i> (foto, video max 60 s, audio), <i>Testo</i> (fino a 2000 caratteri) o <i>Link</i> (per video lunghi su YouTube o altre pagine).</li>
+    <li><b>Cosa</b>: <i>Galleria</i> (foto, video max 60 s, audio), <i>Testo</i> (fino a 2000 caratteri) o <i>Link</i> (qualsiasi indirizzo: video su YouTube o altri siti, percorsi Wikiloc/Komoot, pagine web, mappe; puoi incollare anche il messaggio di condivisione).</li>
     <li><b>Dove</b>, in tre modi: <i>Usa la mia posizione</i> se sei sul posto; scrivi le <i>coordinate</i> (es. <code>41.8902, 12.4922</code>); oppure <i>tocca la mappa</i> e trascina lo spillo.</li>
     <li><b>Raggio</b>: da quanti metri si sblocca (consigliato 30–50 m; in città il GPS può sbagliare di qualche decina di metri).</li>
     <li><b>Titolo</b> e <b>indizio</b>: l'indizio si vede <i>prima</i> dello sblocco e aiuta a trovare il punto.</li>
@@ -868,7 +902,8 @@ const FAQ_GUIDE = [
     <li>La distanza e la password sono <b>verificate dal server</b>, non solo dal telefono.</li>
     <li>Pubblica solo contenuti <b>tuoi</b> e con il permesso delle persone riprese.</li></ul>`],
   ['Limiti utili da sapere', `<ul>
-    <li>Video: massimo <b>60 secondi</b> (per i più lunghi usa un link YouTube, anche "non in elenco").</li>
+    <li>Video: massimo <b>60 secondi</b> (per i più lunghi usa un <i>Link</i> a YouTube o a un altro sito).</li>
+    <li>Gli indirizzi web scritti nei testi e negli indizi diventano <b>cliccabili</b>.</li>
     <li>File: massimo <b>50 MB</b>. Testo: <b>2000</b> caratteri. Tag: <b>8</b> per contenuto.</li>
     <li>Raggio di sblocco: da 10 a 500 metri.</li></ul>`],
 ];
