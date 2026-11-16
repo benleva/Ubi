@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161304';
+import { CONFIG } from './config.js?v=202611161307';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.9';
+const APP_VERSION = 'v.10';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -142,8 +142,13 @@ async function supabaseBackend() {
     },
     async notifyRecipients(slug) {
       const { data, error } = await sb.functions.invoke('notify-recipients', { body: { slug } });
-      if (error) throw error;
-      return data;   // { sent, skipped }
+      if (error) {   // leggo il motivo vero restituito dalla funzione
+        let detail = error.message;
+        try { const b = await error.context.json(); detail = b.error || JSON.stringify(b); } catch { try { detail = await error.context.text() || detail; } catch { /* resta il messaggio */ } }
+        const st = error.context?.status;
+        throw new Error(`${st ? `[${st}] ` : ''}${detail}`);
+      }
+      return data;   // { sent, skipped, failed, errors }
     },
     // --- rubrica
     async listContacts() { return must(await sb.from('address_book').select('id,name,email').order('name')) || []; },
@@ -1016,10 +1021,15 @@ async function autoNotify(slug, box) {
   if (box) msg(box, 'Invio automatico dell\'avviso in corso…', 'info');
   try {
     const r = await B.notifyRecipients(slug);
+    if (r.failed) {
+      const e = (r.errors || [])[0] || {};
+      if (box) msg(box, `Invio automatico non riuscito (${r.failed}): il servizio email ha risposto <b>${esc(e.status || '')}</b> ${esc(e.detail || '')}. Usa il pulsante qui sotto.`, 'err');
+      return;
+    }
     if (box) msg(box, r.sent ? `✓ Avviso inviato automaticamente a ${r.sent} person${r.sent === 1 ? 'a' : 'e'}${r.skipped ? ` (${r.skipped} già avvisat${r.skipped === 1 ? 'a' : 'e'} o che non vogliono avvisi)` : ''}.`
-      : 'Nessuna email nuova da inviare (destinatari già avvisati).', 'ok');
+      : 'Nessuna email nuova da inviare (destinatari già avvisati o che non vogliono avvisi).', 'ok');
   } catch (err) {
-    if (box) msg(box, 'Invio automatico non riuscito: usa il pulsante qui sotto.', 'err');
+    if (box) msg(box, `Invio automatico non riuscito: <b>${esc(err?.message || String(err))}</b><br>Usa il pulsante qui sotto.`, 'err');
   }
 }
 
