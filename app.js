@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161834';
+import { CONFIG } from './config.js?v=202611161931';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.20';
+const APP_VERSION = 'v.21';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -795,12 +795,13 @@ async function viewHome(user, prof) {
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <a href="#/dating" class="btn full datingbtn" style="margin-top:10px">💗 Ubi Dating · incontra chi ama i tuoi luoghi</a>
-    <a href="#/invita" class="btn ghost full" style="margin-top:10px">📲 Invita un amico con il QR di Ubi</a>
+    ${inviteBox(false)}
     <h2 style="margin-top:22px">I miei contenuti</h2>
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
   $('#out').onclick = async (e) => { e.preventDefault(); await B.signOut(); location.hash = '#/'; route(); };
   homeMap();
+  bindInvite(app);
   let items;
   try { items = await B.listMine(); } catch (err) { msg($('#list'), errText(err)); return; }
   if (!items.length) { $('#list').innerHTML = '<div class="card center muted">Non hai ancora lasciato nulla.<br>Inizia da un luogo che conta per te.</div>'; return; }
@@ -1397,6 +1398,44 @@ async function viewDatingPhotos(userId) {
 const INVITE_URL = 'https://ubipin.it';
 const INVITE_IMG = 'invito-ubi.png';
 const INVITE_TEXT = 'Ti presento Ubi: lascia foto, video e messaggi in un luogo, si aprono solo quando ci arrivi. Provala:';
+// Condivide l'invito con il menu del telefono (WhatsApp, Instagram, Messaggi, Telegram, email…)
+async function shareInvite(dating = false, out = null) {
+  const url = dating ? `${INVITE_URL}/#/dating` : INVITE_URL;
+  const text = dating ? 'Ti presento Ubi Dating: biglietti lasciati nei luoghi del cuore, si aprono solo arrivando lì. Per maggiorenni.' : INVITE_TEXT;
+  try {
+    if (navigator.share) {
+      let data = { title: dating ? 'Ubi Dating' : 'Ubi', text, url };
+      if (!dating) {
+        try {
+          const blob = await (await fetch(INVITE_IMG)).blob();
+          const file = new File([blob], 'Ubi-card.png', { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) data = { ...data, files: [file] };
+        } catch { /* senza immagine va bene lo stesso */ }
+      }
+      await navigator.share(data);
+    } else {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      if (out) msg(out, 'Invito copiato: incollalo su WhatsApp o sui social.', 'ok');
+    }
+  } catch (err) { if (err && err.name !== 'AbortError' && out) msg(out, 'Condivisione non riuscita: usa il pulsante WhatsApp.'); }
+}
+// Riquadro "Invita un amico": Condividi (menu del telefono) + WhatsApp + card con QR
+function inviteBox(dating = false) {
+  const url = dating ? `${INVITE_URL}/#/dating` : INVITE_URL;
+  const text = dating ? 'Ti presento Ubi Dating, per chi ama gli stessi luoghi:' : INVITE_TEXT;
+  return `<div class="card invitebox"><b>📲 Invita un amico</b>
+    <div class="row" style="margin-top:10px">
+      <button type="button" class="accent" data-invite="${dating ? 'd' : 'u'}">📤 Condividi</button>
+      <a class="btn" style="background:#25d366;border-color:#25d366;color:#fff" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}">WhatsApp</a>
+      ${dating ? '' : '<a class="btn ghost" href="#/invita">QR</a>'}
+    </div><div class="invmsg"></div></div>`;
+}
+// Collega i pulsanti "Condividi" presenti nella pagina
+function bindInvite(root = document) {
+  root.querySelectorAll('[data-invite]').forEach((b) => {
+    b.onclick = () => shareInvite(b.dataset.invite === 'd', b.closest('.invitebox')?.querySelector('.invmsg'));
+  });
+}
 function viewInvite() {
   app.innerHTML = `
     <h1>📲 Invita un amico</h1>
@@ -1411,22 +1450,7 @@ function viewInvite() {
     <div id="im"></div>
     <div class="card small" style="margin-top:16px"><b>Vuoi la card nel Wallet?</b> Salva l'immagine, poi con un'app gratuita come <i>Pass2U Wallet</i> crea una card con QR <code>${INVITE_URL}</code> e aggiungila al Wallet.</div>
     <p class="center"><a href="#/">Torna a Ubi</a></p>`;
-  $('#share').onclick = async () => {
-    try {
-      if (navigator.share) {
-        let data = { title: 'Ubi', text: INVITE_TEXT, url: INVITE_URL };
-        try {
-          const blob = await (await fetch(INVITE_IMG)).blob();
-          const file = new File([blob], 'Ubi-card.png', { type: 'image/png' });
-          if (navigator.canShare && navigator.canShare({ files: [file] })) data = { ...data, files: [file] };
-        } catch { /* senza immagine va bene lo stesso */ }
-        await navigator.share(data);
-      } else {
-        await navigator.clipboard.writeText(`${INVITE_TEXT} ${INVITE_URL}`);
-        msg($('#im'), 'Link copiato: incollalo dove vuoi.', 'ok');
-      }
-    } catch (err) { if (err && err.name !== 'AbortError') msg($('#im'), 'Condivisione non riuscita: usa WhatsApp o Copia link.'); }
-  };
+  $('#share').onclick = () => shareInvite(false, $('#im'));
   $('#copy').onclick = async () => {
     try { await navigator.clipboard.writeText(INVITE_URL); msg($('#im'), 'Link copiato ✓', 'ok'); }
     catch { msg($('#im'), INVITE_URL, 'info'); }
@@ -1623,12 +1647,14 @@ async function viewDating(user, prof) {
     <h2 style="margin-top:22px">I miei biglietti</h2><div id="mine"><p class="muted center">Carico…</p></div>
     <h2 style="margin-top:22px">📷 Le mie foto</h2><div id="dphotos"><p class="muted center">Carico…</p></div>
     <h2 style="margin-top:22px">Le mie risposte</h2><div id="myrep"><p class="muted center">Carico…</p></div>
+    ${inviteBox(true)}
     <div class="card small"><b>🛡️ Sicurezza</b><ul>
       <li>Incontra le persone solo in luoghi pubblici e avvisa qualcuno di fiducia.</li>
       <li>Non condividere indirizzo, cognome o orari finché non ti senti sicuro/a.</li>
       <li>Comportamenti scorretti? Scrivi a <a href="mailto:info@ubipin.it">info@ubipin.it</a>.</li></ul></div>
     <p class="center small"><a href="#/">Torna a Ubi</a> · <a href="#" id="leave">Esci da Ubi Dating</a></p>`;
   homeMap({ dating: true });
+  bindInvite(app);
   drawMyDatingPhotos($('#dphotos')).catch((err) => msg($('#dphotos'), errText(err)));
   $('#leave').onclick = async (e) => {
     e.preventDefault();

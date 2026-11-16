@@ -164,3 +164,6 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .photogrid .ph button.wide { width: auto; padding: 0 10px; border-radius: 99px; }
 .photogrid .add { display: flex; align-items: center; justify-content: center; text-align: center; border: 2px dashed #d9b3d0; color: #7b3fa0; font-weight: 700; cursor: pointer; }
 .photostack img { width: 100%; border-radius: 14px; display: block; margin-bottom: 12px; }
+
+.invitebox { margin-top: 12px; }
+.invitebox .row > * { flex: 1; }
