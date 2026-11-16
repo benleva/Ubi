@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161257';
+import { CONFIG } from './config.js?v=202611161304';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.8';
+const APP_VERSION = 'v.9';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -799,7 +799,8 @@ async function viewNew(ed = null) {
           <button type="button" class="ghost full" id="qadd" style="margin-top:8px">Salva e seleziona</button><div id="qm"></div></details>
         <label for="emails">Altre email (facoltative)</label>
         <textarea id="emails" placeholder="maria@esempio.it, luca@esempio.it"></textarea>
-        <p class="muted small">Solo chi accede con queste email potrà vederlo. Il link lo mandi tu (WhatsApp, SMS…).</p></div>
+        <p class="muted small">Solo chi accede con queste email potrà vederlo.</p>
+        <div class="msg info small">📧 ${CONFIG.EMAIL_AUTO ? 'Quando premi <b>Fissa nel luogo</b>, le persone scelte ricevono <b>in automatico un\'email</b> con il link al pin.' : 'Dopo il salvataggio potrai avvisare le persone scelte con un\'email già scritta.'} Puoi anche mandare il link con WhatsApp.</div></div>
       <label for="pwd">${ed && ed.has_password ? 'Nuova password (lascia vuoto per mantenere quella attuale)' : 'Password (facoltativa)'}</label>
       <input id="pwd" type="text" autocomplete="off" maxlength="64" placeholder="${ed && ed.has_password ? '🔒 password attuale mantenuta' : 'Lascia vuoto per nessuna password'}">
       ${ed && ed.has_password ? '<label class="inline"><input type="checkbox" id="nopwd"><span>Togli la password</span></label>' : ''}
