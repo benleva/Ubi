@@ -1,6 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161254';
+import { CONFIG } from './config.js?v=202611161257';
 
+// Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
+const APP_VERSION = 'v.8';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1509,6 +1511,7 @@ function viewFaq() {
     B = CONFIG.SUPABASE_URL ? await supabaseBackend() : demoBackend();
     await B.init();
     $('#mode').hidden = !B.demo;
+    if ($('#ver')) $('#ver').textContent = APP_VERSION;
     window.addEventListener('hashchange', route);
     appReady = true;
     await route();
