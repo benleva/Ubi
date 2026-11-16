@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161643';
+import { CONFIG } from './config.js?v=202611161647';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.17';
+const APP_VERSION = 'v.18';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,6 +24,15 @@ const setDatingTheme = (on) => document.body.classList.toggle('dating', !!on);
 const TAGS_SUGGESTED = ['famiglia', 'amore', 'anniversario', 'amici', 'ricordo', 'sport', 'panorama', 'tramonto',
   'monumento', 'storia', 'arte', 'natura', 'mare', 'montagna', 'trekking', 'sentiero', 'passeggiata', 'mappa interattiva', 'città', 'cibo', 'fotografia', 'musica', 'guida', 'caccia al tesoro'];
 const MAX_TAGS = 8;
+const MAX_TAGS_DATING = 12;
+// Tag del dating, a gruppi. Li vedono solo gli iscritti a Ubi Dating (maggiorenni).
+const DATING_TAGS = [
+  ['Chi sono', ['etero', 'gay', 'lesbica', 'bisessuale', 'pansessuale', 'trans', 'non binario', 'queer', 'asessuale']],
+  ['Cosa cerco', ['amicizia', 'compagni di avventura', 'relazione stabile', 'relazione aperta', 'incontri occasionali', 'vediamo cosa nasce']],
+  ['Come vivo le relazioni', ['monogamia', 'poliamore', 'voglio figli', 'ho figli', 'niente figli', 'no fumo', 'vegetariano/a', 'animali in casa']],
+  ['Passioni', ['montagna', 'trekking', 'mare', 'viaggi', 'sport', 'bici', 'natura', 'cucina', 'vino', 'musica', 'concerti', 'ballo', 'arte', 'lettura', 'cinema', 'fotografia', 'animali', 'volontariato']],
+];
+const DATING_FLAT = new Set(DATING_TAGS.flatMap(([, l]) => l));
 const normTag = (t) => String(t).toLowerCase().replace(/[,;#<>"]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24);
 const tagChips = (tags, cls = 'static') => (tags && tags.length) ? `<div class="chips">${tags.map((t) => `<span class="chip ${cls}">#${esc(t)}</span>`).join('')}</div>` : '';
 const VIS = { public: 'Pubblico', hidden: 'Solo io', restricted: 'Destinatari scelti' };
@@ -812,6 +821,7 @@ function shareSheet(title, slug, container) {
 
 async function viewNew(ed = null, opts = {}) {
   const dating = !!opts.dating;
+  const maxTags = dating ? MAX_TAGS_DATING : MAX_TAGS;
   const s = { sel: new Set(), book: [], tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: dating ? 'public' : 'restricted' };
   if (ed) {
     Object.assign(s, {
@@ -864,7 +874,8 @@ async function viewNew(ed = null, opts = {}) {
       <label for="title">Titolo</label><input id="title" maxlength="120" required placeholder="Es. Buon anniversario">
       <label for="hint">Indizio (visibile prima dello sblocco)</label>
       <textarea id="hint" maxlength="500" placeholder="Es. Dove ci siamo detti sì, vicino alla fontana"></textarea>
-      <label>Tag <span class="muted small" id="tagn">(0/${MAX_TAGS})</span></label>
+      <label>${dating ? 'Raccontati con i tag' : 'Tag'} <span class="muted small" id="tagn">(0/${maxTags})</span></label>
+      ${dating ? '<p class="muted small">Li vedono solo gli iscritti a Ubi Dating: aiutano a trovare chi cerca le tue stesse cose. Sono facoltativi.</p>' : ''}
       <div class="chips" id="tags"></div>
       <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="newtag" maxlength="24" placeholder="Aggiungi un tag tuo…" enterkeyhint="done">
         <button id="addtag" type="button" class="ghost" style="flex:0 0 auto">＋</button></div>
@@ -894,21 +905,25 @@ async function viewNew(ed = null, opts = {}) {
     <p class="center"><a href="${ed ? `#/c/${esc(ed.share_slug)}` : '#/'}">Annulla</a></p>`;
 
   // --- tag
-  const allTags = [...TAGS_SUGGESTED];
+  const allTags = dating ? [] : [...TAGS_SUGGESTED];   // nel dating: tag tuoi (quelli dei gruppi sono a parte)
+  const chip = (t) => `<button type="button" class="chip ${s.tags.has(t) ? 'on' : ''}" data-t="${esc(t)}">#${esc(t)}</button>`;
   const drawTags = () => {
-    $('#tags').innerHTML = allTags.map((t) => `<button type="button" class="chip ${s.tags.has(t) ? 'on' : ''}" data-t="${esc(t)}">#${esc(t)}</button>`).join('');
-    $('#tagn').textContent = `(${s.tags.size}/${MAX_TAGS})`;
+    $('#tags').innerHTML = dating
+      ? DATING_TAGS.map(([g, list]) => `<div class="taggroup"><div class="muted small"><b>${g}</b></div>${list.map(chip).join('')}</div>`).join('')
+        + (allTags.length ? `<div class="taggroup"><div class="muted small"><b>I tuoi tag</b></div>${allTags.map(chip).join('')}</div>` : '')
+      : allTags.map(chip).join('');
+    $('#tagn').textContent = `(${s.tags.size}/${maxTags})`;
   };
   const toggleTag = (t, forceOn = false) => {
     if (s.tags.has(t) && !forceOn) s.tags.delete(t);
-    else if (s.tags.size >= MAX_TAGS && !s.tags.has(t)) { msg($('#sm'), `Massimo ${MAX_TAGS} tag per contenuto.`); return; }
+    else if (s.tags.size >= maxTags && !s.tags.has(t)) { msg($('#sm'), `Massimo ${maxTags} tag per contenuto.`); return; }
     else s.tags.add(t);
     msg($('#sm'), ''); drawTags();
   };
   $('#tags').onclick = (e) => { const b = e.target.closest('button'); if (b) toggleTag(b.dataset.t); };
   const addCustom = () => {
     const t = normTag($('#newtag').value); if (!t) return;
-    if (!allTags.includes(t)) allTags.unshift(t);
+    if (!allTags.includes(t) && !(dating && DATING_FLAT.has(t))) allTags.unshift(t);
     toggleTag(t, true); $('#newtag').value = '';
   };
   $('#addtag').onclick = addCustom;
@@ -1068,7 +1083,7 @@ async function viewNew(ed = null, opts = {}) {
     if (ed.text_body) { $('#txt').value = ed.text_body; $('#txt').oninput(); }
     if (ed.external_url) { $('#url').value = ed.external_url; $('#url').oninput(); }
     $('#title').value = ed.title || ''; $('#hint').value = ed.hint || '';
-    (ed.tags || []).forEach((t) => { if (!allTags.includes(t)) allTags.unshift(t); }); drawTags();
+    (ed.tags || []).forEach((t) => { if (!allTags.includes(t) && !(dating && DATING_FLAT.has(t))) allTags.unshift(t); }); drawTags();
     $(`#vis button[data-v="${s.vis}"]`).click();
     $('#emails').value = (ed.recipients || []).join(', ');
     $('#radius').value = s.radius; $('#rout').textContent = `${s.radius} m`;

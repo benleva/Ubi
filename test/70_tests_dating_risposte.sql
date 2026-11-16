@@ -110,3 +110,14 @@ exception when raise_exception then
   if sqlerrm like '%disattivato%' then raise notice 'D29 risposte disattivate: OK'; else raise; end if;
 end $$;
 reset role;
+
+-- Aggiornamento 8: tag dei biglietti dating visibili solo agli iscritti
+set role authenticated;
+select set_config('request.jwt.claims','{"sub":"e1e1e1e1-0000-0000-0000-000000000001","email":"lei@example.com"}',false);
+update contents set tags = '{etero,"relazione stabile",montagna}' where share_slug = 'vetta01';
+select set_config('request.jwt.claims','{"sub":"e2e2e2e2-0000-0000-0000-000000000002","email":"minore@example.com"}',false);
+select 'D30 non iscritto: niente tag dating' t, cardinality(tags) = 0 as pass from get_teaser('vetta01');
+select 'D31 non iscritto: niente tag sulla mappa' t, cardinality(tags) = 0 as pass from map_contents(44, 6, 46, 8) where share_slug = 'vetta01';
+select set_config('request.jwt.claims','{"sub":"e3e3e3e3-0000-0000-0000-000000000003","email":"lui@example.com"}',false);
+select 'D32 iscritto vede i tag' t, 'etero' = any(tags) as pass from get_teaser('vetta01');
+reset role;
