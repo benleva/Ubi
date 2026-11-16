@@ -4,7 +4,7 @@ Web app (PWA) per fissare foto, video (max 60 s) e audio in un luogo. Il contenu
 
 ## Struttura
 ```
-supabase/01_schema.sql   database, regole di sicurezza, funzioni di sblocco (eseguire una volta)
+supabase/migrations/20261116090000_ubi_schema.sql   database, regole di sicurezza, funzioni di sblocco (eseguire una volta)
 index.html, app.js, …    sito statico nella cartella principale (pubblicato da GitHub Pages)
   config.js              unico file da modificare (chiavi Supabase)
   app.js                 logica dell'app
@@ -18,7 +18,7 @@ Basta pubblicare la cartella principale (punto 3) e aprirla. Nella demo si può 
 
 ## 2. Collegare il database (gratis)
 1. Su supabase.com: New project, regione **Europa**.
-2. SQL Editor: incollare `supabase/01_schema.sql` ed eseguire.
+2. SQL Editor: incollare `supabase/migrations/20261116090000_ubi_schema.sql` ed eseguire.
 3. Authentication > Sign In / Providers > **Email**: attivo, con **Confirm email** acceso e lunghezza minima password **8**. Gli utenti si registrano una volta con email e password e restano collegati sul telefono; il link via email resta come alternativa e serve per recuperare la password.
 4. Authentication > URL Configuration: **Site URL** = indirizzo del sito, e aggiungerlo anche in **Redirect URLs**.
 5. Project Settings > API: copiare *Project URL* e *anon public key* in `config.js`.

@@ -1,6 +1,6 @@
 -- =====================================================================
 -- UBI — Fase 1 (MVP) — Schema database per Supabase (Postgres)
--- Incolla questo file nell'SQL Editor di Supabase ed eseguilo una volta.
+-- Applicato in automatico dall integrazione GitHub di Supabase (oppure incollalo nell SQL Editor).
 --
 -- Principio di sicurezza: nessuno legge direttamente la tabella dei
 -- contenuti, tranne il proprietario. Gli altri passano da due funzioni:
