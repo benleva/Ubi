@@ -34,7 +34,7 @@ Una qualsiasi di queste opzioni:
 Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 
 ## 4. Ubi Dating e risposte ai pin (aggiornamento 7)
-1. SQL Editor: eseguire `supabase/migrations/20261116160000_dating_risposte.sql` e poi `supabase/migrations/20261116170000_dating_tag.sql`.
+1. SQL Editor: eseguire `supabase/migrations/20261116160000_dating_risposte.sql` poi `supabase/migrations/20261116170000_dating_tag.sql` e `supabase/migrations/20261116180000_dating_foto.sql`.
 2. Edge Functions > Deploy a new function > **Via Editor**: nome `notify-reply`, incollare `supabase/functions/notify-reply/index.ts`, Deploy (lasciare "Verify JWT" acceso). Usa gli stessi segreti di notify-recipients.
 3. Il nome della funzione va in `config.js` > `REPLY_FUNCTION`.
 

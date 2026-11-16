@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161829';
+import { CONFIG } from './config.js?v=202611161834';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.19';
+const APP_VERSION = 'v.20';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -102,6 +102,11 @@ async function supabaseBackend() {
   const sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
     auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true },
   });
+  // Link temporanei (1 ora) per file privati del bucket media
+  const signAll = async (rows) => {
+    for (const r of rows) { const x = await sb.storage.from('media').createSignedUrl(r.path, 3600); r.url = x.data?.signedUrl || null; }
+    return rows;
+  };
   // Arrivo dal link "password dimenticata": mostriamo la schermata per sceglierne una nuova
   sb.auth.onAuthStateChange((ev) => { if (ev === 'PASSWORD_RECOVERY' && B) { B.recovery = true; if (appReady) route(); } });
   const must = ({ data, error }) => { if (error) throw error; return data; };
@@ -276,6 +281,24 @@ async function supabaseBackend() {
       return rows;
     },
     async myReplies() { return must(await sb.rpc('my_replies')) || []; },
+    // --- foto del profilo dating (max 6, visibili solo dopo il doppio sì)
+    async myDatingPhotos() {
+      const u = await B.user();
+      const rows = must(await sb.from('dating_photos').select('id,path,created_at').eq('user_id', u.id).order('created_at')) || [];
+      return signAll(rows);
+    },
+    async addDatingPhoto(blob) {
+      const u = await B.user();
+      const path = `${u.id}/dating/${crypto.randomUUID()}.jpg`;
+      must(await sb.storage.from('media').upload(path, blob, { contentType: 'image/jpeg', upsert: false }));
+      const res = await sb.from('dating_photos').insert({ user_id: u.id, path });
+      if (res.error) { await sb.storage.from('media').remove([path]); throw res.error; }
+    },
+    async removeDatingPhoto(p) {
+      must(await sb.from('dating_photos').delete().eq('id', p.id));
+      await sb.storage.from('media').remove([p.path]);
+    },
+    async datingPhotosOf(userId) { return signAll(must(await sb.rpc('dating_photos_of', { p_user: userId })) || []); },
     async replyWant(id) { return must(await sb.rpc('reply_want', { p_id: id })); },
     async replyRemove(id) {
       const path = must(await sb.rpc('reply_remove', { p_id: id }));
@@ -363,6 +386,10 @@ function demoBackend() {
     async addReply() { throw new Error('Le risposte non sono disponibili nella demo.'); },
     async repliesFor() { return []; },
     async myReplies() { return []; },
+    async myDatingPhotos() { return []; },
+    async addDatingPhoto() { throw new Error('Le foto dating non sono disponibili nella demo.'); },
+    async removeDatingPhoto() {},
+    async datingPhotosOf() { return []; },
     async replyWant() { return false; },
     async replyRemove() {},
     async listContacts() { return [...B._book()].sort((a, b) => a.name.localeCompare(b.name)); },
@@ -516,6 +543,7 @@ async function routeInner() {
   const pending = popPending();
   if (pending && pending !== location.hash) { location.hash = pending; return; }
   if (page === 'dating') return isDating(prof) ? viewDating(user, prof) : viewDatingJoin(prof);
+  if (page === 'foto' && arg) return viewDatingPhotos(arg);
   if (page === 'new') {
     if (arg === 'dating' && !isDating(prof)) { location.hash = '#/dating'; return; }
     return viewNew(null, { dating: arg === 'dating' });
@@ -1321,6 +1349,50 @@ async function viewContent(slug, user) {
 }
 
 
+// Ridimensiona una foto (lato lungo max 1600 px, JPEG) senza ritagliarla
+function fitImage(file, max = 1600) {
+  return new Promise((res, rej) => {
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      c.toBlob((b) => (b ? res(b) : rej(new Error('Immagine non leggibile'))), 'image/jpeg', 0.85);
+    };
+    img.onerror = () => rej(new Error('Immagine non leggibile: prova con una foto JPG o PNG.'));
+    img.src = url;
+  });
+}
+const MAX_DATING_PHOTOS = 6;
+async function drawMyDatingPhotos(box) {
+  const list = await B.myDatingPhotos();
+  box.innerHTML = `<div class="photogrid">${list.map((p, i) => `<div class="ph"><img src="${esc(p.url || '')}" alt="Foto ${i + 1}"><button type="button" data-i="${i}" aria-label="Elimina foto">✕</button></div>`).join('')}
+    ${list.length < MAX_DATING_PHOTOS ? '<label class="ph add"><input type="file" accept="image/*" multiple hidden id="dpf"><span>＋<br>Aggiungi</span></label>' : ''}</div>
+    <p class="muted small">${list.length}/${MAX_DATING_PHOTOS} foto. Le vede <b>solo chi hai scelto e ti ha scelto</b> (doppio sì): prima resti anonimo/a.</p><div id="dpm"></div>`;
+  box.querySelectorAll('button[data-i]').forEach((b) => {
+    b.onclick = async () => {
+      if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Sicuro?'; b.classList.add('wide'); return; }
+      try { await B.removeDatingPhoto(list[+b.dataset.i]); drawMyDatingPhotos(box); } catch (err) { msg($('#dpm'), errText(err)); }
+    };
+  });
+  const inp = box.querySelector('#dpf');
+  if (inp) inp.onchange = async () => {
+    const files = [...inp.files].slice(0, MAX_DATING_PHOTOS - list.length);
+    msg($('#dpm'), `Carico ${files.length} foto…`, 'info');
+    try { for (const f of files) await B.addDatingPhoto(await fitImage(f)); drawMyDatingPhotos(box); }
+    catch (err) { msg($('#dpm'), errText(err)); }
+  };
+}
+async function viewDatingPhotos(userId) {
+  setDatingTheme(true);
+  app.innerHTML = '<p class="muted center">Carico…</p>';
+  const list = await B.datingPhotosOf(userId);
+  app.innerHTML = `<h1>📷 ${list.length ? `Le foto di ${esc(list[0].name || '')}` : 'Foto'}</h1>
+    ${list.length ? `<div class="photostack">${list.map((p) => `<img src="${esc(p.url || '')}" alt="">`).join('')}</div>`
+      : '<div class="card center muted">Nessuna foto da mostrare. Le foto si vedono solo dopo che vi siete scelti a vicenda.</div>'}
+    <p class="center"><a href="#/dating">Torna a Ubi Dating</a></p>`;
+}
+
 // ======================= INVITA UN AMICO (card con QR) =======================
 const INVITE_URL = 'https://ubipin.it';
 const INVITE_IMG = 'invito-ubi.png';
@@ -1398,7 +1470,7 @@ async function replySection(t, slug, box) {
         <div class="media">${replyMedia(r)}</div>
         ${r.text_body ? `<div class="textbody">${linkify(r.text_body)}</div>` : ''}
         <div class="actions">
-          ${r.revealed && r.author_id ? `<a class="btn" href="#/messaggi/${esc(r.author_id)}/${esc(slug)}">✉️ Scrivi${t.is_dating ? ` a ${esc(r.author_name || '')}` : ''}</a>`
+          ${r.revealed && r.author_id ? `<a class="btn" href="#/messaggi/${esc(r.author_id)}/${esc(slug)}">✉️ Scrivi${t.is_dating ? ` a ${esc(r.author_name || '')}` : ''}</a>${t.is_dating ? `<a class="btn ghost" href="#/foto/${esc(r.author_id)}">📷 Le sue foto</a>` : ''}`
             : r.owner_wants ? `<span class="muted small">Hai scelto 💗: ${r.author_wants ? '' : 'aspetti la sua scelta.'}</span>`
             : `<button data-a="want">💗 Voglio conoscerti${r.author_wants ? ' (ha già scelto te!)' : ''}</button>`}
           <button class="ghost danger" data-a="del">Elimina</button>
@@ -1471,7 +1543,7 @@ function myReplyStatus(r) {
   return '<p class="muted small">Restate anonimi finché non scegliete entrambi «Voglio conoscerti».</p>';
 }
 function myReplyActions(r) {
-  if (r.revealed && r.owner_id) return `<a class="btn" href="#/messaggi/${esc(r.owner_id)}/${esc(r.share_slug)}">✉️ Scrivi</a>`;
+  if (r.revealed && r.owner_id) return `<a class="btn" href="#/messaggi/${esc(r.owner_id)}/${esc(r.share_slug)}">✉️ Scrivi</a>${r.is_dating ? `<a class="btn ghost" href="#/foto/${esc(r.owner_id)}">📷 Le sue foto</a>` : ''}`;
   if (r.is_dating && !r.author_wants) return '<button data-a="want">💗 Voglio conoscerti</button>';
   return '';
 }
@@ -1549,6 +1621,7 @@ async function viewDating(user, prof) {
     <div id="mm"></div>
     <a href="#/new/dating" class="btn accent full">＋ Lascia un biglietto in un luogo che ami</a>
     <h2 style="margin-top:22px">I miei biglietti</h2><div id="mine"><p class="muted center">Carico…</p></div>
+    <h2 style="margin-top:22px">📷 Le mie foto</h2><div id="dphotos"><p class="muted center">Carico…</p></div>
     <h2 style="margin-top:22px">Le mie risposte</h2><div id="myrep"><p class="muted center">Carico…</p></div>
     <div class="card small"><b>🛡️ Sicurezza</b><ul>
       <li>Incontra le persone solo in luoghi pubblici e avvisa qualcuno di fiducia.</li>
@@ -1556,6 +1629,7 @@ async function viewDating(user, prof) {
       <li>Comportamenti scorretti? Scrivi a <a href="mailto:info@ubipin.it">info@ubipin.it</a>.</li></ul></div>
     <p class="center small"><a href="#/">Torna a Ubi</a> · <a href="#" id="leave">Esci da Ubi Dating</a></p>`;
   homeMap({ dating: true });
+  drawMyDatingPhotos($('#dphotos')).catch((err) => msg($('#dphotos'), errText(err)));
   $('#leave').onclick = async (e) => {
     e.preventDefault();
     if (e.target.dataset.confirm !== '1') { e.target.dataset.confirm = '1'; e.target.textContent = 'Conferma: esci da Ubi Dating (i tuoi biglietti restano finché non li elimini)'; return; }
@@ -1872,6 +1946,7 @@ const FAQ_GUIDE = [
     <li>Lasci un <b>biglietto</b> in un luogo che ami (meglio un video dal vivo): sulla mappa appare con un pallino <b>rosa</b> (lei) o <b>azzurro</b> (lui), visibile a tutti.</li>
     <li>Lo può aprire e rispondere solo chi è iscritto e <b>arriva sul posto</b>: avrete già una passione in comune.</li>
     <li>Siete <b>anonimi</b>: vi scoprite solo se entrambi toccate <b>«Voglio conoscerti»</b>. Da lì vedete i nomi e potete scrivervi.</li>
+    <li>In <b>Le mie foto</b> puoi caricare fino a <b>6 foto</b>: le vede solo chi ha fatto con te il doppio sì («📷 Le sue foto»).</li>
     <li>Incontratevi solo in luoghi pubblici e segnalate abusi a info@ubipin.it.</li></ol>`],
   ['7 · Account e accesso', `<ul>
     <li>Resti collegato finché non tocchi <b>Esci</b> in fondo alla pagina.</li>

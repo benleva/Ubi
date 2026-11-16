@@ -121,3 +121,34 @@ select 'D31 non iscritto: niente tag sulla mappa' t, cardinality(tags) = 0 as pa
 select set_config('request.jwt.claims','{"sub":"e3e3e3e3-0000-0000-0000-000000000003","email":"lui@example.com"}',false);
 select 'D32 iscritto vede i tag' t, 'etero' = any(tags) as pass from get_teaser('vetta01');
 reset role;
+
+-- Aggiornamento 9: foto dating (max 6, visibili solo dopo il doppio sì)
+reset role;
+insert into auth.users values ('e5e5e5e5-0000-0000-0000-000000000005','altro@example.com',null) on conflict do nothing;
+set role authenticated;
+select set_config('request.jwt.claims','{"sub":"e1e1e1e1-0000-0000-0000-000000000001","email":"lei@example.com"}',false);
+insert into dating_photos(user_id, path) select auth.uid(), 'e1e1e1e1-0000-0000-0000-000000000001/dating/' || g || '.jpg' from generate_series(1, 6) g;
+do $$ begin
+  insert into dating_photos(user_id, path) values (auth.uid(), 'e1e1e1e1-0000-0000-0000-000000000001/dating/7.jpg');
+  raise exception 'NON doveva passare';
+exception when raise_exception then
+  if sqlerrm like '%al massimo 6%' then raise notice 'D33 massimo 6 foto: OK'; else raise; end if;
+end $$;
+reset role;
+insert into storage.objects(bucket_id, name) values ('media','e1e1e1e1-0000-0000-0000-000000000001/dating/1.jpg');
+set role authenticated;
+-- Marco ha fatto il doppio sì con Giulia (test D18): vede le foto
+select set_config('request.jwt.claims','{"sub":"e3e3e3e3-0000-0000-0000-000000000003","email":"lui@example.com"}',false);
+select 'D34 dopo il doppio sì vede 6 foto' t, count(*) = 6 as pass from dating_photos_of('e1e1e1e1-0000-0000-0000-000000000001');
+select 'D35 e può scaricarle' t, count(*) = 1 as pass from storage.objects where name like 'e1e1e1e1-0000-0000-0000-000000000001/dating/%';
+-- Un estraneo no
+select set_config('request.jwt.claims','{"sub":"e4e4e4e4-0000-0000-0000-000000000004","email":"curioso@example.com"}',false);
+select 'D36 estraneo non vede le foto' t, count(*) = 0 as pass from dating_photos_of('e1e1e1e1-0000-0000-0000-000000000001');
+select 'D37 estraneo non scarica' t, count(*) = 0 as pass from storage.objects where name like 'e1e1e1e1-0000-0000-0000-000000000001/dating/%';
+do $$ begin
+  insert into dating_photos(user_id, path) values (auth.uid(), 'e4e4e4e4-0000-0000-0000-000000000004/dating/1.jpg');
+  raise exception 'NON doveva passare';
+exception when raise_exception then
+  if sqlerrm like '%iscritti%' then raise notice 'D38 non iscritto non carica foto: OK'; else raise; end if;
+end $$;
+reset role;
