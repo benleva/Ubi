@@ -1,5 +1,5 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611161520';
+import { CONFIG } from './config.js?v=202611161523';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
 const APP_VERSION = 'v.13';
