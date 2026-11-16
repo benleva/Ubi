@@ -5,7 +5,7 @@ Web app (PWA) per fissare foto, video (max 60 s) e audio in un luogo. Il contenu
 ## Struttura
 ```
 supabase/01_schema.sql   database, regole di sicurezza, funzioni di sblocco (eseguire una volta)
-docs/                    sito statico (pubblicato da GitHub Pages): nessuna compilazione
+index.html, app.js, …    sito statico nella cartella principale (pubblicato da GitHub Pages)
   config.js              unico file da modificare (chiavi Supabase)
   app.js                 logica dell'app
   privacy.html           BOZZA di informativa: da completare
@@ -14,22 +14,22 @@ test/                    test del database (Postgres locale)
 
 ## 1. Provarla subito (modalità demo)
 Con `SUPABASE_URL` vuoto in `config.js` l'app funziona in modalità DEMO: i dati restano sul telefono.
-Basta pubblicare la cartella `docs/` (punto 3) e aprirla. Nella demo si può toccare la mappa per simulare la propria posizione.
+Basta pubblicare la cartella principale (punto 3) e aprirla. Nella demo si può toccare la mappa per simulare la propria posizione.
 
 ## 2. Collegare il database (gratis)
 1. Su supabase.com: New project, regione **Europa**.
 2. SQL Editor: incollare `supabase/01_schema.sql` ed eseguire.
 3. Authentication > Sign In / Providers: lasciare attivo **Email**.
 4. Authentication > URL Configuration: **Site URL** = indirizzo del sito, e aggiungerlo anche in **Redirect URLs**.
-5. Project Settings > API: copiare *Project URL* e *anon public key* in `docs/config.js`.
+5. Project Settings > API: copiare *Project URL* e *anon public key* in `config.js`.
 
 Nota: l'invio email incluso in Supabase ha limiti bassi, va bene per i test. Per il lancio va collegato un servizio SMTP (ci sono piani gratuiti).
 
 ## 3. Pubblicare il sito (gratis, serve HTTPS per il GPS)
 Una qualsiasi di queste opzioni:
-- **Netlify Drop** (app.netlify.com/drop): trascinare la cartella `docs/` (da computer).
-- **Cloudflare Pages**: Create project > Upload assets > cartella `docs/`.
-- **GitHub Pages**: già configurato: Settings > Pages > Deploy from a branch > `main` / `/docs`.
+- **Netlify Drop** (app.netlify.com/drop): trascinare la cartella principale (da computer).
+- **Cloudflare Pages**: Create project > Upload assets > cartella principale.
+- **GitHub Pages**: già configurato: Settings > Pages > Deploy from a branch > `main` / `/ (root)`.
 
 Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 
