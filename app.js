@@ -1627,7 +1627,7 @@ async function viewHunt(id) {
         not_found: ['err', '❌ Codice non valido per questa caccia.'] };
       const [k, t] = M[r.status] || ['err', esc(r.status)];
       msg($('#cm'), t, k);
-      if (r.status === 'ok') setTimeout(() => viewHunt(id), 2500);
+      if (r.status === 'ok') { const h = location.hash; setTimeout(() => { if (location.hash === h) viewHunt(id); }, 2500); }
     } catch (err) { msg($('#cm'), errText(err)); }
   };
   $('#hdel').onclick = async (e) => {
