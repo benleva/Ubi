@@ -1546,5 +1546,1297 @@
   "lat": 45.608,
   "lng": 9.685,
   "text": "Il Santuario della Basella nacque dopo apparizioni della Madonna riferite l'8 e il 17 aprile 1356. Un secolo dopo Bartolomeo Colleoni lo ampliò e vi seppellì la figlia Medea.\n\nIl sarcofago di Medea fu poi portato nel 1842 nella Cappella Colleoni a Bergamo, dove lo trovi accanto a quello del padre."
+ },
+ {
+  "town": "Desenzano del Garda",
+  "title": "La villa dei ricchi romani",
+  "hint": "Lungo un'antica strada romana, qui viveva gente molto ricca.",
+  "wiki": "Villa romana di Desenzano del Garda",
+  "search": "Villa romana Desenzano",
+  "osm": "Villa romana, Desenzano del Garda",
+  "lat": 45.4705,
+  "lng": 10.5395,
+  "text": "Nel Borgo Regio si visitano gli scavi della villa romana, costruita lungo la via Gallica come residenza per cittadini molto ricchi. È una delle testimonianze romane più importanti del lago di Garda."
+ },
+ {
+  "town": "Desenzano del Garda",
+  "title": "Il castello rifugio",
+  "hint": "Quando c'era pericolo, il paese intero saliva qui.",
+  "osm": "Castello di Desenzano del Garda",
+  "lat": 45.4718,
+  "lng": 10.5358,
+  "text": "Il castello di Desenzano nacque nell'alto Medioevo e fu ampliato nel Quattrocento: serviva da rifugio per la popolazione. Nel 1883 il Comune lo cedette allo Stato come caserma. Oggi, d'estate, ospita teatro all'aperto, visite guidate e laboratori per bambini."
+ },
+ {
+  "town": "Desenzano del Garda",
+  "title": "L'Ultima Cena di Tiepolo",
+  "hint": "Dentro il Duomo c'è una tela di un grande pittore veneziano.",
+  "osm": "Duomo di Santa Maria Maddalena, Desenzano del Garda",
+  "lat": 45.4712,
+  "lng": 10.5372,
+  "text": "Il Duomo di Desenzano, consacrato nel 1611, ha affreschi di Andrea Celesti e una tela dell'Ultima Cena di Gian Domenico Tiepolo, figlio del più famoso Giambattista."
+ },
+ {
+  "town": "Desenzano del Garda",
+  "title": "Il ponte alla veneziana",
+  "hint": "Questo ponte sembra arrivato da Venezia. È tra i più fotografati del lago.",
+  "osm": "Porto Vecchio, Desenzano del Garda",
+  "lat": 45.4708,
+  "lng": 10.5365,
+  "text": "Il Porto Vecchio fu costruito sotto la Repubblica di Venezia per sbarcare viveri e merci, e un tempo si chiudeva con un ponte levatoio. Dopo la Seconda guerra mondiale fu costruito il ponte «alla veneziana», oggi uno dei monumenti più fotografati di Desenzano."
+ },
+ {
+  "town": "Montichiari",
+  "title": "Un castello torinese in Lombardia",
+  "hint": "Questo castello è la copia fedele di un castello di Torino.",
+  "wiki": "Castello Bonoris",
+  "search": "Castello Bonoris Montichiari",
+  "osm": "Castello Bonoris, Montichiari",
+  "lat": 45.414,
+  "lng": 10.394,
+  "text": "Il Castello Bonoris fu fatto costruire a fine Ottocento dal conte Gaetano Bonoris dove c'erano una fortezza più antica e la chiesa di San Tommaso. È una copia fedele del Castello del Valentino di Torino, e dentro è tutto affrescato usando gli stessi cartoni del castello della Manta."
+ },
+ {
+  "town": "Montichiari",
+  "title": "La pieve che guarda la pianura",
+  "hint": "Da questa collina una chiesa del XII secolo guarda verso il Po.",
+  "osm": "Pieve di San Pancrazio, Montichiari",
+  "lat": 45.41,
+  "lng": 10.39,
+  "text": "La Pieve di San Pancrazio, del XII secolo, sta sulla collina a sud del centro storico. È in pietra, a tre navate, con affreschi dal XII al XV secolo, e la facciata guarda a ovest verso la pianura padana."
+ },
+ {
+  "town": "Montichiari",
+  "title": "L'Ultima Cena del Romanino",
+  "hint": "Nel Duomo c'è un capolavoro arrivato da una chiesa più antica.",
+  "osm": "Duomo di Santa Maria Assunta, Montichiari",
+  "lat": 45.416,
+  "lng": 10.392,
+  "text": "Il Duomo di Santa Maria Assunta fu costruito in più fasi e terminato nel Settecento; nel Novecento è diventato basilica minore. Custodisce l'Ultima Cena del Romanino, che veniva dalla chiesa rinascimentale che c'era prima nello stesso posto."
+ },
+ {
+  "town": "Montichiari",
+  "title": "Il museo nel vecchio municipio",
+  "hint": "Questo palazzo è stato il municipio fino al 1995. Ora ospita una collezione d'arte.",
+  "osm": "Museo Lechi, Montichiari",
+  "lat": 45.4155,
+  "lng": 10.3925,
+  "text": "Il Museo Lechi è in Palazzo Tabarino, in corso Martiri della Libertà, che fino al 1995 era il municipio. La collezione d'arte fu donata dai conti Luigi e Piero Lechi tra il 2005 e il 2008."
+ },
+ {
+  "town": "Lumezzane",
+  "title": "Un telescopio sul colle",
+  "hint": "Sul colle San Bernardo si guardano le stelle.",
+  "osm": "Osservatorio astronomico Serafino Zani, Lumezzane",
+  "lat": 45.655,
+  "lng": 10.27,
+  "text": "Sul Colle San Bernardo c'è l'osservatorio astronomico «Serafino Zani», con un telescopio di 40 centimetri, gestito dall'Unione Astrofili Bresciani."
+ },
+ {
+  "town": "Lumezzane",
+  "title": "La chiesa bruciata nel 1922",
+  "hint": "Di questa chiesa, dopo un incendio, restarono solo i muri.",
+  "osm": "Chiesa di Sant'Apollonio, Lumezzane",
+  "lat": 45.647,
+  "lng": 10.263,
+  "text": "Il 30 dicembre 1922 un incendio distrusse la chiesa di Sant'Apollonio: rimasero in piedi solo i muri perimetrali. Lumezzane è conosciuta per la lavorazione dei metalli, la rubinetteria e le pentole in acciaio."
+ },
+ {
+  "town": "Lumezzane",
+  "title": "Il villaggio della fabbrica",
+  "hint": "Un quartiere intero costruito da un'azienda per i suoi lavoratori.",
+  "osm": "Villaggio Gnutti, Lumezzane",
+  "lat": 45.645,
+  "lng": 10.26,
+  "text": "Il Villaggio Gnutti, progettato dall'ingegnere Giovanni Zani, fu inaugurato nell'ottobre 1940 con i primi 22 edifici e 205 stanze. Dopo la guerra arrivò a 80 edifici con più di mille abitanti."
+ },
+ {
+  "town": "Lumezzane",
+  "title": "Arte nella torre",
+  "hint": "Dentro una torre antica oggi si fanno mostre.",
+  "osm": "Torre Avogadro, Lumezzane",
+  "lat": 45.6485,
+  "lng": 10.265,
+  "text": "La Torre Avogadro ospita la Galleria Civica, con mostre di artisti del posto e da fuori. Lumezzane ha anche un teatro, l'Odeon «Giacinto Prandelli», dove sono passati nomi come Marco Paolini e Lella Costa."
+ },
+ {
+  "town": "Palazzolo sull'Oglio",
+  "title": "La torre rotonda più alta d'Italia",
+  "hint": "Questa torre detiene un record nazionale.",
+  "wiki": "Torre del Popolo",
+  "search": "Torre del Popolo Palazzolo",
+  "osm": "Torre del Popolo, Palazzolo sull'Oglio",
+  "lat": 45.5965,
+  "lng": 9.8865,
+  "text": "La Torre del Popolo, accanto a San Fedele, è alta 91 metri: è la torre a sezione circolare più alta d'Italia e una delle più alte d'Europa."
+ },
+ {
+  "town": "Palazzolo sull'Oglio",
+  "title": "Il torrione salvato",
+  "hint": "Questa torre di mille anni fa ha rischiato di essere demolita.",
+  "osm": "Torrione di Mura, Palazzolo sull'Oglio",
+  "lat": 45.5975,
+  "lng": 9.889,
+  "text": "Il Torrione di Mura, alto 25 metri e largo 10, fu costruito tra l'VIII e il IX secolo per difendere il borgo di Mura. Tra fine Ottocento e inizio Novecento rischiò la demolizione durante i lavori di via Gorini, ma fu salvato. È stato riaperto al pubblico il 14 maggio 1999."
+ },
+ {
+  "town": "Palazzolo sull'Oglio",
+  "title": "Le torri della Rocca Magna",
+  "hint": "Tre torri rotonde e una quadrata. Si chiamano Mirabella, Ruellina...",
+  "osm": "Rocca Magna, Palazzolo sull'Oglio",
+  "lat": 45.595,
+  "lng": 9.888,
+  "text": "La Rocca Magna aveva quattro torri circondate da un ampio fossato: tre rotonde, chiamate Mirabella, Ruellina e Porta di fuori, e una quadrata, la Torre della Salvezza, che era il mastio. Ancora oggi si possono percorrere i sotterranei e i camminamenti di ronda."
+ },
+ {
+  "town": "Palazzolo sull'Oglio",
+  "title": "Il ponte di 1.700 anni",
+  "hint": "Il ponte più antico del paese ha la schiena d'asino.",
+  "osm": "Ponte romano, Palazzolo sull'Oglio",
+  "lat": 45.5955,
+  "lng": 9.886,
+  "text": "Il ponte romano risale probabilmente al IV secolo ed è il più antico di Palazzolo. Ha il profilo a schiena d'asino e volte in pietra squadrata, ed era difeso a entrambe le estremità da fortificazioni, tra cui la torre della Rocchetta."
+ },
+ {
+  "town": "Palazzolo sull'Oglio",
+  "title": "La chiesa sotto la chiesa",
+  "hint": "Sotto questo auditorium hanno trovato una chiesa di epoca carolingia.",
+  "osm": "Auditorium San Fedele, Palazzolo sull'Oglio",
+  "lat": 45.5964,
+  "lng": 9.8867,
+  "text": "Negli scavi del 1977–78 nell'antica pieve di San Fedele vennero alla luce le absidi della prima chiesa carolingia e due tombe sotto la porta centrale. Per conservarle sono stati costruiti due piani sotterranei. Oggi l'edificio ospita concerti e conferenze."
+ },
+ {
+  "town": "Rovato",
+  "title": "Dal Monte Orfano si vede la Madonnina",
+  "hint": "Nelle giornate limpide, da quassù si vede Milano.",
+  "osm": "Monte Orfano, Rovato",
+  "lat": 45.575,
+  "lng": 9.99,
+  "text": "Sul Monte Orfano sono stati trovati resti di insediamenti dei Galli Cenomani, dal VI secolo avanti Cristo. Una leggenda dice che in cima ci fosse un tempietto dedicato al dio del sole. Nelle giornate limpide si vedono la Madonnina di Milano e il Castello di Brescia."
+ },
+ {
+  "town": "Rovato",
+  "title": "L'Annunciazione del Romanino",
+  "hint": "In questo convento c'è un affresco di un grande pittore bresciano.",
+  "osm": "Convento della Santissima Annunciata, Rovato",
+  "lat": 45.578,
+  "lng": 9.995,
+  "text": "Il Convento della Santissima Annunziata fu costruito dai frati Servi di Maria nella seconda metà del Quattrocento. Il chiostro conserva gli archi originali e nel coro c'è un affresco dell'Annunciazione con due profeti del Romanino, del 1535 circa."
+ },
+ {
+  "town": "Rovato",
+  "title": "Il mercato del lunedì dal 1480",
+  "hint": "Da più di cinquecento anni, qui il lunedì è giorno di mercato.",
+  "osm": "Piazza Cavour, Rovato",
+  "lat": 45.567,
+  "lng": 9.999,
+  "text": "Il mercato del bestiame di Rovato ha origini longobarde. Il mercato settimanale del lunedì fu inaugurato nel 1480 e nel 1517 un decreto della Repubblica di Venezia ne confermò il diritto."
+ },
+ {
+  "town": "Rovato",
+  "title": "La piazza dei portici",
+  "hint": "Questa piazza l'ha voluta un parroco.",
+  "osm": "Piazza Cavour, Rovato",
+  "lat": 45.5672,
+  "lng": 9.9992,
+  "text": "Piazza Cavour fu costruita a metà Ottocento per iniziativa del parroco Carlo Angelini, con i portici disegnati dall'architetto Rodolfo Vantini, lo stesso del cimitero monumentale di Brescia."
+ },
+ {
+  "town": "Rovato",
+  "title": "Le mura dei veneziani",
+  "hint": "Tre torri e un lungo tratto di mura sono arrivati fino a noi.",
+  "osm": "Mura venete, Rovato",
+  "lat": 45.566,
+  "lng": 9.998,
+  "text": "Delle fortificazioni costruite dai veneziani nel Trecento restano tre torri e un lungo tratto di mura, restaurate nel dicembre 2020."
+ },
+ {
+  "town": "Chiari",
+  "title": "Quattro orologi, quattro colori",
+  "hint": "Ogni lato di questa torre ha un orologio di un colore diverso.",
+  "osm": "Torre civica, Piazza Zanardelli, Chiari",
+  "lat": 45.537,
+  "lng": 9.929,
+  "text": "La Torre civica di Chiari, alta 55 metri in marmo bianco, fu costruita nel 1758. Su ogni lato c'è un orologio con lo sfondo del colore del quartiere verso cui guarda: giallo per Zeveto, blu per Cortezzano, verde per Marengo e rosso per Villatico."
+ },
+ {
+  "town": "Chiari",
+  "title": "La santa di cera",
+  "hint": "Sotto il Duomo riposa una martire arrivata da Roma.",
+  "osm": "Duomo di Chiari",
+  "lat": 45.5368,
+  "lng": 9.9288,
+  "text": "Sotto il Duomo sono custodite le reliquie di Sant'Agape, martire presa da una catacomba romana, in un simulacro di cera. Secondo la leggenda, la santa chiese di essere mandata a proteggere la città."
+ },
+ {
+  "town": "Chiari",
+  "title": "Lo statuto del 1416",
+  "hint": "Questa biblioteca custodisce l'unica copia di un documento antico.",
+  "osm": "Biblioteca Morcelliana, Chiari",
+  "lat": 45.5365,
+  "lng": 9.9295,
+  "text": "La Biblioteca Morcelliana fu fondata nel 1817 da Stefano Morcelli. Custodisce l'unica copia rimasta degli statuti di Chiari del 1416, ricopiati nel 1590 dal notaio Lodovico Zola, e circa 40.000 volumi."
+ },
+ {
+  "town": "Chiari",
+  "title": "Duemila stampe",
+  "hint": "Una pinacoteca nata dalla passione di un avvocato.",
+  "osm": "Pinacoteca Repossi, Chiari",
+  "lat": 45.5367,
+  "lng": 9.9293,
+  "text": "La Pinacoteca Repossi fu fondata nel 1854 da un avvocato di Chiari. Conserva un San Giacomo Maggiore di Giuseppe Vermiglio e circa 2.000 stampe di incisori italiani e stranieri."
+ },
+ {
+  "town": "Chiari",
+  "title": "Otto chilometri di siepi",
+  "hint": "Nel parco di questa villa le siepi messe in fila farebbero otto chilometri.",
+  "osm": "Villa Mazzotti, Chiari",
+  "lat": 45.532,
+  "lng": 9.935,
+  "text": "Villa Mazzotti fu costruita tra il 1911 e il 1916 in stile neorinascimentale per il conte Lodovico Mazzotti. Lo scalone è illuminato da una trifora Liberty. Il parco misura 87.000 metri quadrati e ha circa otto chilometri di siepi."
+ },
+ {
+  "town": "Ghedi",
+  "title": "Il crocifisso conteso",
+  "hint": "Chi ha scolpito questo crocifisso? Gli esperti non sono d'accordo.",
+  "osm": "Chiesa parrocchiale di Santa Maria Assunta, Ghedi",
+  "lat": 45.402,
+  "lng": 10.278,
+  "text": "Il campanile della parrocchiale di Santa Maria Assunta è quello della pieve romanica del Trecento. Sul crocifisso di legno gli esperti discutono ancora: è di Stefano Lamberti o di Maffeo Olivieri?"
+ },
+ {
+  "town": "Ghedi",
+  "title": "Caravaggio a Ghedi",
+  "hint": "Questa chiesa ricorda un'apparizione avvenuta in un altro paese.",
+  "osm": "Santa Maria del Fonte, Ghedi",
+  "lat": 45.405,
+  "lng": 10.28,
+  "text": "La chiesa di Santa Maria del Fonte fu costruita dal 1759 in onore dell'apparizione della Madonna a Caravaggio. Lo storico Angelo Bonini pensa che sia stata un ringraziamento per la fine di un'epidemia di bovini e cavalli, ma non si sa chi l'abbia voluta."
+ },
+ {
+  "town": "Ghedi",
+  "title": "Il santuario della peste",
+  "hint": "Qui c'era una fossa comune. Una lapide lo ricorda.",
+  "osm": "Santuario di San Rocco, Ghedi",
+  "lat": 45.399,
+  "lng": 10.275,
+  "text": "Il Santuario di San Rocco fu cominciato nel 1630 in ricordo delle vittime della peste: una lapide in facciata dice che qui c'era una fossa comune. In sagrestia ci sono ex voto che ringraziano i morti per le grazie ricevute."
+ },
+ {
+  "town": "Ghedi",
+  "title": "Gli affreschi venduti prima del crollo",
+  "hint": "Questo palazzo aveva affreschi del Romanino. Dove sono finiti?",
+  "osm": "Palazzo Orsini, Ghedi",
+  "lat": 45.4025,
+  "lng": 10.2785,
+  "text": "Palazzo Orsini fu costruito all'inizio del Cinquecento per il conte Niccolò Orsini. I suoi affreschi del Romanino e del Fogolino furono staccati e venduti ai musei prima che il palazzo crollasse. Dal 2014 in un'ala c'è un asilo nido."
+ },
+ {
+  "town": "Ghedi",
+  "title": "Il convento diventato cascina",
+  "hint": "Qui i frati vendevano indulgenze. Poi arrivarono le mucche.",
+  "osm": "Santa Maria, Ghedi",
+  "lat": 45.4,
+  "lng": 10.27,
+  "text": "Santa Maria nacque nel 1465 come convento francescano e dopo le soppressioni napoleoniche diventò una cascina. Dalla metà del Settecento ospitava la confraternita del Perdono d'Assisi, che si occupava della vendita delle indulgenze."
+ },
+ {
+  "town": "Lonato del Garda",
+  "title": "Il museo degli uccelli nella rocca",
+  "hint": "Dentro questo castello medievale c'è un museo un po' insolito.",
+  "wiki": "Rocca di Lonato",
+  "search": "Rocca di Lonato",
+  "osm": "Rocca di Lonato del Garda",
+  "lat": 45.459,
+  "lng": 10.485,
+  "text": "Nella Rocca medievale di Lonato c'è il Museo civico ornitologico «Gustavo Carlotto», gestito dalla Fondazione Ugo Da Como. Dall'alto si gode una vista ampia sul basso Garda."
+ },
+ {
+  "town": "Lonato del Garda",
+  "title": "La casa dei 52.000 libri",
+  "hint": "Accanto alla rocca, una casa piena di libri e maioliche.",
+  "osm": "Casa del Podestà, Lonato del Garda",
+  "lat": 45.4595,
+  "lng": 10.4845,
+  "text": "Accanto alla Rocca c'è la Casa del Podestà, ricostruzione di una dimora nobile del Quattrocento, con affreschi, soffitti a cassettoni, quadri, peltri, maioliche e una biblioteca con oltre 52.000 documenti."
+ },
+ {
+  "town": "Lonato del Garda",
+  "title": "La cupola di 60 metri",
+  "hint": "Questa cupola si vede da lontano: è alta 60 metri.",
+  "osm": "Basilica di San Giovanni Battista, Lonato del Garda",
+  "lat": 45.461,
+  "lng": 10.484,
+  "text": "La Basilica di San Giovanni Battista fu cominciata nel 1738 su progetto di Paolo Soratini. La cupola ha un diametro interno di 20 metri e arriva a 60 metri d'altezza. Ci sono 13 altari, e nel settembre 1980 Giovanni Paolo II l'ha elevata a basilica minore."
+ },
+ {
+  "town": "Lonato del Garda",
+  "title": "L'abbazia sul lago",
+  "hint": "Un monastero benedettino affacciato sul Garda da più di mille anni.",
+  "wiki": "Abbazia di Maguzzano",
+  "search": "Abbazia di Maguzzano",
+  "osm": "Abbazia di Maguzzano, Lonato del Garda",
+  "lat": 45.48,
+  "lng": 10.515,
+  "text": "L'Abbazia di Maguzzano, monastero benedettino affacciato sul lago di Garda, è citata già nelle cronache del X secolo e fu ricostruita nel Quattrocento. Si dice che ci abbia vissuto il frate poeta Teofilo Folengo; i monaci trappisti hanno riportato alla luce le decorazioni dipinte del primo Cinquecento."
+ },
+ {
+  "town": "Lonato del Garda",
+  "title": "Le palafitte di Polada",
+  "hint": "Qui viveva gente su case di legno sull'acqua, quasi 4.000 anni fa.",
+  "osm": "Polada, Lonato del Garda",
+  "lat": 45.45,
+  "lng": 10.51,
+  "text": "A Polada sono stati trovati i resti di un villaggio di palafitte dell'età del Bronzo, insieme a quelli di Lavagnone e Palude Lunga. Il sito ha dato il nome alla «cultura di Polada», diffusa in gran parte dell'Italia settentrionale intorno al 1800 avanti Cristo."
+ },
+ {
+  "town": "Gussago",
+  "title": "La Santissima sul colle",
+  "hint": "Un convento trasformato da un pittore di miniature.",
+  "osm": "La Santissima, Gussago",
+  "lat": 45.6,
+  "lng": 10.16,
+  "text": "La Santissima, sul colle Barbisone, era un convento domenicano. Nel 1823 la comprò il miniaturista Giovanbattista Gigola, che fece aggiungere da Rodolfo Vantini finestre gotiche e merli. Gigola lasciò tutto in eredità all'Ateneo di Brescia."
+ },
+ {
+  "town": "Gussago",
+  "title": "La pace del 1315",
+  "hint": "In questa pieve guelfi e ghibellini fecero pace.",
+  "osm": "Pieve di Santa Maria, Gussago",
+  "lat": 45.595,
+  "lng": 10.155,
+  "text": "Nella Pieve di Santa Maria, nel 1315, guelfi e ghibellini firmarono una pace che permise agli esuli di tornare a Brescia. Il pulpito, usato come ambone, era in origine parte di un sarcofago di stile barbarico, forse longobardo."
+ },
+ {
+  "town": "Gussago",
+  "title": "La capitale dello spiedo",
+  "hint": "Mulini antichi e un piatto che ha dato un soprannome al paese.",
+  "osm": "Navezze, Gussago",
+  "lat": 45.59,
+  "lng": 10.165,
+  "text": "Navezze è conosciuta per i suoi mulini, con tracce del X secolo negli archivi del Museo di Santa Giulia a Brescia. Negli anni del boom economico la frazione contribuì a dare a Gussago il soprannome di «Capitale dello Spiedo»."
+ },
+ {
+  "town": "Gussago",
+  "title": "Un edificio romano scoperto nel 1720",
+  "hint": "Ristrutturando una casa trovarono qualcosa di molto antico.",
+  "osm": "Piazza, Gussago",
+  "lat": 45.594,
+  "lng": 10.158,
+  "text": "Nella frazione Piazza, un tempo chiamata Castelli, nel 1720 durante la ristrutturazione di una casa privata fu scoperto un antico edificio romano."
+ },
+ {
+  "town": "Darfo Boario Terme",
+  "title": "La cupola bianca delle terme",
+  "hint": "Il simbolo delle terme è una cupola di marmo bianco.",
+  "osm": "Terme di Boario",
+  "lat": 45.89,
+  "lng": 10.19,
+  "text": "Il primo edificio termale di Boario, con la cupola Liberty disegnata da Amerigo Marazzi, fu costruito nel 1906: la cupola in marmo bianco è il simbolo delle terme. La fonte «Fausta» fu scoperta nel 1951-52 e prende il nome da chi la trovò, Fausto Cardio."
+ },
+ {
+  "town": "Darfo Boario Terme",
+  "title": "Le reti incise nella roccia",
+  "hint": "Sulle rocce di Luine qualcuno ha inciso reti da pesca. Perché?",
+  "wiki": "Parco delle incisioni rupestri di Luine",
+  "search": "Parco Luine incisioni rupestri",
+  "osm": "Parco comunale di Luine, Darfo Boario Terme",
+  "lat": 45.895,
+  "lng": 10.195,
+  "text": "Il parco comunale delle incisioni rupestri di Luine è nato nel 1980. Tra le incisioni ci sono attrezzi da pesca come reti e gabbie: sono considerati un indizio che il fondovalle un tempo fosse un lago. Nel 1969 a Luine sono stati trovati oggetti di terracotta dell'età del Bronzo."
+ },
+ {
+  "town": "Darfo Boario Terme",
+  "title": "Il disastro del Gleno",
+  "hint": "Il 1° dicembre 1923 una diga crollò e l'acqua arrivò fin qui.",
+  "osm": "Darfo, Darfo Boario Terme",
+  "lat": 45.881,
+  "lng": 10.184,
+  "text": "Il 1° dicembre 1923 crollò la diga del Gleno, in Val di Scalve. L'onda d'acqua devastò Darfo e uccise 150 persone. Il re Vittorio Emanuele III venne a visitare il paese distrutto."
+ },
+ {
+  "town": "Darfo Boario Terme",
+  "title": "Il porto sul fiume",
+  "hint": "Qui c'era un porto fluviale con il suo castello.",
+  "osm": "Montecchio, Darfo Boario Terme",
+  "lat": 45.865,
+  "lng": 10.175,
+  "text": "Montecchio era un porto fluviale medievale, con un castello. Fu danneggiato pesantemente da una serie di piene nel Cinquecento."
+ },
+ {
+  "town": "Darfo Boario Terme",
+  "title": "Musica nel Conventone",
+  "hint": "In questo ex convento c'è un organo antico e studiano i musicisti.",
+  "osm": "Conventone, Darfo Boario Terme",
+  "lat": 45.8815,
+  "lng": 10.1845,
+  "text": "Il Conventone, ex convento della Visitazione di Maria, dal 1978 ospita una sede del Conservatorio «Luca Marenzio» di Brescia. Nella chiesa annessa c'è un organo antico attribuito a Costanzo Antegnati."
+ },
+ {
+  "town": "Concesio",
+  "title": "La casa natale di Paolo VI",
+  "hint": "In questa casa nacque un papa, oggi santo.",
+  "osm": "Casa natale di Paolo VI, Concesio",
+  "lat": 45.605,
+  "lng": 10.217,
+  "text": "Il 26 settembre 1897 in questa casa nacque Giovanni Battista Montini, che diventò papa Paolo VI. La casa era dei conti Lodron e la famiglia Montini la comprò nel 1863. Oggi è un museo, e a Concesio c'è anche la Collezione Paolo VI di arte sacra contemporanea."
+ },
+ {
+  "town": "Concesio",
+  "title": "La pieve di Sant'Antonino",
+  "hint": "Una pieve del IX secolo costruita sui resti di un luogo di culto più antico.",
+  "osm": "Pieve di Sant'Antonino, Concesio",
+  "lat": 45.604,
+  "lng": 10.216,
+  "text": "La pieve di Sant'Antonino fu fondata nel IX secolo sui resti di un luogo di culto più antico e consacrata nel 1540. Sull'altare maggiore c'è il Martirio di Sant'Antonino di Giovan Gioseffo Dal Sole."
+ },
+ {
+  "town": "Concesio",
+  "title": "Palma il Giovane a Concesio",
+  "hint": "In questa piccola chiesa ha lavorato un grande pittore veneziano.",
+  "osm": "Chiesa di San Rocco, Concesio",
+  "lat": 45.606,
+  "lng": 10.218,
+  "text": "L'oratorio di San Rocco fu costruito prima del 1500 come luogo di preghiera della famiglia Lodron. Ha affreschi di Jacopo Palma il Giovane, e la sua tela con la Madonna e santi è ancora in chiesa."
+ },
+ {
+  "town": "Concesio",
+  "title": "Le colonne finte di Costorio",
+  "hint": "Le colonne di questa facciata sono solo decorazione.",
+  "osm": "Chiesa di Santa Giulia, Costorio, Concesio",
+  "lat": 45.6,
+  "lng": 10.22,
+  "text": "La chiesa di Santa Giulia a Costorio nacque nel Cinquecento come piccola cappella. La chiesa attuale fu inaugurata il 3 settembre 1912, e la facciata ha quattro finte colonne decorative."
+ },
+ {
+  "town": "Ospitaletto",
+  "title": "Il paese nato da un ospizio",
+  "hint": "Il nome del paese viene da un ricovero per viaggiatori.",
+  "osm": "Chiesa di San Giacomo, Ospitaletto",
+  "lat": 45.553,
+  "lng": 10.075,
+  "text": "La parrocchiale di San Giacomo fu costruita dal 1687 e consacrata nel 1720. È dedicata a San Giacomo come l'antico ospizio per i viaggiatori da cui viene il nome del paese. Dentro c'è una Pietà del Romanino inserita in una tela più grande di Antonio Gandino."
+ },
+ {
+  "town": "Ospitaletto",
+  "title": "La Badia dei monaci",
+  "hint": "Questa grande cascina era di un monastero.",
+  "osm": "Via Domenico Ghidoni, Ospitaletto",
+  "lat": 45.554,
+  "lng": 10.07,
+  "text": "La Badia, all'estremità ovest di via Domenico Ghidoni, era una delle principali proprietà del monastero vallombrosano. Una lapide del 1603 ricorda il restauro voluto da Giovanni Emo, poi vescovo di Bergamo."
+ },
+ {
+  "town": "Ospitaletto",
+  "title": "Il paese prima del paese",
+  "hint": "Qui c'era l'abitato più antico, citato nell'807.",
+  "osm": "Santa Maria di Lovernato, Ospitaletto",
+  "lat": 45.545,
+  "lng": 10.075,
+  "text": "Lovernato, a sud, era l'insediamento più antico, superato poi dall'attuale centro. È citato nell'807, e sul muro della chiesa quattrocentesca di Santa Maria di Lovernato è conservata un'iscrizione di epoca romana."
+ },
+ {
+  "town": "Ospitaletto",
+  "title": "La stazione arrivata in ritardo",
+  "hint": "Il treno passava già da tre anni, ma la stazione non c'era.",
+  "osm": "Stazione di Ospitaletto-Travagliato",
+  "lat": 45.542,
+  "lng": 10.078,
+  "text": "La ferrovia arrivò qui nel 1854, ma la stazione di Ospitaletto-Travagliato fu aperta solo tre anni dopo, nel 1857."
+ },
+ {
+  "town": "Ospitaletto",
+  "title": "Lo scultore di casa",
+  "hint": "In questa villa ci sono le opere di uno scultore nato qui.",
+  "osm": "Villa Presti, Ospitaletto",
+  "lat": 45.5535,
+  "lng": 10.0755,
+  "text": "Nell'ex Villa Presti dal 2023 c'è il Museo Domenico Ghidoni, dedicato allo scultore nato a Ospitaletto. Sue sono anche opere a Brescia, come il monumento a Tito Speri."
+ },
+ {
+  "town": "Leno",
+  "title": "I leoni del re Desiderio",
+  "hint": "Un re sognò un serpente che lo guidava fino a tre leoni.",
+  "wiki": "Abbazia di Leno",
+  "search": "Abbazia di Leno",
+  "osm": "Villa Badia, Leno",
+  "lat": 45.37,
+  "lng": 10.215,
+  "text": "Nel 758 il re longobardo Desiderio fondò qui l'abbazia di San Benedetto, chiamata «ad Leones». La leggenda dice che sognò un serpente che lo guidò fino a tre leoni d'oro, o di marmo, poi trovati scavando. I monaci arrivarono da Montecassino e l'abbazia diventò potentissima.\n\nVenezia la soppresse nel 1783 e gli edifici furono demoliti. Oggi l'area è il parco di Villa Badia, dove gli scavi del 2003–2004 e del 2010 hanno ritrovato muri della chiesa, la cripta e una tomba dipinta."
+ },
+ {
+  "town": "Leno",
+  "title": "I leoni sulla porta",
+  "hint": "Davanti a questa chiesa ci sono due leoni arrivati da un'abbazia scomparsa.",
+  "osm": "Chiesa dei Santi Pietro e Paolo, Leno",
+  "lat": 45.368,
+  "lng": 10.216,
+  "text": "La parrocchiale dei Santi Pietro e Paolo, del Settecento, è stata progettata da Antonio Marchetti e costruita in parte con le pietre dell'abbazia demolita. All'ingresso ci sono due dei tre leoni del portale dell'abbazia; il terzo è in municipio."
+ },
+ {
+  "town": "Leno",
+  "title": "Il Moretto di Porzano",
+  "hint": "In questa chiesa di frazione c'è una pala di un grande pittore bresciano.",
+  "osm": "Chiesa di San Martino, Porzano, Leno",
+  "lat": 45.38,
+  "lng": 10.2,
+  "text": "Nella chiesa di San Martino a Porzano, del Settecento, c'è la pala «Madonna col Bambino in gloria con i santi Martino e Caterina» del Moretto, dipinta intorno al 1530."
+ },
+ {
+  "town": "Leno",
+  "title": "Il parco dell'ippodromo",
+  "hint": "Dove correvano i cavalli oggi c'è un festival rock.",
+  "osm": "Parco Gino Vaia, Leno",
+  "lat": 45.365,
+  "lng": 10.22,
+  "text": "Il parco comunale «Gino Vaia» è nell'area dell'ex ippodromo e ogni 1° maggio ospita il Primo Maggio Rock Festival. Dal 1914 al 1936 Leno era servita anche dalla tranvia Brescia–Ostiano."
+ },
+ {
+  "town": "Travagliato",
+  "title": "Il cavallo di bronzo",
+  "hint": "Il simbolo del paese è un animale: lo trovi in piazza.",
+  "osm": "Piazza Libertà, Travagliato",
+  "lat": 45.523,
+  "lng": 10.08,
+  "text": "In Piazza Libertà c'è un cavallo di bronzo, simbolo di Travagliato, dove prima c'era una fontana. Il campanile, alto 36 metri, fu danneggiato in guerra: dopo il restauro il vecchio orologio è finito al Museo delle Quattro Torri ed è stata aggiunta una meridiana."
+ },
+ {
+  "town": "Travagliato",
+  "title": "La firma nascosta nel tetto",
+  "hint": "Il nome dell'architetto di questa chiesa è saltato fuori solo di recente.",
+  "osm": "Chiesa dei Santi Pietro e Paolo, Travagliato",
+  "lat": 45.5228,
+  "lng": 10.0798,
+  "text": "Il nome dell'architetto della chiesa dei Santi Pietro e Paolo, Antonio Corbellini, è stato scoperto solo durante un recente restauro del tetto: era inciso tra la volta e il tetto, accanto alla data 1713."
+ },
+ {
+  "town": "Travagliato",
+  "title": "Santa Maria in Bertachiara",
+  "hint": "Questa chiesa fino al 1568 aveva un altro nome.",
+  "osm": "Santa Maria dei Campi, Travagliato",
+  "lat": 45.52,
+  "lng": 10.085,
+  "text": "La chiesa di Santa Maria dei Campi, chiamata Santa Maria in Bertachiara fino al 1568, ha affreschi di Vincenzo Civerchio, tra cui un'Assunzione del 1517. Ogni 15 agosto si celebra la festa dell'Assunta."
+ },
+ {
+  "town": "Travagliato",
+  "title": "L'ospedale dei soldati di Solferino",
+  "hint": "Nel 1859 qui furono curati soldati feriti in una grande battaglia.",
+  "osm": "Ex ospedale Vantiniano, Travagliato",
+  "lat": 45.524,
+  "lng": 10.081,
+  "text": "L'ex ospedale fu progettato da Rodolfo Vantini e ci vollero 13 anni per costruirlo. Nel 1859 il medico francese Alphons Bertérand ci fece curare i soldati francesi feriti nelle battaglie di Solferino e San Martino."
+ },
+ {
+  "town": "Travagliato",
+  "title": "La sala garibaldina",
+  "hint": "In questo palazzo c'è un soffitto dedicato a Garibaldi.",
+  "osm": "Palazzo Verduro, Travagliato",
+  "lat": 45.5232,
+  "lng": 10.0802,
+  "text": "In Palazzo Verduro una sala è chiamata «garibaldina»: un reduce dei Mille, il dottor Francesco Ziliani, ne fece decorare il soffitto con simboli militari e i nomi delle tappe vittoriose di Garibaldi. Durante il restauro sulla facciata sud è spuntata la data 1648."
+ },
+ {
+  "town": "Manerbio",
+  "title": "Il campanile di «Pizzafuoco»",
+  "hint": "Questo campanile l'hanno pagato tutti gli abitanti insieme.",
+  "osm": "Chiesa di San Lorenzo Martire, Manerbio",
+  "lat": 45.355,
+  "lng": 10.139,
+  "text": "Il campanile della chiesa di San Lorenzo Martire, alto circa 40 metri, fu costruito nel Seicento dall'architetto Giuseppe Dattaro, detto «Pizzafuoco». Lo pagarono insieme tutti i cittadini e i nobili del paese."
+ },
+ {
+  "town": "Manerbio",
+  "title": "La chiesa contro l'epidemia",
+  "hint": "Questa chiesa fu un voto per fermare una malattia.",
+  "osm": "Chiesa della Disciplina, Manerbio",
+  "lat": 45.3545,
+  "lng": 10.1385,
+  "text": "La chiesa della Disciplina fu costruita dagli abitanti come voto per far finire un'epidemia. Nel Seicento ottenne delle indulgenze da papa Urbano VII."
+ },
+ {
+  "town": "Manerbio",
+  "title": "La torretta rossa dell'Unità",
+  "hint": "Questa piccola torre celebra un evento del 1870.",
+  "osm": "Via Diaz, Manerbio",
+  "lat": 45.356,
+  "lng": 10.14,
+  "text": "La Torretta Rossa di via Diaz, accanto a Palazzo Ghirardi, fu costruita nel 1871 per celebrare l'Unità d'Italia e la presa di Roma."
+ },
+ {
+  "town": "Manerbio",
+  "title": "Il ponte dei tedeschi",
+  "hint": "Una leggenda racconta di una bomba finita nel posto sbagliato.",
+  "osm": "Ponte sul Mella, Manerbio",
+  "lat": 45.354,
+  "lng": 10.145,
+  "text": "Il ponte sul Mella, che i manerbiesi chiamano anche «pont' dei tedèsch'», ha una leggenda: nella Seconda guerra mondiale i tedeschi provarono a bombardarlo, lo mancarono di decine di metri e distrussero invece lo stadio Marzotto."
+ },
+ {
+  "town": "Manerbio",
+  "title": "Il giardino aperto una volta l'anno",
+  "hint": "Il parco di questa villa si apre solo per una festa.",
+  "osm": "Villa Di Rosa, Manerbio",
+  "lat": 45.355,
+  "lng": 10.15,
+  "text": "Villa Di Rosa, palazzo del Settecento a est del paese, ha giardini che vengono aperti al pubblico una sola volta l'anno, durante la festa di San Faustino."
+ },
+ {
+  "town": "Rezzato",
+  "title": "Il paese degli scalpellini",
+  "hint": "Qui si è lavorato il marmo di un monumento famosissimo di Roma.",
+  "osm": "Scuola Vantiniana, Rezzato",
+  "lat": 45.513,
+  "lng": 10.328,
+  "text": "Dal Cinquecento Rezzato è il «paese degli scalpellini», vicino alle cave del marmo di Botticino. Qui è stato lavorato il marmo dell'Altare della Patria a Roma. Il 15 dicembre 1839 Rodolfo Vantini fondò una scuola per tagliapietre: la sua sede, progettata da lui, fu aperta nel 1858."
+ },
+ {
+  "town": "Rezzato",
+  "title": "La rotonda nascosta",
+  "hint": "Dentro questo santuario c'è una chiesa rotonda di mille anni fa che da fuori non si vede.",
+  "osm": "Santuario della Madonna di Valverde, Rezzato",
+  "lat": 45.515,
+  "lng": 10.315,
+  "text": "Secondo la tradizione, nell'estate del 1399 la Madonna apparve a Valverde. La rotonda romanica, costruita intorno all'anno Mille, ha pianta circolare come il Santo Sepolcro di Gerusalemme. Nel Seicento fu inglobata nel santuario e oggi da fuori non si vede più."
+ },
+ {
+  "town": "Rezzato",
+  "title": "Il parco di Bacco",
+  "hint": "Il parco pubblico più grande del paese nasce da un giardino privato.",
+  "osm": "Villa Fenaroli, Rezzato",
+  "lat": 45.512,
+  "lng": 10.33,
+  "text": "Il Parco di Bacco nasce dal giardino privato settecentesco di Villa Fenaroli, dove i conti costruirono un tempietto. Con oltre 30.000 metri quadrati è il parco pubblico più grande di Rezzato, e ci si sale con una scalinata disegnata dall'architetto Marchetti nel 1700."
+ },
+ {
+  "town": "Rezzato",
+  "title": "Il cimitero di Vantini",
+  "hint": "Anche questo cimitero porta la firma di un grande architetto.",
+  "osm": "Cimitero, Rezzato",
+  "lat": 45.51,
+  "lng": 10.325,
+  "text": "Il cimitero di Rezzato fu progettato da Rodolfo Vantini, l'architetto del cimitero monumentale di Brescia. Compare nel catasto austriaco del 1853 ed è stato ampliato più volte, nel 1912, nel 1937 e negli anni Settanta e Novanta."
+ },
+ {
+  "town": "Salò",
+  "title": "Il Duomo mai finito",
+  "hint": "Guarda la facciata: questo Duomo non è mai stato completato.",
+  "osm": "Duomo di Salò",
+  "lat": 45.6075,
+  "lng": 10.5205,
+  "text": "Il Duomo di Santa Maria Annunziata fu progettato da Filippo delle Vacche in stile tardogotico e non è mai stato completato del tutto: si vede dalla facciata. Dentro ci sono tele del Romanino, del Moretto, di Zenone Veronese e di Paolo Veneziano."
+ },
+ {
+  "town": "Salò",
+  "title": "La Magnifica Patria",
+  "hint": "In questo palazzo si riuniva il governo di tutta la Riviera.",
+  "osm": "Palazzo della Magnifica Patria, Salò",
+  "lat": 45.607,
+  "lng": 10.5215,
+  "text": "Il Palazzo del Podestà era la sede del consiglio della Magnifica Patria, che governava la Riviera del Garda. Oggi è il municipio. Una parte fu ricostruita dopo il terremoto del 1901."
+ },
+ {
+  "town": "Salò",
+  "title": "Il lungolago nato dal terremoto",
+  "hint": "Questa passeggiata esiste grazie a una catastrofe.",
+  "osm": "Lungolago Zanardelli, Salò",
+  "lat": 45.6065,
+  "lng": 10.5225,
+  "text": "Il lungolago di Salò fu costruito con i grandi lavori pubblici che seguirono il terremoto del 1901, che cambiò il volto della città."
+ },
+ {
+  "town": "Salò",
+  "title": "Il ministero nell'albergo",
+  "hint": "Questo hotel è stato la sede di un ministero durante la guerra.",
+  "osm": "Hotel Laurin, Salò",
+  "lat": 45.604,
+  "lng": 10.528,
+  "text": "Villa Simonini, oggi Hotel Laurin, fu la sede ufficiale del Ministero degli Esteri della Repubblica Sociale Italiana, che dal nome della città fu chiamata «Repubblica di Salò». Mussolini ne era formalmente a capo, ma il suo quartier generale era a Palazzo Feltrinelli, a Gargnano."
+ },
+ {
+  "town": "Salò",
+  "title": "Tre musei in un palazzo",
+  "hint": "Questo palazzo contiene tre musei diversi.",
+  "osm": "MuSa, Palazzo Coen, Salò",
+  "lat": 45.6078,
+  "lng": 10.5195,
+  "text": "Palazzo Coen ospita il MuSa, museo della città, il Museo del Nastro Azzurro e il museo archeologico A. M. Mucchi. Salò è anche la città di Gasparo da Salò, considerato tra gli inventori del violino moderno."
+ },
+ {
+  "town": "Gardone Val Trompia",
+  "title": "La valle delle armi",
+  "hint": "In questa villa c'è un museo dedicato a un'arte antica della valle.",
+  "osm": "Villa Mutti Bernardelli, Gardone Val Trompia",
+  "lat": 45.69,
+  "lng": 10.186,
+  "text": "In Villa Mutti Bernardelli c'è il Museo delle Armi e della tradizione armiera, con visite guidate e laboratori. La villa ospita anche la biblioteca comunale. La Val Trompia è conosciuta nel mondo per la produzione di armi."
+ },
+ {
+  "town": "Gardone Val Trompia",
+  "title": "La bottega Beretta",
+  "hint": "In un'officina del 1880 si racconta la storia di un marchio famoso.",
+  "osm": "Beretta, Gardone Val Trompia",
+  "lat": 45.689,
+  "lng": 10.185,
+  "text": "Nella vecchia bottega armiera Beretta, del 1880, c'è la collezione privata delle armi Beretta, con la produzione e gli esemplari storici dell'azienda."
+ },
+ {
+  "town": "Gardone Val Trompia",
+  "title": "La pieve madre di Inzino",
+  "hint": "Gardone dovette chiedere il permesso al Papa per staccarsi da questa chiesa.",
+  "osm": "Chiesa di San Giorgio, Inzino, Gardone Val Trompia",
+  "lat": 45.695,
+  "lng": 10.19,
+  "text": "La chiesa di San Giorgio a Inzino era la pieve madre della zona. Il 25 gennaio 1543 il cardinale Antonio Pucci, per conto di papa Paolo III, concesse a Gardone di separarsene."
+ },
+ {
+  "town": "Gardone Val Trompia",
+  "title": "Il marinaio in montagna",
+  "hint": "In una valle di montagna c'è un monumento ai marinai.",
+  "osm": "Portici Beretta, Gardone Val Trompia",
+  "lat": 45.6895,
+  "lng": 10.1855,
+  "text": "Sotto i Portici Beretta c'è il Monumento al marinaio, inaugurato il 12 giugno 1983: una scultura in bronzo di Francesco Medici su una base di porfido con i nomi dei marinai di Gardone morti nell'ultima guerra, da cui sporgono un cannone e un'ancora."
+ },
+ {
+  "town": "Gardone Val Trompia",
+  "title": "Zanardelli con le catene di Villa Carcina",
+  "hint": "Anche le catene di questo monumento hanno una storia locale.",
+  "osm": "Monumento a Giuseppe Zanardelli, Gardone Val Trompia",
+  "lat": 45.6905,
+  "lng": 10.1865,
+  "text": "La statua in bronzo dello statista Giuseppe Zanardelli è di Salvatore Buemi. Le colonne di metallo e le catene sono state fornite dalla ditta Glisenti di Villa Carcina. Una lapide dice: «A Giuseppe Zanardelli la Valle Trompia 1911»."
+ },
+ {
+  "town": "Orzinuovi",
+  "title": "La cittadella a cinque lati",
+  "hint": "Questa rocca era parte di una fortezza pentagonale.",
+  "osm": "Rocca San Giorgio, Orzinuovi",
+  "lat": 45.403,
+  "lng": 9.922,
+  "text": "La Rocca San Giorgio è ciò che resta di una cittadella militare pentagonale voluta dalla Repubblica di Venezia. Restaurata nel 1995, nell'ala superiore ospita la pinacoteca cittadina."
+ },
+ {
+  "town": "Orzinuovi",
+  "title": "La porta diventata mastio",
+  "hint": "Questa era la porta principale del borgo. Poi diventò il cuore della rocca.",
+  "osm": "Porta Brescia, Orzinuovi",
+  "lat": 45.4045,
+  "lng": 9.924,
+  "text": "La porta-torre verso Brescia era già nei primi anni del Duecento l'ingresso principale del borgo. In seguito diventò il mastio della nuova rocca."
+ },
+ {
+  "town": "Orzinuovi",
+  "title": "Il tram a vapore in piazza",
+  "hint": "Da questa piazza passava un tram a vapore.",
+  "osm": "Piazza Vittorio Emanuele II, Orzinuovi",
+  "lat": 45.404,
+  "lng": 9.923,
+  "text": "Dal 1881 in Piazza Vittorio Emanuele II passava la tranvia a vapore che arrivava da Brescia attraversando il centro. Fu soppressa nel 1950 e sostituita da una linea di autobus."
+ },
+ {
+  "town": "Orzinuovi",
+  "title": "Una chiesa di cinque secoli",
+  "hint": "Per costruire questa chiesa ci sono voluti secoli.",
+  "osm": "Chiesa di Santa Maria Assunta, Orzinuovi",
+  "lat": 45.4038,
+  "lng": 9.9228,
+  "text": "La parrocchiale di Santa Maria Assunta è stata costruita tra il XIV e il XIX secolo ed è dedicata anche a San Bartolomeo e San Giorgio. Orzinuovi nacque come borgo nuovo fortificato dai bresciani dopo le incursioni dei soncinesi."
+ },
+ {
+  "town": "Botticino",
+  "title": "Il marmo della Statua della Libertà",
+  "hint": "Il marmo di queste cave è arrivato fino a Roma e a New York.",
+  "osm": "Museo del marmo, Botticino",
+  "lat": 45.542,
+  "lng": 10.317,
+  "text": "Il marmo di Botticino, color beige, è stato usato per il Vittoriano a Roma e per la base della Statua della Libertà a New York. Giuseppe Zanardelli volle che il marmo dell'Altare della Patria venisse solo da Botticino. Il Museo del marmo è aperto dal 1996."
+ },
+ {
+  "town": "Botticino",
+  "title": "La visita di Benedetto XVI",
+  "hint": "Un papa è venuto qui a pregare sulla tomba di un santo.",
+  "osm": "Chiesa parrocchiale, Botticino Sera",
+  "lat": 45.543,
+  "lng": 10.318,
+  "text": "La parrocchiale di Botticino Sera fu cominciata nel 1699 e nel maggio 2009 è diventata basilica minore. L'8 novembre 2009 papa Benedetto XVI è venuto a pregare sulla tomba di Sant'Arcangelo Tadini."
+ },
+ {
+  "town": "Botticino",
+  "title": "La chiesa della scuola di restauro",
+  "hint": "Questa chiesa sul colle fa da aula magna a una scuola.",
+  "osm": "Chiesa di San Gallo, Botticino",
+  "lat": 45.545,
+  "lng": 10.31,
+  "text": "La chiesa di San Gallo, sull'omonimo colle accanto all'ex monastero, oggi scuola di restauro, ne è l'aula magna. Fu chiusa nel 2000 per problemi strutturali e riaperta nel dicembre 2006. Si visita solo in occasione di eventi."
+ },
+ {
+  "town": "Botticino",
+  "title": "La chiesa più antica di Valverde",
+  "hint": "Questa chiesa è citata in un documento imperiale del 1009.",
+  "osm": "Chiesa parrocchiale, Botticino Mattina",
+  "lat": 45.54,
+  "lng": 10.322,
+  "text": "La parrocchiale di Botticino Mattina è considerata l'edificio sacro più antico della zona di Valverde: probabilmente dell'VIII secolo, è citata in un diploma imperiale del 1009. Da una sua cappella viene il «Crocifisso di Botticino», oggi al Museo diocesano di Brescia."
+ },
+ {
+  "town": "Gavardo",
+  "title": "Il Buco del frate",
+  "hint": "In una grotta qui vicino hanno trovato animali dell'era glaciale.",
+  "osm": "Museo archeologico della Valle Sabbia, Gavardo",
+  "lat": 45.588,
+  "lng": 10.438,
+  "text": "Il Museo archeologico della Valle Sabbia nacque dopo che nel 1954 un gruppo di ricercatori trovò un grande deposito di fossili di animali del Quaternario nella grotta carsica chiamata «Buco del frate»."
+ },
+ {
+  "town": "Gavardo",
+  "title": "Il ponte che si salvò",
+  "hint": "Le bombe cercavano questo ponte. Colpirono il paese.",
+  "osm": "Ponte sul Chiese, Gavardo",
+  "lat": 45.5885,
+  "lng": 10.437,
+  "text": "Il 29 gennaio 1945 aerei alleati bombardarono Gavardo puntando al ponte sul Chiese. Le bombe colpirono il centro storico e uccisero 52 civili. Il ponte invece rimase intatto."
+ },
+ {
+  "town": "Gavardo",
+  "title": "La chiesa delle Orsoline",
+  "hint": "Questa chiesa ha riaperto nel 2009 dopo un terremoto.",
+  "osm": "Chiesa di Santa Maria, Gavardo",
+  "lat": 45.5875,
+  "lng": 10.439,
+  "text": "La chiesa di Santa Maria, nel convento delle Orsoline costruito nel 1600, conserva un organo, statue di legno e un crocifisso del Cinquecento. Danneggiata dal terremoto del 2004, ha riaperto il 3 maggio 2009."
+ },
+ {
+  "town": "Gavardo",
+  "title": "Il Naviglio dei monaci",
+  "hint": "Questo canale lo usavano già i monaci per far girare i mulini.",
+  "osm": "Naviglio Grande Bresciano, Gavardo",
+  "lat": 45.59,
+  "lng": 10.436,
+  "text": "Il Naviglio Grande Bresciano nasce a nord di Gavardo ed è molto antico: si dice che i monaci benedettini lo usassero per i mulini. Nel 1777 ci fu una lite su come dividere l'acqua con il fiume Chiese."
+ },
+ {
+  "town": "Gavardo",
+  "title": "L'«isolo»",
+  "hint": "D'estate tutti vengono qui: tra due corsi d'acqua fa più fresco.",
+  "osm": "Isolo, Gavardo",
+  "lat": 45.5882,
+  "lng": 10.4375,
+  "text": "In centro a Gavardo c'è l'«isolo», una piccola isola tra il Chiese e il Naviglio, con panchine e giochi per bambini. È frequentata soprattutto d'estate, perché l'acqua del fiume tiene il posto più fresco."
+ },
+ {
+  "town": "Calcinato",
+  "title": "La rocca contesa",
+  "hint": "Questo castello è passato di mano molte volte.",
+  "osm": "Castello di Calcinato",
+  "lat": 45.458,
+  "lng": 10.413,
+  "text": "Non si sa quando fu costruito il castello di Calcinato, sulla collina del centro storico. Nel 1419 lo occupò il Carmagnola per i Visconti; nel 1483 Alfonso di Calabria, durante la Guerra di Ferrara, e la primavera dopo i veneziani lo cacciarono."
+ },
+ {
+  "town": "Calcinato",
+  "title": "Due battaglie",
+  "hint": "Su queste terre si sono combattute battaglie a cinque secoli di distanza.",
+  "osm": "Calcinato",
+  "lat": 45.457,
+  "lng": 10.412,
+  "text": "Il 9 agosto 1201 i guelfi di Brescia furono sconfitti qui dai ghibellini esuli di Cremona. Il 19 aprile 1706 le truppe franco-spagnole del duca di Vendôme si scontrarono con quelle imperiali guidate dal conte danese Reventlow."
+ },
+ {
+  "town": "Calcinato",
+  "title": "La chiesa finita da Vantini",
+  "hint": "L'architetto morì prima della fine. Un altro grande nome la completò.",
+  "osm": "Chiesa parrocchiale di San Vincenzo, Calcinato",
+  "lat": 45.4585,
+  "lng": 10.4135,
+  "text": "La parrocchiale di San Vincenzo fu approvata il 24 maggio 1790. L'architetto Pietro Antonio Cetti morì nel 1814 e la completò Rodolfo Vantini tra il 1831 e il 1846. In facciata ci sono cinque statue in pietra di Botticino e dentro un Cristo Risorgente di Paolo Farinati del 1582."
+ },
+ {
+  "town": "Calcinato",
+  "title": "La sala del mappamondo",
+  "hint": "Sul soffitto del municipio c'è dipinto il mondo come lo si conosceva nel Seicento.",
+  "osm": "Municipio, Calcinato",
+  "lat": 45.4582,
+  "lng": 10.4132,
+  "text": "Nel municipio c'è la Sala del mappamondo, con un soffitto dipinto nel Seicento che mostra le terre conosciute a quel tempo. All'ingresso un'iscrizione del 1569 ricorda il passaggio degli uomini del Carmagnola. Il palazzo sorge dove c'era una filanda della seta."
+ },
+ {
+  "town": "Calcinato",
+  "title": "La chiesa di campagna dell'anno Mille",
+  "hint": "Nata come chiesetta di campagna, poi convento, poi parrocchia.",
+  "osm": "Santa Maria delle Grazie, Calcinatello, Calcinato",
+  "lat": 45.45,
+  "lng": 10.42,
+  "text": "La chiesa di Santa Maria delle Grazie a Calcinatello nacque intorno all'anno Mille come chiesa di campagna. Nel 1479 diventò la chiesa del convento dei Frati Minori e nel 1889 parrocchia. Conserva una pala di Antonio Dusi del 1759."
+ },
+ {
+  "town": "Carpenedolo",
+  "title": "Il canale di Bernabò",
+  "hint": "Sotto queste piazze scorre un canale voluto da un Visconti.",
+  "osm": "Piazza Europa, Carpenedolo",
+  "lat": 45.364,
+  "lng": 10.432,
+  "text": "La Fossa Magna fu fatta scavare da Bernabò Visconti. Nel 1750 Montichiari deviò le acque che arrivavano da Lonato, e da allora il tratto che passa in paese è alimentato solo da sorgenti. Nell'Ottocento fu coperta sotto piazza dell'Ospedale, piazza della Chiesa e piazza Europa. A sud del paese resta una ruota di mulino."
+ },
+ {
+  "town": "Carpenedolo",
+  "title": "La torre nuova di 66 metri",
+  "hint": "Questo campanile ha nove campane. In origine erano quattro.",
+  "osm": "Chiesa di San Giovanni Battista, Carpenedolo",
+  "lat": 45.3645,
+  "lng": 10.4325,
+  "text": "La Torre Nuova, campanile di San Giovanni Battista, fu costruita tra il 1726 e il 1736 su progetto di Paolo Soratini, lo stesso della cupola di Lonato. È alta 66 metri; le quattro campane originali nel 1843 diventarono nove."
+ },
+ {
+  "town": "Carpenedolo",
+  "title": "Il torrone dell'Immacolata",
+  "hint": "In questo santuario c'è un museo di ordigni bellici. E l'8 dicembre, il torrone.",
+  "osm": "Santuario di Santa Maria del Castello, Carpenedolo",
+  "lat": 45.366,
+  "lng": 10.434,
+  "text": "Il santuario barocco di Santa Maria del Castello è del Seicento, progettato da G. B. Marchetti. Nel museo annesso sono esposti ordigni della Seconda guerra mondiale, disinnescati, trovati nella zona. Dal 2005, con la festa della Madonna del Castello dell'8 dicembre, è tornata la Fiera del torrone."
+ },
+ {
+  "town": "Carpenedolo",
+  "title": "Il punto più alto",
+  "hint": "A 132 metri c'è una torre merlata con il suo fossato.",
+  "osm": "Monte Rocchetta, Carpenedolo",
+  "lat": 45.36,
+  "lng": 10.44,
+  "text": "Il Monte Rocchetta, a 132 metri, è il punto più alto del comune. C'è una torre quadrata merlata con i resti di un castello distrutto nel 1237 dal podestà di Parma e Reggio. Alla base si vedono ancora i resti del fossato, detto «redefoss»."
+ },
+ {
+  "town": "Carpenedolo",
+  "title": "Il palazzo diventato ospedale",
+  "hint": "Un uomo lasciò in eredità il suo palazzo perché diventasse un ospedale.",
+  "osm": "Palazzo Laffranchi, Carpenedolo",
+  "lat": 45.3642,
+  "lng": 10.4318,
+  "text": "Palazzo Laffranchi diventò ospedale per volontà del suo ultimo proprietario, Deodato Laffranchi, morto il 14 aprile 1635. Fu ospedale fino al 1970, poi casa di riposo; oggi ospita la biblioteca, un piccolo teatro e il Museo Ugo Adriano Graziotti, aperto nel 1999."
+ },
+ {
+  "town": "Mazzano",
+  "title": "Il mulino nello stemma",
+  "hint": "Questa frazione ha dato un mulino allo stemma del comune.",
+  "osm": "Molinetto, Mazzano",
+  "lat": 45.515,
+  "lng": 10.37,
+  "text": "Molinetto prende il nome da un antico mulino, e una ruota di mulino compare nello stemma del comune di Mazzano."
+ },
+ {
+  "town": "Mazzano",
+  "title": "Il comune che non c'è più",
+  "hint": "Fino al 1928 questo era un comune a sé.",
+  "osm": "Ciliverghe, Mazzano",
+  "lat": 45.5,
+  "lng": 10.35,
+  "text": "Ciliverghe era un comune autonomo fino al 1928, quando un regio decreto lo unì a Mazzano. Il suo simbolo, un monte a tre cime, è rimasto nello stemma. Nel parco di Ciliverghe dal 2022 si corre una gara di ciclocross."
+ },
+ {
+  "town": "Mazzano",
+  "title": "La corsa nel parco della villa",
+  "hint": "Nel parco di questa villa del Settecento si corre una gara di cross.",
+  "osm": "Villa Mazzucchelli, Mazzano",
+  "lat": 45.502,
+  "lng": 10.352,
+  "text": "Il parco di Villa Mazzucchelli, del Settecento, ospita dal 2015 la corsa campestre B.Est. Da Mazzano passava anche la ferrovia Rezzato–Vobarno, che correva lungo il Naviglio Grande dal 1897 al 1968."
+ },
+ {
+  "town": "Bagnolo Mella",
+  "title": "La Pietà nella cripta",
+  "hint": "Sotto questa basilica c'è una Pietà di legno.",
+  "osm": "Basilica della Visitazione, Bagnolo Mella",
+  "lat": 45.427,
+  "lng": 10.184,
+  "text": "La parrocchiale della Visitazione fu costruita tra il 1615 e il 1632 e il 4 gennaio 1999 Giovanni Paolo II l'ha elevata a basilica minore. Nella cripta c'è la Pietà in legno di Clemente Zamara."
+ },
+ {
+  "town": "Bagnolo Mella",
+  "title": "Il fortilizio del condottiero",
+  "hint": "Un edificio quadrato con fossato e ponte levatoio, voluto da un capitano di Venezia.",
+  "osm": "Castelvecchio, Bagnolo Mella",
+  "lat": 45.43,
+  "lng": 10.18,
+  "text": "Vicino a Castelvecchio c'è un edificio fortificato voluto nel 1560 da Camillo Avogadro, condottiero al servizio di Venezia. È quadrato, senza cortile interno, con un fossato che si può allagare e un ponte levatoio. La sala dei banchetti fu affrescata da Grazio Cossali."
+ },
+ {
+  "town": "Bagnolo Mella",
+  "title": "La galleria del 1795",
+  "hint": "Gli affreschi di questa villa hanno una data precisa.",
+  "osm": "Villa Pedrocca Bianchetti, Bagnolo Mella",
+  "lat": 45.425,
+  "lng": 10.19,
+  "text": "Villa Pedrocca Bianchetti, del Settecento, è circondata da un parco e ha un portico ad archi. Gli affreschi della galleria sono datati 1795."
+ },
+ {
+  "town": "Bagnolo Mella",
+  "title": "Il soldato di bronzo",
+  "hint": "Si dice che questo sia stato il primo monumento alla vittoria del 1918.",
+  "osm": "Piazza IV Novembre, Bagnolo Mella",
+  "lat": 45.4272,
+  "lng": 10.1842,
+  "text": "In piazza IV Novembre c'è un soldato di bronzo su una base di marmo con i nomi dei caduti del paese. Si dice che sia stato il primo monumento in Italia dedicato alla vittoria della Prima guerra mondiale, ma non ci sono fonti certe."
+ },
+ {
+  "town": "Bedizzole",
+  "title": "Il castello di vedetta",
+  "hint": "Da quassù si controllava tutta la pianura.",
+  "osm": "Piazza 25 Aprile, Bedizzole",
+  "lat": 45.511,
+  "lng": 10.422,
+  "text": "Il castello di Bedizzole fu costruito tra il IX e il X secolo in un punto da cui si controllava la pianura. Nel 1277 i bresciani lo distrussero. Oggi è un nucleo di case, a cui si arriva soprattutto da piazza 25 Aprile."
+ },
+ {
+  "town": "Bedizzole",
+  "title": "La pieve del VI secolo",
+  "hint": "Qui c'era una chiesa da cui dipendevano tanti paesi vicini.",
+  "osm": "Pontenove, Bedizzole",
+  "lat": 45.5,
+  "lng": 10.41,
+  "text": "A Pontenove c'era una pieve che le ricerche archeologiche fanno risalire al VI secolo: da lei dipendevano anche Calcinato, Carzago e Calvagese. Il nome potrebbe venire dal latino «pons ad nonam», ma non tutti sono d'accordo."
+ },
+ {
+  "town": "Bedizzole",
+  "title": "La tappa dei pellegrini romani",
+  "hint": "Nel letto del fiume si vedono resti di una stazione di un antico itinerario.",
+  "osm": "Ponte sul Chiese, Bedizzole",
+  "lat": 45.515,
+  "lng": 10.43,
+  "text": "Qui, vicino al fiume Chiese, forse c'era «Ad Flexum», una tappa dell'Itinerario Burdigalense, l'antico percorso dei pellegrini da Bordeaux a Gerusalemme. Circa 700 metri a nord del ponte attuale si vedono ancora resti nel letto asciutto. Il ponte fu costruito nella prima metà del Settecento al posto di uno di legno."
+ },
+ {
+  "town": "Bedizzole",
+  "title": "La pietra miliare",
+  "hint": "Una pietra antica indica 32 miglia. Da dove?",
+  "osm": "Bagatte, Bedizzole",
+  "lat": 45.505,
+  "lng": 10.4,
+  "text": "Alle Bagatte è stata trovata una pietra miliare con la distanza di XXXII miglia, contate da Verona. L'iscrizione contiene le parole «devota Venetia conlocavit»."
+ },
+ {
+  "town": "Castenedolo",
+  "title": "Il quartier generale di Napoleone",
+  "hint": "In questo palazzo Napoleone dettò degli ordini prima di una battaglia.",
+  "osm": "Palazzo Carrara, Castenedolo",
+  "lat": 45.472,
+  "lng": 10.296,
+  "text": "Nel 1796 Napoleone Bonaparte si fermò in Palazzo Carrara e lo usò come quartier generale. Qui dettò in fretta tre ordini prima di partire per guidare la battaglia di Lonato."
+ },
+ {
+  "town": "Castenedolo",
+  "title": "I feriti di Solferino",
+  "hint": "Nel 1859 questa chiesa diventò un ospedale.",
+  "osm": "Chiesa dei Disciplini, Castenedolo",
+  "lat": 45.4715,
+  "lng": 10.2955,
+  "text": "Durante la battaglia di Solferino e San Martino, nel 1859, la chiesa dei Disciplini accolse alcuni soldati feriti."
+ },
+ {
+  "town": "Castenedolo",
+  "title": "Il palazzo detto del Carmagnola",
+  "hint": "Un palazzo del Quattrocento con un soprannome illustre.",
+  "osm": "Via Matteotti, Castenedolo",
+  "lat": 45.4725,
+  "lng": 10.2965,
+  "text": "In via Matteotti c'è Palazzo Belpietro, del Quattrocento, chiamato «del Carmagnola» dal nome del celebre condottiero."
+ },
+ {
+  "town": "Castel Mella",
+  "title": "La torre degli artiglieri",
+  "hint": "Dell'antico castello è rimasta solo questa torre.",
+  "osm": "Via Vittorio Emanuele II, Castel Mella",
+  "lat": 45.499,
+  "lng": 10.148,
+  "text": "La Torre degli artiglieri è l'unico resto delle mura del castello medievale. L'associazione degli artiglieri la prese in gestione quando cadeva a pezzi, la restaurò e ne fece la propria sede."
+ },
+ {
+  "town": "Castel Mella",
+  "title": "La porta del terzo millennio",
+  "hint": "Questa chiesa del Settecento ha una porta di bronzo del 2000.",
+  "osm": "Chiesa dei Santi Siro e Lucia, Castel Mella",
+  "lat": 45.4995,
+  "lng": 10.1485,
+  "text": "La chiesa dei Santi Siro e Lucia fu costruita tra il 1708 e il 1747 da Bernardo Fedrighini, dove c'era una chiesa longobarda. La porta di bronzo di Maffeo Ferrari, inaugurata nel 2000, è chiamata «la porta del terzo millennio»."
+ },
+ {
+  "town": "Castel Mella",
+  "title": "L'Ufficio Vecchio",
+  "hint": "Una scuola di dottrina del 1563 che diventò municipio.",
+  "osm": "Via Roma, Castel Mella",
+  "lat": 45.4985,
+  "lng": 10.1475,
+  "text": "L'Ufficio Vecchio fu costruito nel 1563 come scuola della dottrina cristiana. Dal 1860 al 1895 fu il municipio, e una lapide sul retro riporta l'anno di costruzione."
+ },
+ {
+  "town": "Castel Mella",
+  "title": "L'errore dello scalpellino",
+  "hint": "La data sul portale è sbagliata di 400 anni.",
+  "osm": "Oratorio di San Giovanni Battista, Colorne, Castel Mella",
+  "lat": 45.505,
+  "lng": 10.14,
+  "text": "Sul portale dell'oratorio di San Giovanni Battista a Colorne c'è scritto 1599, ma la data incisa sarebbe in realtà 1199: un errore dello scalpellino. La pala di Camillo Rama è temporaneamente nella parrocchiale."
+ },
+ {
+  "town": "Castel Mella",
+  "title": "L'acqua sempre fresca",
+  "hint": "In questo parco l'acqua ha la stessa temperatura d'estate e d'inverno.",
+  "osm": "Parco del Fontanone, Castel Mella",
+  "lat": 45.49,
+  "lng": 10.15,
+  "text": "Il Parco del Fontanone è alimentato da tanti fontanili: l'acqua di sorgente resta tra 10 e 13 gradi in ogni stagione."
+ },
+ {
+  "town": "Cazzago San Martino",
+  "title": "Il palazzo al posto del castello",
+  "hint": "Nel 1610 il borgo fortificato non c'era più. Al suo posto, questo palazzo.",
+  "osm": "Villa Bettoni, Cazzago San Martino",
+  "lat": 45.581,
+  "lng": 10.025,
+  "text": "Nel 1610 il resoconto del Da Lezze annotava che il borgo fortificato era sparito, sostituito da un palazzo della famiglia Cazzago: è l'attuale Villa Bettoni-Cazzago, con una galleria dal soffitto in legno e sale affrescate in epoche diverse."
+ },
+ {
+  "town": "Cazzago San Martino",
+  "title": "La villa con due torri",
+  "hint": "Un corpo centrale e due torri ai lati.",
+  "osm": "Villa Guarneri, Cazzago San Martino",
+  "lat": 45.582,
+  "lng": 10.026,
+  "text": "Villa Guarneri fu costruita alla fine del Settecento dai nobili Federici: ha un corpo centrale con due torri ai lati."
+ },
+ {
+  "town": "Cazzago San Martino",
+  "title": "La Madonna dei miracoli",
+  "hint": "In questa chiesa c'è una statua del Quattrocento a cui si attribuivano miracoli.",
+  "osm": "Chiesa parrocchiale della Natività, Cazzago San Martino",
+  "lat": 45.5805,
+  "lng": 10.0245,
+  "text": "La parrocchiale della Natività ha origini tre-quattrocentesche e fu consacrata nel 1747 dal cardinale Lodovico Calini; l'organo di Cesare Bolognini è del 1744. Custodisce una statua della Madonna del Quattrocento a cui la tradizione popolare attribuiva poteri miracolosi."
+ },
+ {
+  "town": "Cazzago San Martino",
+  "title": "Franciacorta in fiore",
+  "hint": "Ogni maggio questo borgo si riempie di rose.",
+  "osm": "Bornato, Cazzago San Martino",
+  "lat": 45.59,
+  "lng": 10.04,
+  "text": "Ogni maggio il borgo storico di Bornato e Palazzo Bettoni a Cazzago ospitano «Franciacorta in Fiore», una mostra di rose e piante perenni, alternandosi ogni cinque anni."
+ },
+ {
+  "town": "Cazzago San Martino",
+  "title": "L'ultimo pezzo della ferrovia",
+  "hint": "Da questa stazione parte l'ultimo tratto di una ferrovia storica.",
+  "osm": "Stazione di Bornato-Calino",
+  "lat": 45.585,
+  "lng": 10.035,
+  "text": "Dalla stazione di Bornato-Calino parte la breve linea Bornato–Rovato: è l'ultimo tratto rimasto della storica ferrovia Cremona–Iseo."
+ },
+ {
+  "town": "Villa Carcina",
+  "title": "Il re in fonderia",
+  "hint": "Un re arrivò qui in tram per convincersi di una cosa importante.",
+  "osm": "Glisenti, Carcina, Villa Carcina",
+  "lat": 45.63,
+  "lng": 10.195,
+  "text": "Il 23 agosto 1890 il re Umberto I visitò la fonderia Glisenti, arrivando in tram insieme a Giuseppe Zanardelli. La visita doveva convincerlo a non spostare le fabbriche d'armi a Terni."
+ },
+ {
+  "town": "Villa Carcina",
+  "title": "La villa Liberty dei Glisenti",
+  "hint": "La casa degli industriali oggi è della comunità.",
+  "osm": "Villa Glisenti, Villa Carcina",
+  "lat": 45.634,
+  "lng": 10.196,
+  "text": "Villa Glisenti, in stile Liberty, fu costruita tra il 1905 e il 1906 come casa della famiglia Glisenti. Il Comune ne ha fatto un centro culturale, aperto nel maggio 1989, che fino al 2006 ospitava la biblioteca."
+ },
+ {
+  "town": "Villa Carcina",
+  "title": "L'organo di Callido",
+  "hint": "In questa chiesa c'è un organo veneziano del 1773.",
+  "osm": "Chiesa di San Lorenzo, Cogozzo, Villa Carcina",
+  "lat": 45.625,
+  "lng": 10.195,
+  "text": "La chiesa di San Lorenzo, vicino a Cogozzo, sorge su una cappella medievale legata a un ospizio. Ha un organo del 1773 di Gaetano Callido e un affresco votivo quattrocentesco della Madonna col Bambino."
+ },
+ {
+  "town": "Villa Carcina",
+  "title": "Il campanile romanico di Cailina",
+  "hint": "La chiesa è del 1951, ma il campanile è molto più antico.",
+  "osm": "Chiesa di San Michele, Cailina, Villa Carcina",
+  "lat": 45.64,
+  "lng": 10.2,
+  "text": "La chiesa di San Michele a Cailina è citata già nel 1420. L'edificio attuale è del 1951, ma il campanile romanico è quello originale. È parrocchia dal 15 febbraio 1963."
+ },
+ {
+  "town": "Villa Carcina",
+  "title": "Il lazzaretto sulla collina",
+  "hint": "Durante la peste del 1630 qui si isolavano i malati.",
+  "osm": "Santuario di San Rocco, Villa Carcina",
+  "lat": 45.636,
+  "lng": 10.198,
+  "text": "Il Santuario di San Rocco, sopra Villa, è citato in un testamento del 1512. Durante l'epidemia del 1630 fu probabilmente usato come lazzaretto per isolare i malati. La piccola sagrestia fu aggiunta nel 1648."
+ },
+ {
+  "town": "Nave",
+  "title": "Il tempio di Mitra?",
+  "hint": "Un rilievo trovato nel 1951 ha fatto pensare a un culto misterioso.",
+  "osm": "Pieve della Mitria, Nave",
+  "lat": 45.585,
+  "lng": 10.285,
+  "text": "La Pieve della Mitria fu ricostruita nella prima metà del Duecento dove c'era un edificio del IX secolo. Nel 1951 fu trovato un altorilievo con un uomo nudo che afferra le zampe di un leone, e qualcuno ha pensato a un santuario del dio Mitra. La base di un pilastro è un blocco di marmo del IV secolo scolpito con una fatica di Ercole."
+ },
+ {
+  "town": "Nave",
+  "title": "Il santo contro le piene",
+  "hint": "Questa chiesa è accanto a un torrente che faceva paura.",
+  "osm": "Chiesa di San Cesario, Nave",
+  "lat": 45.587,
+  "lng": 10.287,
+  "text": "La chiesa di San Cesario è del XII secolo, ma frammenti fanno pensare a una pieve più antica, forse dell'VIII. Sorge sulla riva sinistra del Garza, torrente che spesso esondava, e il santo veniva invocato contro gli annegamenti."
+ },
+ {
+  "town": "Nave",
+  "title": "Il santo portato via",
+  "hint": "Nel 1481 la gente si ribellò, ma il corpo del santo partì lo stesso.",
+  "osm": "Colle di San Costanzo, Nave",
+  "lat": 45.595,
+  "lng": 10.28,
+  "text": "Sul colle di San Costanzo dal XII secolo c'era un convento femminile. Nel 1481, nonostante una rivolta popolare, il corpo di San Costanzo fu portato via da qui a Brescia."
+ },
+ {
+  "town": "Nave",
+  "title": "La chiesa tra due oratori",
+  "hint": "Ai lati di questa chiesa ci sono due oratori delle confraternite.",
+  "osm": "Chiesa parrocchiale, Nave",
+  "lat": 45.5855,
+  "lng": 10.2855,
+  "text": "La parrocchiale fu costruita tra il 1711 e il 1730 su progetto di Bernardo Fedrighini, lo stesso della chiesa di Castel Mella. È affiancata da due oratori, un tempo sede di confraternite laiche. La pala è del pittore bolognese Franceschini."
+ },
+ {
+  "town": "Nave",
+  "title": "Le tre mezzelune",
+  "hint": "Lo stemma di Nave viene da una famiglia che abitava qui.",
+  "osm": "Casa Paitoni, Nave",
+  "lat": 45.586,
+  "lng": 10.286,
+  "text": "Casa Paitoni, di fine Quattrocento–inizio Cinquecento, era la casa della famiglia Paitoni. Valerio Paitoni morì nella rivolta contro i francesi del febbraio 1512. Lo stemma dei Paitoni, tre mezzelune d'argento, è nella parte alta dello stemma di Nave."
+ },
+ {
+  "town": "Sarezzo",
+  "title": "L'arco per l'arciduca",
+  "hint": "Nel 1825 qui fu costruito un arco di trionfo per un ospite importante.",
+  "osm": "Zanano, Sarezzo",
+  "lat": 45.66,
+  "lng": 10.2,
+  "text": "Nel 1825 a Zanano fu costruito un arco di trionfo per la visita dell'arciduca Francesco Carlo d'Austria. Qui c'era anche una fermata della tranvia della Val Trompia, in funzione dal 1882 al 1954."
+ },
+ {
+  "town": "Sarezzo",
+  "title": "Il predicatore difeso dalla piazza",
+  "hint": "Nel 1557 in questa piazza la gente si oppose al parroco.",
+  "osm": "Piazza, Sarezzo",
+  "lat": 45.656,
+  "lng": 10.201,
+  "text": "Nel 1557 il rettore Ludovico Dolzi cercò di impedire a un predicatore itinerante di parlare nella piazza di Sarezzo. Gli ascoltatori protestarono e gli dissero di lasciarlo continuare, come avevano lasciato parlare altri preti."
  }
 ]
