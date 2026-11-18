@@ -1,10 +1,10 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611181635';
-import { LANG, LOC, startI18n } from './i18n.js?v=202611181635';
+import { CONFIG } from './config.js?v=202611181754';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611181754';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.49';
+const APP_VERSION = 'v.50';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -906,11 +906,21 @@ async function homeMap(opts = {}) {
   if (!lastView) getPos().then((p) => { if (document.body.contains(el) && first !== null) { me = p; L.circleMarker([p.lat, p.lng], { radius: 7, color: '#1f3a5f', fillOpacity: 0.9 }).addTo(map); map.setView([p.lat, p.lng], 15); } }).catch(() => {});
 }
 
+function topTools() {
+  const l = LANG === 'en' ? '🇮🇹 Italiano' : '🇬🇧 English';
+  return `<p class="center small toptools" style="margin:2px 0 10px"><span translate="no">🌐 Lingua / Language: <a href="#" data-langsw>${l}</a></span> · <a href="#" data-logout>Esci</a></p>`;
+}
+function bindTopTools(root) {
+  root.querySelector('[data-langsw]')?.addEventListener('click', (e) => { e.preventDefault(); setLang(LANG === 'en' ? 'it' : 'en'); });
+  root.querySelector('[data-logout]')?.addEventListener('click', async (e) => { e.preventDefault(); await B.signOut(); location.hash = '#/'; route(); });
+}
+
 async function viewHome(user, prof) {
   app.innerHTML = `
     <div class="homebar"><h1>Ciao ${esc(prof.display_name || '')}</h1>
       <span class="row" style="flex:0 0 auto;gap:8px"><a href="#/profilo" class="me" aria-label="Il mio profilo">${avatarHtml(prof.avatar_path, prof.display_name, 44)}</a>
       <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></span></div>
+    ${topTools()}
     <div id="hmap" class="map home"></div>
     <div class="chips types" id="typebar"><button class="chip on" data-k="all">Tutto<span class="n"></span></button>${Object.entries(TYPES).map(([k, x]) => `<button class="chip" data-k="${k}"><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}<span class="n"></span></button>`).join('')}
       <button class="chip" data-k="monu">${monuBadge('sm')}Monumenti<span class="n"></span></button>
@@ -931,6 +941,7 @@ async function viewHome(user, prof) {
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
   $('#out').onclick = async (e) => { e.preventDefault(); await B.signOut(); location.hash = '#/'; route(); };
+  bindTopTools(app);
   homeMap();
   bindInvite(app);
   drawAdSlot($('#adslot'));
@@ -2512,6 +2523,7 @@ async function viewMyProfile(prof) {
   const p = prof || {};
   app.innerHTML = `
     <h1>Il mio profilo</h1>
+    ${topTools()}
     <p class="muted">Foto, presentazione e contatti sono visibili a chi può vedere i tuoi pin. I contatti sono tutti facoltativi.</p>
     <div class="card center">
       <div id="av">${avatarHtml(p.avatar_path, p.display_name, 110)}</div>
@@ -2536,6 +2548,7 @@ async function viewMyProfile(prof) {
     <a class="btn ghost full" href="#/rubrica">📒 La mia rubrica</a>
     <p class="center"><a href="#/u/${esc(p.id || '')}">Vedi come ti vedono gli altri</a> · <a href="#/">Torna alla mappa</a></p>
     <p class="center small"><a href="privacy.html">Informativa privacy</a> · Per eliminare l'account scrivi a <a href="mailto:info@ubipin.it">info@ubipin.it</a></p>`;
+  bindTopTools(app);
   $('#avf').onchange = async () => {
     const f = $('#avf').files[0]; if (!f) return;
     try {
