@@ -11,6 +11,6 @@ export const CONFIG = {
   DATING_CONSENT_VERSION: '1',  // cambiala quando aggiorni i consensi dating: verranno richiesti di nuovo
   REPLY_FUNCTION: 'notify-reply',  // nome (slug) della funzione che avvisa il creatore quando riceve una risposta
   MAX_VIDEO_SECONDS: 60,
-  MAX_FILE_MB: 50,
+  MAX_FILE_MB: 25,
   DEFAULT_RADIUS_M: 50,
 };

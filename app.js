@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180754';
+import { CONFIG } from './config.js?v=202611180806';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.45';
+const APP_VERSION = 'v.46';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -222,6 +222,9 @@ async function supabaseBackend() {
       return sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
     },
     async adminUsers() { return must(await sb.rpc('admin_users')) || []; },
+    async adminSetPlan(id, plan) { must(await sb.rpc('admin_set_plan', { p_user: id, p_plan: plan })); },
+    async myQuota() { try { return (must(await sb.rpc('my_quota')) || [])[0] || null; } catch { return null; } },   // null se il database non è ancora aggiornato
+    async adminId() { try { return must(await sb.rpc('ubi_admin_id')); } catch { return null; } },
     async deleteContact(id) { must(await sb.from('address_book').delete().eq('id', id)); },
     // --- profilo, autore, messaggi
     avatarUrl(path) { return path ? sb.storage.from('avatars').getPublicUrl(path).data.publicUrl : null; },
@@ -461,6 +464,9 @@ function demoBackend() {
     async deleteAd() {},
     async uploadAdImage() { throw new Error('Non disponibile nella demo.'); },
     async adminUsers() { return []; },
+    async adminSetPlan() {},
+    async myQuota() { return null; },
+    async adminId() { return null; },
     async addDatingPhoto() { throw new Error('Le foto dating non sono disponibili nella demo.'); },
     async removeDatingPhoto() {},
     async datingPhotosOf() { return []; },
@@ -587,7 +593,21 @@ let watchId = null;
 const stopWatch = () => { if (watchId != null) { navigator.geolocation.clearWatch(watchId); watchId = null; } };
 const msg = (el, text, kind = 'err') => { el.innerHTML = text ? `<div class="msg ${kind}">${text}</div>` : ''; };
 const GEO_HELP = ' <a href="#/faq/posizione">Come attivare la posizione →</a>';
-const errText = (e) => esc(e?.message || String(e)) + (e?.geoHelp ? GEO_HELP : '');
+const LIMIT_MSG = {
+  UBI_LIMITE_PIN: 'Hai raggiunto <b>500 pin</b>: complimenti, sei tra i più attivi di Ubi! Per continuare puoi eliminare qualche pin vecchio, oppure passare al piano <b>Pro</b>.',
+  UBI_LIMITE_FILE: 'Hai raggiunto <b>100 file</b> (foto, video e audio). Puoi creare pin di testo o link, eliminare qualche file vecchio, oppure passare al piano <b>Pro</b>.',
+  UBI_LIMITE_VIDEO: 'Hai raggiunto <b>10 video</b>. Puoi usare foto o un link YouTube, eliminare un video vecchio, oppure passare al piano <b>Pro</b>.',
+};
+const limitKey = (e) => Object.keys(LIMIT_MSG).find((k) => String(e?.message || e).includes(k));
+const proBtn = '<br><a class="btn ghost" href="#" data-pro="1" style="margin-top:8px">💬 Scrivici per il piano Pro</a>';
+const errText = (e) => { const k = limitKey(e); return k ? LIMIT_MSG[k] + proBtn : esc(e?.message || String(e)) + (e?.geoHelp ? GEO_HELP : ''); };
+// il bottone «Scrivici» apre la chat con l'amministratore
+document.addEventListener('click', async (e) => {
+  const a = e.target.closest('[data-pro]'); if (!a) return;
+  e.preventDefault();
+  const id = await B.adminId();
+  if (id) location.hash = `#/messaggi/${id}`; else alert('Scrivici dalla pagina FAQ: ti attiviamo il piano Pro.');
+});
 
 async function route() {
   try { await routeInner(); } catch (err) {
@@ -986,6 +1006,7 @@ async function viewNew(ed = null, opts = {}) {
     <h1>${dating ? (ed ? '💗 Modifica il biglietto' : '💗 Nuovo biglietto dating')
       : hunt ? `🗺️ Tappa ${hunt.step} · ${esc(hunt.title)}`
       : opts.capsule && !ed ? '⏳ Nuova capsula del tempo' : (ed ? 'Modifica contenuto' : 'Nuovo contenuto')}</h1>
+    <div id="quota"></div>
     ${hunt ? `<div class="card datingtips" style="background:#fff8ee;border-color:#f3d9b8"><b>Come funziona la tappa</b><ul class="small">
       <li>Nel campo <b>Indizio</b> scrivi cosa si vede prima di arrivare (es. «Dove il tram fa capolinea»).</li>
       <li>Nel <b>contenuto</b> (testo, foto o video) metti l'indizio per la tappa ${hunt.step + 1} oppure, se è l'ultima, un messaggio di congratulazioni.</li>
@@ -1004,7 +1025,7 @@ async function viewNew(ed = null, opts = {}) {
         <input id="file" type="file" accept="image/*,video/*,audio/*">
         <div class="row" style="margin-top:8px"><button type="button" class="ghost" id="capv">🎥 Registra ora un video</button><button type="button" class="ghost" id="capp">📷 Scatta ora</button></div>
         <input id="capvf" type="file" accept="video/*" capture="user" hidden><input id="cappf" type="file" accept="image/*" capture="environment" hidden>
-        <p class="muted small">💡 Un <b>video registrato in tempo reale</b>, sul posto e dedicato a chi lo aprirà, rende il pin molto più emozionante (max ${CONFIG.MAX_VIDEO_SECONDS} s).</p>
+        <p class="muted small">💡 Un <b>video registrato in tempo reale</b>, sul posto e dedicato a chi lo aprirà, rende il pin molto più emozionante (max ${CONFIG.MAX_VIDEO_SECONDS} s). Foto e video pesanti li <b>alleggeriamo noi</b> sul tuo telefono prima di caricarli.</p>
         <p class="muted small">Un file per contenuto. <b>Vuoi lasciare tante foto?</b> Crea un album condiviso (Google Foto, iCloud, Drive…), scegli <a href="#" id="toalbum">Link</a> e incolla il link dell'album.</p></div>
       <div id="k-text" hidden><label for="txt">Il tuo testo</label>
         <textarea id="txt" maxlength="2000" rows="6" placeholder="Es. una dedica, le istruzioni per lo scatto, l'indizio per la caccia al tesoro…"></textarea>
@@ -1125,22 +1146,60 @@ async function viewNew(ed = null, opts = {}) {
     $('#rmfile').onclick = () => { clearFile(); if (ed && ['photo', 'video', 'audio'].includes(ed.media_type)) showCurrentFile(); };
   };
   const handleFile = async (f) => {
-    s.file = null; s.duration = null; $('#preview').innerHTML = ''; msg($('#pm'), '');
+    s.file = null; s.duration = null; s.needShrink = false; $('#preview').innerHTML = ''; msg($('#pm'), '');
     ['#file', '#capvf', '#cappf'].forEach((k) => { $(k).value = ''; });
     if (!f) return;
     const type = f.type.split('/')[0];
     if (!['image', 'video', 'audio'].includes(type)) return msg($('#pm'), 'Formato non supportato.');
-    if (f.size > CONFIG.MAX_FILE_MB * 1048576) return msg($('#pm'), `File troppo grande (max ${CONFIG.MAX_FILE_MB} MB).`);
+    if (type === 'image') {
+      let img = f;
+      try { const b = await fitImage(f, 2000); if (b.size < f.size) img = new File([b], 'foto.jpg', { type: 'image/jpeg' }); } catch { /* resta l'originale */ }
+      if (img.size > CONFIG.MAX_FILE_MB * 1048576) return msg($('#pm'), `Foto troppo grande (max ${CONFIG.MAX_FILE_MB} MB).`);
+      $('#preview').innerHTML = `<img src="${URL.createObjectURL(img)}" alt="anteprima">`; s.media_type = 'photo'; s.file = img; addRemoveBtn(); return;
+    }
+    if (type === 'audio' && f.size > CONFIG.MAX_FILE_MB * 1048576) return msg($('#pm'), `Audio troppo grande (max ${CONFIG.MAX_FILE_MB} MB).`);
     const url = URL.createObjectURL(f);
-    if (type === 'image') { $('#preview').innerHTML = `<img src="${url}" alt="anteprima">`; s.media_type = 'photo'; s.file = f; addRemoveBtn(); return; }
     const el = document.createElement(type); el.controls = true; el.preload = 'metadata'; el.src = url; if (type === 'video') el.playsInline = true;
     const dur = await new Promise((res) => { el.onloadedmetadata = () => res(el.duration); el.onerror = () => res(NaN); setTimeout(() => res(el.duration), 8000); });
     if (!Number.isFinite(dur)) return msg($('#pm'), 'Non riesco a leggere la durata del file. Prova con un altro formato (MP4, M4A, MP3).');
     if (type === 'video' && dur > CONFIG.MAX_VIDEO_SECONDS + 0.5) {
       return msg($('#pm'), `Il video dura ${Math.round(dur)} s: il massimo è ${CONFIG.MAX_VIDEO_SECONDS}. Accorcialo, oppure caricalo su YouTube e usa "Link".`);
     }
-    $('#preview').append(el); s.media_type = type; s.duration = Math.round(dur); s.file = f; addRemoveBtn();
+    $('#preview').append(el); s.media_type = type; s.duration = Math.round(dur);
+    if (type === 'video' && f.size > VIDEO_TARGET_MB * 1048576) {
+      // video pesante: lo riduciamo sul telefono (gratis, nessun servizio esterno). Serve un tocco per partire.
+      if (!canShrinkVideo()) return msg($('#pm'), `Il video pesa ${Math.round(f.size / 1048576)} MB (max ${CONFIG.MAX_FILE_MB}) e questo browser non sa ridurlo. Registralo in qualità più bassa (su iPhone: Impostazioni › Fotocamera › Registra video › 720p) oppure usa un link YouTube.`);
+      s.needShrink = true;
+      $('#preview').insertAdjacentHTML('beforeend', `<button type="button" class="accent full" id="shrink" style="margin-top:8px">🎬 Alleggerisci il video (circa ${Math.max(5, Math.round(dur))} secondi)</button>
+        <p class="muted small">Pesa ${Math.round(f.size / 1048576)} MB: lo riduciamo noi sul tuo dispositivo. Tieni lo schermo acceso e resta su questa pagina.</p>`);
+      $('#shrink').onclick = async () => {
+        const b = $('#shrink'); b.disabled = true;
+        try {
+          const out = await shrinkVideo(el, dur, (pc) => { b.textContent = `Riduco il video… ${pc}%`; });
+          if (out.size > CONFIG.MAX_FILE_MB * 1048576) throw new Error('Anche ridotto è troppo pesante: accorcialo un po\'.');
+          s.file = out; s.needShrink = false;
+          b.remove(); $('#preview').querySelector('p.muted')?.remove();
+          el.src = URL.createObjectURL(out);
+          msg($('#pm'), `Fatto ✓ Da ${Math.round(f.size / 1048576)} MB a ${(out.size / 1048576).toFixed(1)} MB.`, 'ok');
+          addRemoveBtn();
+        } catch (e) { b.disabled = false; b.textContent = '🎬 Riprova ad alleggerire'; msg($('#pm'), errText(e)); }
+      };
+      return;
+    }
+    s.file = f; addRemoveBtn();
   };
+  // avvisi sui limiti del piano gratuito (si vedono solo quando ci si avvicina)
+  if (!ed) B.myQuota().then((q) => {
+    if (!q || q.unlimited || !$('#quota')) return;
+    const near = [];
+    if (q.pins >= q.max_pins) return msg($('#quota'), LIMIT_MSG.UBI_LIMITE_PIN + proBtn, 'info');
+    if (q.pins >= q.max_pins - 50) near.push(`ti restano <b>${q.max_pins - q.pins} pin</b>`);
+    if (q.files >= q.max_files) near.push('hai finito i <b>file</b> (puoi fare pin di testo o link)');
+    else if (q.files >= q.max_files - 10) near.push(`ti restano <b>${q.max_files - q.files} file</b>`);
+    if (q.videos >= q.max_videos) near.push('hai finito i <b>video</b>');
+    else if (q.videos >= q.max_videos - 2) near.push(`ti restano <b>${q.max_videos - q.videos} video</b>`);
+    if (near.length) msg($('#quota'), `Piano gratuito: ${near.join(', ')}.` + proBtn, 'info');
+  });
 
   // --- posizione (i pulsanti funzionano subito; la mappa si aggiunge appena Leaflet è pronto)
   let map = null, marker = null, circle = null;
@@ -1289,7 +1348,8 @@ async function viewNew(ed = null, opts = {}) {
       if (!external_url) return err('Inserisci un link valido (es. https://…). Puoi incollare anche il messaggio di condivisione.');
     } else if (s.kind === 'text') {
       if (!$('#txt').value.trim()) return err('Scrivi il testo da lasciare in quel luogo.');
-    } else if (!s.file && !(ed && ['photo', 'video', 'audio'].includes(ed.media_type))) return err('Scegli una foto, un video o un audio.');
+    } else if (s.needShrink) return err('Prima tocca «🎬 Alleggerisci il video»: è troppo pesante per caricarlo così.');
+    else if (!s.file && !(ed && ['photo', 'video', 'audio'].includes(ed.media_type))) return err('Scegli una foto, un video o un audio.');
     if (s.lat == null) return err('Indica il luogo: GPS, indirizzo, coordinate o tocco sulla mappa.');
     const title = $('#title').value.trim(); if (!title) return err('Dai un titolo al contenuto.');
     let unlock_at = null;
@@ -1550,6 +1610,52 @@ async function viewContent(slug, user) {
 
 
 // Ridimensiona una foto (lato lungo max 1600 px, JPEG) senza ritagliarla
+// ---------- Video più leggeri, direttamente sul dispositivo (nessun servizio esterno, nessun costo) ----------
+const VIDEO_TARGET_MB = 20;
+const shrinkMime = () => ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+  .find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || null;
+const canShrinkVideo = () => !!(shrinkMime() && HTMLCanvasElement.prototype.captureStream && (window.AudioContext || window.webkitAudioContext));
+// Rivede il video e lo ri-registra più piccolo (max 1280 px, bitrate calcolato per stare sotto ~16 MB).
+// Va chiamata direttamente da un tocco dell'utente: Safari fa partire l'audio solo così.
+function shrinkVideo(v, dur, onProgress) {
+  const mime = shrinkMime();
+  const k = Math.min(1, 1280 / Math.max(v.videoWidth || 1280, v.videoHeight || 720));
+  const c = document.createElement('canvas');
+  c.width = Math.round((v.videoWidth || 1280) * k / 2) * 2; c.height = Math.round((v.videoHeight || 720) * k / 2) * 2;
+  const g = c.getContext('2d');
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ac = new AC(); const dest = ac.createMediaStreamDestination();
+  try { ac.createMediaElementSource(v).connect(dest); } catch { /* già collegato: va bene */ }
+  const stream = c.captureStream(30);
+  dest.stream.getAudioTracks().forEach((t) => stream.addTrack(t));
+  const vbps = Math.max(600000, Math.min(2500000, Math.floor((16 * 8388608) / Math.max(dur, 1)) - 128000));
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: vbps, audioBitsPerSecond: 96000 });
+  const parts = []; rec.ondataavailable = (e) => { if (e.data.size) parts.push(e.data); };
+  v.controls = false; v.muted = false; v.currentTime = 0;
+  rec.start(1000);
+  const playing = v.play();   // subito, dentro il tocco
+  return new Promise((res, rej) => {
+    let stopped = false;
+    const finish = () => { if (stopped) return; stopped = true; try { rec.stop(); } catch { /* già fermo */ } };
+    rec.onstop = () => {
+      v.pause(); v.controls = true; ac.close().catch(() => {});
+      const type = mime.split(';')[0];
+      const blob = new Blob(parts, { type });
+      if (!blob.size) return rej(new Error('Non sono riuscito a ridurre il video: prova a registrarlo in qualità più bassa.'));
+      res(new File([blob], type === 'video/mp4' ? 'video.mp4' : 'video.webm', { type }));
+    };
+    const draw = () => {
+      if (stopped) return;
+      g.drawImage(v, 0, 0, c.width, c.height);
+      onProgress(Math.min(99, Math.round((v.currentTime / dur) * 100)));
+      if (v.ended) return finish();
+      requestAnimationFrame(draw);
+    };
+    v.onended = finish;
+    Promise.resolve(playing).then(draw).catch(() => { stopped = true; try { rec.stop(); } catch { /* */ } rej(new Error('Il browser non ha fatto partire il video: tocca di nuovo il bottone.')); });
+  });
+}
+
 function fitImage(file, max = 1600) {
   return new Promise((res, rej) => {
     const img = new Image(); const url = URL.createObjectURL(file);
@@ -1943,12 +2049,21 @@ async function adminUsersTab(box) {
   const d = (x) => (x ? new Date(x).toLocaleDateString('it-IT') : '');
   box.innerHTML = `<div class="card"><p><b>${rows.length}</b> iscritti · <b>${rows.filter((r) => r.ubi_dating).length}</b> in Ubi Dating</p>
     <button class="accent full" id="xls">📥 Scarica per Excel</button><p class="muted small">Il file si apre con Excel, Numbers o Fogli Google.</p></div>
-    <div class="card" style="overflow-x:auto"><table class="tbl"><tr><th>Email</th><th>Nome</th><th>Iscritto</th><th>Ultimo accesso</th><th>Dating</th><th>Pin</th></tr>
-    ${rows.map((r) => `<tr><td>${esc(r.email)}</td><td>${esc(r.nome || '')}</td><td>${d(r.iscritto_il)}</td><td>${d(r.ultimo_accesso)}</td><td>${r.ubi_dating ? '💗' : ''}</td><td>${r.pin_creati}</td></tr>`).join('')}</table></div>`;
+    <p class="muted small">Piano gratuito: 500 pin, 100 file, 10 video. Tocca «Gratis» per passare un utente a <b>Pro</b> (senza limiti), e viceversa.</p>
+    <div class="card" style="overflow-x:auto"><table class="tbl"><tr><th>Email</th><th>Nome</th><th>Iscritto</th><th>Ultimo accesso</th><th>Dating</th><th>Pin</th><th>File</th><th>Piano</th></tr>
+    ${rows.map((r, i) => `<tr><td>${esc(r.email)}</td><td>${esc(r.nome || '')}</td><td>${d(r.iscritto_il)}</td><td>${d(r.ultimo_accesso)}</td><td>${r.ubi_dating ? '💗' : ''}</td><td>${r.pin_creati}</td><td>${r.file_caricati ?? ''}</td>
+      <td>${r.id ? `<button class="${r.piano === 'pro' ? 'accent' : 'ghost'} small" data-plan="${i}">${r.piano === 'pro' ? '⭐ Pro' : 'Gratis'}</button>` : ''}</td></tr>`).join('')}</table></div>`;
+  box.querySelectorAll('[data-plan]').forEach((b) => { b.onclick = async () => {
+    const r = rows[+b.dataset.plan]; const to = r.piano === 'pro' ? 'free' : 'pro';
+    b.disabled = true;
+    try { await B.adminSetPlan(r.id, to); r.piano = to; b.textContent = to === 'pro' ? '⭐ Pro' : 'Gratis'; b.className = `${to === 'pro' ? 'accent' : 'ghost'} small`; }
+    catch (e) { alert(e.message || e); }
+    b.disabled = false;
+  }; });
   $('#xls').onclick = () => {
     const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const head = ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati'];
-    const lines = [head.map(q).join(';'), ...rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati].map(q).join(';'))];
+    const head = ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati', 'File', 'Piano'];
+    const lines = [head.map(q).join(';'), ...rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati, r.file_caricati ?? '', r.piano || 'free'].map(q).join(';'))];
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `iscritti-ubi-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.append(a); a.click(); a.remove();

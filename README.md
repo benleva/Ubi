@@ -56,6 +56,13 @@ Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 
 1. SQL Editor: eseguire `supabase/migrations/20261118080000_mappa_priorita.sql` (prima i pin degli utenti, poi monumenti e scrittori; fino a 1500 per zona).
 
+## Limiti e piano Pro (18/11/2026)
+
+1. SQL Editor: eseguire `supabase/migrations/20261118090000_limiti_piano.sql`.
+2. Piano gratuito: 500 pin, 100 file (foto/video/audio), 10 video. Amministratori e utenti Pro: senza limiti. I numeri si cambiano in `quota_limits()`.
+3. Admin › Iscritti: bottone «Gratis / ⭐ Pro» per ogni utente. A 450 pin (o 90 file, 8 video) l'utente vede un avviso; al limite un messaggio con «Scrivici per il piano Pro», che apre la chat con l'amministratore.
+4. Foto ridotte automaticamente a 2000 px; video sopra 20 MB alleggeriti sul dispositivo (bottone «Alleggerisci il video»). Limite file: 25 MB.
+
 ## Curiosità pronte (admin)
 
 In Amministrazione › 🗺️ Curiosità trovi i pin di `seed/curiosita.json` (testi scritti per Ubi).
@@ -65,7 +72,6 @@ Le curiosità già create come solo testo compaiono con «già creato, senza fot
 Per aggiungere altri paesi basta aggiungere voci al file (title, hint, text, wiki, lat, lng).
 
 ## Prossimi passi
-- **DA FARE (risparmio spazio, richiesto il 16/11/2026):** ridurre in automatico le foto dei pin prima del caricamento (lato lungo ~2000 px, JPEG, ~400 KB) e abbassare il limite video da 50 a 25 MB con un suggerimento a registrare in qualità più bassa. Serve per restare nel piano gratuito di Supabase (1 GB file, 5 GB traffico/mese).
 - Fase 2: catene "stesso luogo, altro tempo" (`parent_id` già nel database).
 - Fase 3: replica dello scatto (dati EXIF).
 - **Ubi Night** (clone): contenuti con scadenza, conferma maggiore età, consenso reciproco prima di rivelare l'identità, accesso legato a un locale e a una serata.
