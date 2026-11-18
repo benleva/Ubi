@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180744';
+import { CONFIG } from './config.js?v=202611180747';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.42';
+const APP_VERSION = 'v.43';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -802,10 +802,15 @@ async function homeMap(opts = {}) {
     // filtri: categoria scelta (nessuna = tutte) E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
     const shown = rows.filter((c) =>
       (!opts.dating || c.is_dating) &&
-      (opts.dating || !showCats.size || showCats.has(pinCat(c))) &&
-      (opts.dating || !onlyMine || c.is_owner) &&
+      (opts.dating || (!showCats.size && !onlyMine) || showCats.has(pinCat(c)) || (onlyMine && c.is_owner)) &&
       (!tagFilter.size || (c.tags || []).some((t) => tagFilter.has(t))));
-    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'mine' ? onlyMine : showCats.has(b.dataset.k)));
+    // bottoni: acceso/spento e quanti pin di quel tipo ci sono nella zona inquadrata
+    const cnt = {}; rows.forEach((c) => { const k = pinCat(c); cnt[k] = (cnt[k] || 0) + 1; if (c.is_owner) cnt.mine = (cnt.mine || 0) + 1; });
+    document.querySelectorAll('#typebar .chip').forEach((b) => {
+      const k = b.dataset.k;
+      b.classList.toggle('on', k === 'all' ? !showCats.size && !onlyMine : k === 'mine' ? onlyMine : showCats.has(k));
+      const n = b.querySelector('.n'); if (n) n.textContent = k === 'all' ? rows.length : cnt[k] || 0;
+    });
     shown.forEach((c) => {
       L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
         .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
@@ -830,10 +835,11 @@ async function homeMap(opts = {}) {
   $('#typebar').onclick = (e) => {
     const b = e.target.closest('button'); if (!b) return;
     const k = b.dataset.k;
-    if (k === 'mine') onlyMine = !onlyMine;
+    if (k === 'all') { showCats.clear(); onlyMine = false; }
+    else if (k === 'mine') onlyMine = !onlyMine;
     else if (showCats.has(k)) showCats.delete(k); else showCats.add(k);
     const n = draw();
-    msg($('#mm'), rows.length && !n ? 'Nessun pin di questo tipo in questa zona. Monumenti e scrittori si vedono solo con i loro bottoni (o con tutti i bottoni spenti).' : '', 'info');
+    msg($('#mm'), rows.length && !n ? 'Nessun pin di questo tipo in questa zona: guarda i numeri sui bottoni, oppure tocca «Tutto».' : '', 'info');
   };
   const load = async () => {
     const b = map.getBounds().pad(0.3);
@@ -871,12 +877,12 @@ async function viewHome(user, prof) {
       <span class="row" style="flex:0 0 auto;gap:8px"><a href="#/profilo" class="me" aria-label="Il mio profilo">${avatarHtml(prof.avatar_path, prof.display_name, 44)}</a>
       <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></span></div>
     <div id="hmap" class="map home"></div>
-    <div class="chips types" id="typebar">${Object.entries(TYPES).map(([k, x]) => `<button class="chip" data-k="${k}"><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}</button>`).join('')}
-      <button class="chip" data-k="monu" title="Tocca per nascondere o mostrare monumenti e curiosità">${monuBadge('sm')}Monumenti</button>
-      <button class="chip" data-k="lit" title="Tocca per nascondere o mostrare i luoghi degli scrittori">${litBadge('sm')}Scrittori</button>
-      <button class="chip" data-k="dating">${datingBadge('f', 'sm')}Dating</button>
-      <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei</button></div>
-    <p class="muted small" style="margin:2px 0 6px">Tocca un bottone per vedere solo quella categoria (puoi accenderne più di uno). Tutti spenti = vedi tutto.</p>
+    <div class="chips types" id="typebar"><button class="chip on" data-k="all">Tutto<span class="n"></span></button>${Object.entries(TYPES).map(([k, x]) => `<button class="chip" data-k="${k}"><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}<span class="n"></span></button>`).join('')}
+      <button class="chip" data-k="monu">${monuBadge('sm')}Monumenti<span class="n"></span></button>
+      <button class="chip" data-k="lit">${litBadge('sm')}Scrittori<span class="n"></span></button>
+      <button class="chip" data-k="dating">${datingBadge('f', 'sm')}Dating<span class="n"></span></button>
+      <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei<span class="n"></span></button></div>
+    <p class="muted small" style="margin:2px 0 6px">Accendi i bottoni per vedere solo quelle categorie (si sommano). «Tutto» rimette tutti i pin. Il numero dice quanti ce ne sono nella zona.</p>
     <div id="tagcloud" class="chips cloud"></div>
     <div id="mm"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
