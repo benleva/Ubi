@@ -52,6 +52,12 @@ Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 - I file stanno in un bucket privato e sono scaricabili solo dopo uno sblocco registrato (link firmato valido 1 ora).
 - Limite noto: chi falsifica il GPS del telefono può aggirare la distanza. Rischio accettato per l'MVP.
 
+## Curiosità pronte (admin)
+
+In Amministrazione › 🗺️ Curiosità trovi i pin di `seed/curiosita.json` (testi scritti per Ubi).
+L'app cerca su Wikipedia la posizione e una foto con licenza libera su Wikimedia Commons, mette il credito sotto il testo e crea i pin pubblici a tuo nome.
+Per aggiungere altri paesi basta aggiungere voci al file (title, hint, text, wiki, lat, lng).
+
 ## Prossimi passi
 - **DA FARE (risparmio spazio, richiesto il 16/11/2026):** ridurre in automatico le foto dei pin prima del caricamento (lato lungo ~2000 px, JPEG, ~400 KB) e abbassare il limite video da 50 a 25 MB con un suggerimento a registrare in qualità più bassa. Serve per restare nel piano gratuito di Supabase (1 GB file, 5 GB traffico/mese).
 - Fase 2: catene "stesso luogo, altro tempo" (`parent_id` già nel database).

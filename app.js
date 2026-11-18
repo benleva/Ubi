@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611162217';
+import { CONFIG } from './config.js?v=202611180540';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.24';
+const APP_VERSION = 'v.25';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -259,7 +259,7 @@ async function supabaseBackend() {
       const patch = {
         title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
         external_url: d.media_type === 'link' ? d.external_url : null,
-        text_body: d.media_type === 'text' ? d.text_body : null,
+        ...(d.media_type === 'text' ? { text_body: d.text_body } : kindIsFile ? {} : { text_body: null }),   // il testo sotto una foto resta
         duration_seconds: kindIsFile ? (d.file ? d.duration : old.duration_seconds) : null,
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, location_source: d.source,
         visibility: d.visibility, tags: d.tags || [], replies_enabled: d.replies_enabled !== false,
@@ -504,7 +504,7 @@ function demoBackend() {
       else if (!kindIsFile) c.media_path = null;
       Object.assign(c, {
         title: d.title, hint: d.hint || null, media_type: d.media_type,
-        external_url: d.media_type === 'link' ? d.external_url : null, text_body: d.media_type === 'text' ? d.text_body : null,
+        external_url: d.media_type === 'link' ? d.external_url : null, text_body: d.media_type === 'text' ? d.text_body : (kindIsFile ? c.text_body : null),
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, visibility: d.visibility, tags: d.tags || [],
         recipients: d.visibility === 'restricted' ? d.recipients : [],
       });
@@ -855,7 +855,7 @@ async function viewHome(user, prof) {
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
-    <div id="adminrow" class="row" style="margin-top:10px" hidden><a href="#/admin/banner" class="btn ghost">📣 Banner pubblicitari</a><a href="#/admin/iscritti" class="btn ghost">👥 Iscritti (Excel)</a></div>
+    <div id="adminrow" class="row" style="margin-top:10px" hidden><a href="#/admin/banner" class="btn ghost">📣 Banner pubblicitari</a><a href="#/admin/iscritti" class="btn ghost">👥 Iscritti (Excel)</a><a href="#/admin/curiosita" class="btn ghost">🗺️ Curiosità</a></div>
     <div id="adslot" style="margin-top:10px"></div>
     <a href="#/dating" class="btn full datingbtn" style="margin-top:10px">💗 Ubi Dating · incontra chi ama i tuoi luoghi</a>
     ${inviteBox(false)}
@@ -1339,9 +1339,10 @@ function renderMedia(type, r) {
         <span class="dom">🔗 ${esc(hostOf(u))}</span><span class="u">${esc(u)}</span></a>
       <a class="btn full" style="margin-top:10px" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Apri il link ↗</a>`;
   }
-  if (type === 'photo') return `<img src="${esc(r.url)}" alt="">`;
-  if (type === 'video') return `<video src="${esc(r.url)}" controls playsinline autoplay></video>`;
-  return `<audio src="${esc(r.url)}" controls autoplay></audio>`;
+  const story = r.text_body ? `<div class="textbody story">${linkify(r.text_body)}</div>` : '';
+  if (type === 'photo') return `<img src="${esc(r.url)}" alt="">${story}`;
+  if (type === 'video') return `<video src="${esc(r.url)}" controls playsinline autoplay></video>${story}`;
+  return `<audio src="${esc(r.url)}" controls autoplay></audio>${story}`;
 }
 
 async function viewContent(slug, user) {
@@ -1660,13 +1661,91 @@ async function drawAdSlot(box) {
 // ======================= AMMINISTRATORE =======================
 async function viewAdmin(tab) {
   if (!(await B.isAdmin())) { app.innerHTML = '<div class="card center">Pagina riservata all\'amministratore. <a href="#/">Torna a Ubi</a></div>'; return; }
-  const t = tab === 'iscritti' ? 'iscritti' : 'banner';
+  const t = ['iscritti', 'curiosita'].includes(tab) ? tab : 'banner';
   app.innerHTML = `<h1>⚙️ Amministrazione</h1>
-    <div class="seg"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a></div>
+    <div class="seg"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a></div>
     <div id="adm" style="margin-top:12px"><p class="muted center">Carico…</p></div>
     <p class="center"><a href="#/">Torna a Ubi</a></p>`;
   if (t === 'iscritti') return adminUsersTab($('#adm'));
+  if (t === 'curiosita') return adminSeedTab($('#adm'));
   return adminAdsTab($('#adm'));
+}
+// ---------- Curiosità: pin pronti (testo nostro + foto libere da Wikimedia Commons) ----------
+const WIKI = 'https://it.wikipedia.org/w/api.php', COMMONS = 'https://commons.wikimedia.org/w/api.php';
+const wget = async (base, params) => {
+  const u = new URL(base); Object.entries({ format: 'json', origin: '*', ...params }).forEach(([k, v]) => u.searchParams.set(k, v));
+  const r = await fetch(u); if (!r.ok) throw new Error('Wikipedia non risponde'); return r.json();
+};
+const metres = (a, b, c, d) => { const R = 6371000, r = Math.PI / 180, x = (d - b) * r * Math.cos(((a + c) / 2) * r), y = (c - a) * r; return Math.round(Math.hypot(x, y) * R); };
+const stripHtml = (h) => { const d = document.createElement('div'); d.innerHTML = h || ''; return (d.textContent || '').replace(/\s+/g, ' ').trim(); };
+async function wikiPage(item) {
+  const props = { action: 'query', prop: 'coordinates|pageimages', piprop: 'name', redirects: 1 };
+  let j = await wget(WIKI, { ...props, titles: item.wiki });
+  let pg = Object.values(j.query?.pages || {})[0];
+  let viaSearch = false;
+  if ((!pg || pg.missing !== undefined) && item.search) {
+    j = await wget(WIKI, { ...props, generator: 'search', gsrsearch: item.search, gsrlimit: 1 });
+    pg = Object.values(j.query?.pages || {})[0]; viaSearch = true;
+  }
+  if (!pg || pg.missing !== undefined) return { page: null };
+  return { page: pg.title, viaSearch, coord: pg.coordinates?.[0] || null, image: pg.pageimage || null };
+}
+async function commonsPhoto(name) {
+  const j = await wget(COMMONS, { action: 'query', titles: 'File:' + name, prop: 'imageinfo', iiprop: 'url|extmetadata', iiurlwidth: 1600 });
+  const ii = Object.values(j.query?.pages || {})[0]?.imageinfo?.[0];
+  if (!ii) return null;   // foto non presente su Commons: non la uso
+  const m = ii.extmetadata || {};
+  const lic = stripHtml(m.LicenseShortName?.value);
+  if (!/^(cc|public domain|pd|pubblico dominio)/i.test(lic)) return null;   // solo licenze libere
+  return { url: ii.thumburl || ii.url, page: ii.descriptionurl, credit: `Foto: ${stripHtml(m.Artist?.value) || 'autore su Wikimedia Commons'}, ${lic}, via Wikimedia Commons` };
+}
+async function adminSeedTab(box) {
+  box.innerHTML = '<div class="card"><p class="muted">Carico le curiosità e cerco foto e posizioni su Wikipedia…</p></div>';
+  const items = await (await fetch('./seed/curiosita.json?v=' + Date.now())).json();
+  const mine = new Set((await B.listMine()).map((c) => c.title));
+  const rows = await Promise.all(items.map(async (it) => {
+    const r = { ...it, lat0: it.lat, lng0: it.lng, done: mine.has(it.title) };
+    try {
+      const w = await wikiPage(it);
+      if (w.coord) { const d = metres(it.lat, it.lng, w.coord.lat, w.coord.lon); if (d < 1500) { r.lat = w.coord.lat; r.lng = w.coord.lon; r.posOk = true; } }
+      if (w.image) r.photo = await commonsPhoto(w.image).catch(() => null);
+      r.page = w.page;
+    } catch { r.err = true; }
+    return r;
+  }));
+  const towns = [...new Set(rows.map((r) => r.town))];
+  box.innerHTML = `<div class="card"><p><b>${rows.length}</b> curiosità pronte in ${towns.join(', ')}. Testi scritti per Ubi; foto solo con licenza libera da Wikimedia Commons, con il credito già sotto il testo.</p>
+      <p class="muted small">✓ posizione presa da Wikipedia · ⚠️ posizione approssimativa: dopo averlo creato, apri il pin e spostalo con «Modifica». I pin sono pubblici, si sbloccano entro 80 m e hanno i tag #curiosità e il nome del paese.</p>
+      <button class="accent full" id="seedgo">Crea i pin selezionati</button><div id="seedmsg"></div></div>
+    ${towns.map((t) => `<h2>${esc(t)}</h2>${rows.map((r, i) => r.town !== t ? '' : `<div class="card seedrow">
+      <label class="inline"><input type="checkbox" data-i="${i}" ${r.done ? 'disabled' : 'checked'}><span><b>${esc(r.title)}</b>${r.done ? ' · <span class="muted">già creato</span>' : ''}</span></label>
+      ${r.photo ? `<img src="${esc(r.photo.url)}" alt="" loading="lazy" style="max-height:140px;width:auto;border-radius:10px;margin-top:6px">` : '<p class="muted small">Nessuna foto libera trovata: diventa un pin di solo testo.</p>'}
+      <p class="small">${r.posOk ? '✓' : '⚠️'} <a href="https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}" target="_blank" rel="noopener">${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}</a>${r.page ? ` · Wikipedia: ${esc(r.page)}` : ''}</p>
+      <p class="muted small">${esc(r.hint)}</p></div>`).join('')}`).join('')}`;
+  $('#seedgo').onclick = async () => {
+    const pick = [...box.querySelectorAll('input[data-i]:checked')].map((x) => rows[+x.dataset.i]);
+    if (!pick.length) return msg($('#seedmsg'), 'Seleziona almeno una curiosità.');
+    $('#seedgo').disabled = true; let ok = 0; const bad = [];
+    for (const r of pick) {
+      msg($('#seedmsg'), `Creo «${r.title}» (${ok + bad.length + 1} di ${pick.length})…`, 'info');
+      try {
+        let file = null;
+        if (r.photo) {
+          const res = await fetch(r.photo.url); if (!res.ok) throw new Error('foto non scaricabile');
+          file = new File([await fitImage(await res.blob(), 1600)], 'foto.jpg', { type: 'image/jpeg' });
+        }
+        const text = r.photo ? `${r.text}\n\n${r.photo.credit} – ${r.photo.page}` : r.text;
+        await B.create({
+          title: r.title, hint: r.hint, media_type: file ? 'photo' : 'text', file, text_body: text.slice(0, 2000),
+          lat: r.lat, lng: r.lng, radius: 80, source: 'coordinates', visibility: 'public', recipients: [],
+          tags: ['curiosità', r.town.toLowerCase().replace(/[^a-zà-ù0-9 ]/g, '').slice(0, 24)], replies_enabled: true,
+        });
+        ok++; box.querySelector(`input[data-i="${rows.indexOf(r)}"]`).disabled = true;
+      } catch (e) { bad.push(`${r.title}: ${errText(e)}`); }
+    }
+    $('#seedgo').disabled = false;
+    msg($('#seedmsg'), `${ok} pin creati.${bad.length ? ' Non riusciti: ' + bad.join(' · ') : ''}`, bad.length ? 'err' : 'ok');
+  };
 }
 async function adminUsersTab(box) {
   const rows = await B.adminUsers();
