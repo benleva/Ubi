@@ -1,10 +1,10 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611181630';
-import { LOC, startI18n } from './i18n.js?v=202611181630';
+import { CONFIG } from './config.js?v=202611181635';
+import { LANG, LOC, startI18n } from './i18n.js?v=202611181635';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.48';
+const APP_VERSION = 'v.49';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -183,7 +183,7 @@ async function supabaseBackend() {
       if (res.error) { await sb.storage.from('media').remove([media_path]); throw res.error; }
     },
     async notifyRecipients(slug) {
-      const { data, error } = await sb.functions.invoke(CONFIG.NOTIFY_FUNCTION || 'notify-recipients', { body: { slug } });
+      const { data, error } = await sb.functions.invoke(CONFIG.NOTIFY_FUNCTION || 'notify-recipients', { body: { slug, lang: LANG } });
       if (error) {   // leggo il motivo vero restituito dalla funzione
         let detail = error.message;
         try { const b = await error.context.json(); detail = b.error || JSON.stringify(b); } catch { try { detail = await error.context.text() || detail; } catch { /* resta il messaggio */ } }
@@ -321,7 +321,7 @@ async function supabaseBackend() {
       const res = await sb.rpc('add_reply', { p_id: id, p_slug: slug, p_media_type: d.media_type, p_media_path: path, p_text: d.text || null, p_duration: d.duration ?? null });
       if (res.error) { if (path) await sb.storage.from('media').remove([path]); throw res.error; }
       let mailed = false;
-      try { const r = await sb.functions.invoke(CONFIG.REPLY_FUNCTION || 'notify-reply', { body: { reply_id: id } }); mailed = !r.error && r.data?.sent === 1; } catch { /* l'email è un extra */ }
+      try { const r = await sb.functions.invoke(CONFIG.REPLY_FUNCTION || 'notify-reply', { body: { reply_id: id, lang: LANG } }); mailed = !r.error && r.data?.sent === 1; } catch { /* l'email è un extra */ }
       return { id, mailed };
     },
     async repliesFor(slug) {
@@ -1400,20 +1400,27 @@ async function viewNew(ed = null, opts = {}) {
 }
 
 // Email già scritta da mandare con la propria app di posta (destinatari in copia nascosta).
+// In due lingue: prima quella dell'app, poi l'altra (non sappiamo che lingua parla chi la riceve).
 function mailtoHref({ recipients, title, hint, slug, author }) {
   const url = shareUrl(slug);
-  const body = [
-    'Ciao!',
-    '',
+  const it = [
+    'Ciao!', '',
     `${author || 'Un amico'} ha lasciato per te un contenuto su Ubi: «${title}».`,
-    hint ? `Indizio: ${hint}` : null,
-    '',
-    'Si apre solo quando arrivi sul posto. Apri il link qui sotto per vedere dov\'è:',
-    url,
-    '',
+    hint ? `Indizio: ${hint}` : null, '',
+    'Si apre solo quando arrivi sul posto. Apri il link qui sotto per vedere dov\'è:', url, '',
     'Per aprirlo accedi a Ubi con questo indirizzo email (la prima volta: "Registrati").',
-  ].filter((x) => x !== null).join('\n');
-  return `mailto:?bcc=${encodeURIComponent(recipients.join(','))}&subject=${encodeURIComponent(`📍 ${author || 'Qualcuno'} ha lasciato qualcosa per te su Ubi`)}&body=${encodeURIComponent(body)}`;
+  ];
+  const en = [
+    'Hi!', '',
+    `${author || 'A friend'} left something for you on Ubi: «${title}».`,
+    hint ? `Hint: ${hint}` : null, '',
+    'It only opens when you get there. Open the link below to see where it is:', url, '',
+    'To open it, log in to Ubi with this email address (the first time: "Sign up").',
+  ];
+  const [a, b] = LANG === 'en' ? [en, it] : [it, en];
+  const body = [...a, '', '———', '', ...b].filter((x) => x !== null).join('\n');
+  const subject = LANG === 'en' ? `📍 ${author || 'Someone'} left something for you on Ubi` : `📍 ${author || 'Qualcuno'} ha lasciato qualcosa per te su Ubi`;
+  return `mailto:?bcc=${encodeURIComponent(recipients.join(','))}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 function emailCard(info) {
   return `<div class="card" id="mailcard"><h2>📧 Avvisa i destinatari via email</h2>

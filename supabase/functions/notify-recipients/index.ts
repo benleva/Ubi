@@ -1,6 +1,7 @@
 // @ts-nocheck
 // UBI — Funzione "notify-recipients": avvisa via email (Brevo) i destinatari di un pin privato.
-// Chiamata dall'app dopo il salvataggio. Controlla che chi chiama sia il proprietario del pin,
+// Chiamata dall'app dopo il salvataggio (riceve slug e lang: 'it' o 'en', la lingua di chi ha creato il pin).
+// L'email è in due lingue: prima quella di chi ha creato il pin, poi l'altra. Controlla che chi chiama sia il proprietario del pin,
 // non riscrive a chi è già stato avvisato o a chi si è disiscritto, max 100 avvisi al giorno per utente.
 //
 // Segreti da impostare in Supabase (Edge Functions > Secrets):
@@ -24,20 +25,58 @@ async function sign(text) {
   return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
 }
 
-function emailHtml({ author, title, hint, link, unsub }) {
-  return `<!DOCTYPE html><html lang="it"><body style="margin:0;background:#f6f3ee;font-family:Arial,Helvetica,sans-serif;color:#1b2430">
+// Testi in italiano e in inglese: l'email li contiene entrambi, prima la lingua di chi ha creato il pin.
+const T = {
+  it: {
+    friend: 'Un amico',
+    lead: (a) => `<b>${esc(a)}</b> ha lasciato qualcosa per te in un luogo speciale:`,
+    hint: 'Indizio',
+    open: 'Si apre solo quando arrivi sul posto con il telefono. Tocca il pulsante per vedere dov\'è.',
+    btn: 'Apri il pin',
+    login: 'Per aprirlo accedi a Ubi con questo indirizzo email (la prima volta: "Registrati").',
+    why: (a) => `Ricevi questa email perché ${esc(a)} ti ha scelto come destinatario su Ubi.`,
+    unsub: 'Non voglio più ricevere avvisi da Ubi',
+    subject: (a) => `📍 ${a} ha lasciato qualcosa per te su Ubi`,
+    text: (a, t, h, link) => `${a} ha lasciato per te un contenuto su Ubi: «${t}».\n${h ? `Indizio: ${h}\n` : ''}Si apre solo sul posto. Apri il pin: ${link}`,
+    noMore: 'Non vuoi più avvisi?',
+  },
+  en: {
+    friend: 'A friend',
+    lead: (a) => `<b>${esc(a)}</b> left something for you in a special place:`,
+    hint: 'Hint',
+    open: 'It only opens when you get there with your phone. Tap the button to see where it is.',
+    btn: 'Open the pin',
+    login: 'To open it, log in to Ubi with this email address (the first time: "Sign up").',
+    why: (a) => `You're receiving this email because ${esc(a)} chose you as a recipient on Ubi.`,
+    unsub: 'I no longer want notifications from Ubi',
+    subject: (a) => `📍 ${a} left something for you on Ubi`,
+    text: (a, t, h, link) => `${a} left something for you on Ubi: «${t}».\n${h ? `Hint: ${h}\n` : ''}It only opens on the spot. Open the pin: ${link}`,
+    noMore: 'No more notifications?',
+  },
+};
+
+function block(L, { name, title, hint, link }) {
+  const a = name || L.friend;
+  return `<p style="font-size:17px;margin:0 0 12px">${L.lead(a)}</p>
+      <p style="font-size:21px;font-weight:bold;margin:0 0 12px">«${esc(title)}»</p>
+      ${hint ? `<p style="background:#eef3f9;color:#1f3a5f;padding:10px 12px;border-radius:10px;margin:0 0 14px">${L.hint}: ${esc(hint)}</p>` : ''}
+      <p style="margin:0 0 18px">${L.open}</p>
+      <a href="${esc(link)}" style="display:block;text-align:center;background:#e8743b;color:#fff;text-decoration:none;font-weight:bold;font-size:17px;padding:14px;border-radius:12px">${L.btn}</a>
+      <p style="font-size:13px;color:#687385;margin:16px 0 0">${L.login}</p>`;
+}
+
+function emailHtml({ name, title, hint, link, unsub, langs }) {
+  const [A, B] = langs.map((l) => T[l]);
+  return `<!DOCTYPE html><html lang="${langs[0]}"><body style="margin:0;background:#f6f3ee;font-family:Arial,Helvetica,sans-serif;color:#1b2430">
   <div style="max-width:520px;margin:0 auto;padding:24px">
     <div style="background:#1f3a5f;color:#fff;padding:16px 20px;border-radius:14px 14px 0 0;font-size:22px;font-weight:bold">📍 Ubi</div>
     <div style="background:#fff;padding:22px 20px;border-radius:0 0 14px 14px;border:1px solid #e4ded4;border-top:0">
-      <p style="font-size:17px;margin:0 0 12px"><b>${esc(author)}</b> ha lasciato qualcosa per te in un luogo speciale:</p>
-      <p style="font-size:21px;font-weight:bold;margin:0 0 12px">«${esc(title)}»</p>
-      ${hint ? `<p style="background:#eef3f9;color:#1f3a5f;padding:10px 12px;border-radius:10px;margin:0 0 14px">Indizio: ${esc(hint)}</p>` : ''}
-      <p style="margin:0 0 18px">Si apre solo quando arrivi sul posto con il telefono. Tocca il pulsante per vedere dov'è.</p>
-      <a href="${esc(link)}" style="display:block;text-align:center;background:#e8743b;color:#fff;text-decoration:none;font-weight:bold;font-size:17px;padding:14px;border-radius:12px">Apri il pin</a>
-      <p style="font-size:13px;color:#687385;margin:16px 0 0">Per aprirlo accedi a Ubi con questo indirizzo email (la prima volta: "Registrati").</p>
+      ${block(A, { name, title, hint, link })}
+      <hr style="border:0;border-top:1px solid #e4ded4;margin:22px 0" lang="${langs[1]}">
+      <div lang="${langs[1]}">${block(B, { name, title, hint, link })}</div>
     </div>
-    <p style="font-size:12px;color:#687385;text-align:center;margin:14px 0 0">Ricevi questa email perché ${esc(author)} ti ha scelto come destinatario su Ubi.<br>
-      <a href="${esc(unsub)}" style="color:#687385">Non voglio più ricevere avvisi da Ubi</a></p>
+    <p style="font-size:12px;color:#687385;text-align:center;margin:14px 0 0">${A.why(name || A.friend)}<br>${B.why(name || B.friend)}<br>
+      <a href="${esc(unsub)}" style="color:#687385">${A.unsub} · ${B.unsub}</a></p>
   </div></body></html>`;
 }
 
@@ -54,7 +93,8 @@ Deno.serve(async (req) => {
     if (uerr || !user) return json({ error: 'Accesso richiesto' }, 401);
 
     // 2) il pin è suo ed è riservato?
-    const { slug } = await req.json().catch(() => ({}));
+    const { slug, lang } = await req.json().catch(() => ({}));
+    const langs = lang === 'en' ? ['en', 'it'] : ['it', 'en'];
     if (!slug) return json({ error: 'slug mancante' }, 400);
     const { data: c } = await admin.from('contents').select('id, owner_id, title, hint, share_slug, visibility').eq('share_slug', slug).maybeSingle();
     if (!c || c.owner_id !== user.id) return json({ error: 'Non autorizzato' }, 403);
@@ -82,7 +122,8 @@ Deno.serve(async (req) => {
 
     // 5) invio con Brevo, una email per persona (nessuno vede gli indirizzi degli altri)
     const { data: prof } = await admin.from('profiles').select('display_name').eq('id', user.id).maybeSingle();
-    const author = prof?.display_name || 'Un amico';
+    const name = prof?.display_name || '';
+    const A = T[langs[0]], B = T[langs[1]];
     const appUrl = Deno.env.get('UBI_APP_URL') || 'https://benleva.github.io/Ubi/';
     const link = `${appUrl.replace(/#.*$/, '')}#/c/${c.share_slug}`;
     let sent = 0; const failed = [];
@@ -95,9 +136,9 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           sender: { email: Deno.env.get('BREVO_SENDER_EMAIL'), name: Deno.env.get('BREVO_SENDER_NAME') || 'Ubi' },
           to: [{ email }],
-          subject: `📍 ${author} ha lasciato qualcosa per te su Ubi`,
-          htmlContent: emailHtml({ author, title: c.title, hint: c.hint, link, unsub }),
-          textContent: `${author} ha lasciato per te un contenuto su Ubi: «${c.title}».\n${c.hint ? `Indizio: ${c.hint}\n` : ''}Si apre solo sul posto. Apri il pin: ${link}\n\nNon vuoi più avvisi? ${unsub}`,
+          subject: A.subject(name || A.friend),
+          htmlContent: emailHtml({ name, title: c.title, hint: c.hint, link, unsub, langs }),
+          textContent: `${A.text(name || A.friend, c.title, c.hint, link)}\n\n———\n\n${B.text(name || B.friend, c.title, c.hint, link)}\n\n${A.noMore} / ${B.noMore} ${unsub}`,
           headers: { 'List-Unsubscribe': `<${unsub}>` },
         }),
       });

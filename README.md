@@ -82,4 +82,6 @@ Per aggiungere altri paesi basta aggiungere voci al file (title, hint, text, wik
 - I testi dell'interfaccia sono tradotti da `i18n.js`, un dizionario italiano → inglese. Se compare una frase non tradotta, aggiungila lì: `['testo italiano esatto', 'English text']`.
 - Non si traducono i contenuti degli utenti (titoli, indizi, testi, messaggi, nomi), le curiosità e i tag.
 - In inglese il link Privacy apre `privacy-en.html`. Se cambi `privacy.html`, aggiorna anche la versione inglese.
-- Restano in italiano: le pagine dell'amministratore e le email automatiche inviate dal server.
+- Le email agli utenti sono in **due lingue**: prima quella di chi le fa partire (chi crea il pin o chi risponde), poi l'altra. Vale per l'avviso ai destinatari (`notify-recipients`, su Supabase si chiama `quick-action`), l'avviso di risposta (`notify-reply`) e l'email scritta con la propria app di posta. Dopo una modifica alle funzioni, ricopia il codice in Supabase › Edge Functions e premi Deploy.
+- Le email di Supabase (conferma iscrizione, nuova password, link di accesso): modelli bilingui in `supabase/email-templates/`, istruzioni in `LEGGIMI.md` nella stessa cartella.
+- Restano in italiano: le pagine dell'amministratore e l'avviso dei nuovi iscritti (arrivano solo a te).
