@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180741';
+import { CONFIG } from './config.js?v=202611180744';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.41';
+const APP_VERSION = 'v.42';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -782,8 +782,8 @@ const tagFilter = new Set();   // tag selezionati nella nuvola della mappa
 // Nessun bottone acceso = si vede tutto. Accendi uno o più bottoni per vedere solo quelle categorie.
 const showCats = new Set();
 let onlyMine = false;   // «Miei»: acceso mostra solo i miei
-// un pin può stare in più categorie: un monumento con foto è sia «Monumenti» sia «Immagine»
-const pinIs = (c, k) => (k === 'monu' ? isMonu(c) : k === 'lit' ? isLit(c) : k === 'dating' ? !!c.is_dating : c.media_type === k);
+// ogni pin sta in UNA sola categoria: monumenti e scrittori hanno il loro bottone, anche se hanno una foto
+const pinCat = (c) => (c.is_dating ? 'dating' : isLit(c) ? 'lit' : isMonu(c) ? 'monu' : c.media_type);
 async function homeMap(opts = {}) {
   const el = $('#hmap');
   await waitLeaflet();
@@ -802,7 +802,7 @@ async function homeMap(opts = {}) {
     // filtri: categoria scelta (nessuna = tutte) E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
     const shown = rows.filter((c) =>
       (!opts.dating || c.is_dating) &&
-      (opts.dating || !showCats.size || [...showCats].some((k) => pinIs(c, k))) &&
+      (opts.dating || !showCats.size || showCats.has(pinCat(c))) &&
       (opts.dating || !onlyMine || c.is_owner) &&
       (!tagFilter.size || (c.tags || []).some((t) => tagFilter.has(t))));
     document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'mine' ? onlyMine : showCats.has(b.dataset.k)));
@@ -833,7 +833,7 @@ async function homeMap(opts = {}) {
     if (k === 'mine') onlyMine = !onlyMine;
     else if (showCats.has(k)) showCats.delete(k); else showCats.add(k);
     const n = draw();
-    msg($('#mm'), rows.length && !n ? 'Nessun contenuto con questi filtri in questa zona.' : '', 'info');
+    msg($('#mm'), rows.length && !n ? 'Nessun pin di questo tipo in questa zona. Monumenti e scrittori si vedono solo con i loro bottoni (o con tutti i bottoni spenti).' : '', 'info');
   };
   const load = async () => {
     const b = map.getBounds().pad(0.3);
