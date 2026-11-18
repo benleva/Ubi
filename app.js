@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180729';
+import { CONFIG } from './config.js?v=202611180736';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.38';
+const APP_VERSION = 'v.39';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -778,9 +778,11 @@ function viewNewPassword() {
 // Mappa iniziale: segnaposto dei contenuti che l'utente può vedere nell'area inquadrata.
 let lastView = null;   // ricorda centro e zoom tra una visita e l'altra
 const tagFilter = new Set();   // tag selezionati nella nuvola della mappa
-const typeFilter = new Set();  // tipi selezionati (photo, video, …) e/o 'mine'
-let monuHidden = store.get('ubi_monu_off') === '1';   // «M» spento: niente monumenti sulla mappa
-let litHidden = store.get('ubi_lit_off') === '1';     // «📖» spento: niente luoghi degli scrittori
+// Filtri della mappa: ogni pin appartiene a una sola categoria (Monumenti, Scrittori, Dating o il suo tipo).
+// Tutte accese all'inizio: tocchi un bottone per nascondere quella categoria, lo ritocchi per rimostrarla.
+const hiddenCats = new Set((() => { try { return JSON.parse(store.get('ubi_hidden_cats') || '[]'); } catch { return []; } })());
+let onlyMine = false;   // «Miei»: acceso mostra solo i miei
+const pinCat = (c) => (c.is_dating ? 'dating' : isLit(c) ? 'lit' : isMonu(c) ? 'monu' : c.media_type);
 async function homeMap(opts = {}) {
   const el = $('#hmap');
   await waitLeaflet();
@@ -796,16 +798,13 @@ async function homeMap(opts = {}) {
   let rows = [];
   const draw = () => {
     layer.clearLayers();
-    // filtri: tipo (uno qualsiasi dei selezionati) E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
-    const types = [...typeFilter].filter((k) => k !== 'mine');
+    // filtri: categoria non nascosta E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
     const shown = rows.filter((c) =>
       (!opts.dating || c.is_dating) &&
-      (opts.dating || !types.length || types.includes(c.media_type) || (types.includes('dating') && c.is_dating)) &&
-      (opts.dating || !typeFilter.has('mine') || c.is_owner) &&
-      (opts.dating || !monuHidden || !isMonu(c) || isLit(c)) &&
-      (opts.dating || !litHidden || !isLit(c)) &&
+      (opts.dating || !hiddenCats.has(pinCat(c))) &&
+      (opts.dating || !onlyMine || c.is_owner) &&
       (!tagFilter.size || (c.tags || []).some((t) => tagFilter.has(t))));
-    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'monu' ? !monuHidden : b.dataset.k === 'lit' ? !litHidden : typeFilter.has(b.dataset.k)));
+    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'mine' ? onlyMine : !hiddenCats.has(b.dataset.k)));
     shown.forEach((c) => {
       L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
         .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
@@ -830,9 +829,8 @@ async function homeMap(opts = {}) {
   $('#typebar').onclick = (e) => {
     const b = e.target.closest('button'); if (!b) return;
     const k = b.dataset.k;
-    if (k === 'monu') { monuHidden = !monuHidden; store.set('ubi_monu_off', monuHidden ? '1' : null); }
-    else if (k === 'lit') { litHidden = !litHidden; store.set('ubi_lit_off', litHidden ? '1' : null); }
-    else if (typeFilter.has(k)) typeFilter.delete(k); else typeFilter.add(k);
+    if (k === 'mine') onlyMine = !onlyMine;
+    else { if (hiddenCats.has(k)) hiddenCats.delete(k); else hiddenCats.add(k); store.set('ubi_hidden_cats', hiddenCats.size ? JSON.stringify([...hiddenCats]) : null); }
     const n = draw();
     msg($('#mm'), rows.length && !n ? 'Nessun contenuto con questi filtri in questa zona.' : '', 'info');
   };
