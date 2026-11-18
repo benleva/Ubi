@@ -52,6 +52,10 @@ Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 - I file stanno in un bucket privato e sono scaricabili solo dopo uno sblocco registrato (link firmato valido 1 ora).
 - Limite noto: chi falsifica il GPS del telefono può aggirare la distanza. Rischio accettato per l'MVP.
 
+## Mappa con tanti pin (18/11/2026)
+
+1. SQL Editor: eseguire `supabase/migrations/20261118080000_mappa_priorita.sql` (prima i pin degli utenti, poi monumenti e scrittori; fino a 1500 per zona).
+
 ## Curiosità pronte (admin)
 
 In Amministrazione › 🗺️ Curiosità trovi i pin di `seed/curiosita.json` (testi scritti per Ubi).

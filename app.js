@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180747';
+import { CONFIG } from './config.js?v=202611180750';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.43';
+const APP_VERSION = 'v.44';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -148,7 +148,7 @@ async function supabaseBackend() {
     },
     async listMine() {
       const u = await B.user();
-      return must(await sb.from('contents').select('id,share_slug,title,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled,unlock_at,open_anywhere,hunt_id,hunt_step')
+      return must(await sb.from('contents').select('id,share_slug,title,hint,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled,unlock_at,open_anywhere,hunt_id,hunt_step')
         .eq('owner_id', u.id).order('created_at', { ascending: false }));
     },
     async create(d) {
@@ -903,9 +903,21 @@ async function viewHome(user, prof) {
   let items;
   try { items = await B.listMine(); } catch (err) { msg($('#list'), errText(err)); return; }
   if (!items.length) { $('#list').innerHTML = '<div class="card center muted">Non hai ancora lasciato nulla.<br>Inizia da un luogo che conta per te.</div>'; return; }
-  $('#list').innerHTML = items.map((c, i) => `
+  // cerca nei miei contenuti: testo (titolo, indizio, tag) + categoria
+  const CATS = [['all', 'Tutti'], ...Object.entries(TYPES).map(([k, x]) => [k, x.n]), ['monu', 'Monumenti'], ['lit', 'Scrittori'], ['dating', 'Dating']];
+  const cnt = { all: items.length }; items.forEach((c) => { const k = pinCat(c); cnt[k] = (cnt[k] || 0) + 1; });
+  let cat = 'all';
+  $('#list').innerHTML = `<input id="mysearch" type="search" placeholder="🔍 Cerca nei miei contenuti (titolo, indizio, #tag)" autocomplete="off">
+    <div class="chips" id="mycats" style="margin:8px 0">${CATS.filter(([k]) => k === 'all' || cnt[k]).map(([k, n]) => `<button class="chip${k === 'all' ? ' on' : ''}" data-c="${k}">${esc(n)}<span class="n">${cnt[k] || 0}</span></button>`).join('')}</div>
+    <p class="muted small" id="mycount"></p><div id="myitems"></div>`;
+  const drawMine = () => {
+    const q = $('#mysearch').value.trim().toLowerCase().replace(/^#/, '');
+    const vis = items.map((c, i) => [c, i]).filter(([c]) => (cat === 'all' || pinCat(c) === cat) &&
+      (!q || `${c.title} ${c.hint || ''} ${(c.tags || []).join(' ')}`.toLowerCase().includes(q)));
+    $('#mycount').textContent = `${vis.length} di ${items.length} contenuti`;
+    $('#myitems').innerHTML = vis.slice(0, 200).map(([c, i]) => `
     <div class="card" data-i="${i}">
-      <div class="item"><div class="ico">${c.is_dating ? datingBadge(prof.dating_gender) : badge(c.media_type)}</div>
+      <div class="item"><div class="ico">${c.is_dating ? datingBadge(prof.dating_gender) : pinBadge(c)}</div>
         <div><div class="t">${esc(c.title)}</div>
         <div class="meta">${c.is_dating ? '💗 Dating · ' : ''}${VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString('it-IT')}</div></div></div>
       ${tagChips(c.tags)}
@@ -914,9 +926,13 @@ async function viewHome(user, prof) {
         <a class="btn ghost" href="#/c/${esc(c.share_slug)}">Apri</a>
         <a class="btn ghost" href="#/edit/${esc(c.share_slug)}">Modifica</a>
         <button class="danger" data-a="del">Elimina</button>
-      </div></div>`).join('');
+      </div></div>`).join('') + (vis.length > 200 ? '<p class="muted small center">Ne mostro 200: scrivi qualcosa nella ricerca per trovare gli altri.</p>' : '');
+  };
+  $('#mysearch').oninput = drawMine;
+  $('#mycats').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; cat = b.dataset.c; $('#mycats').querySelectorAll('.chip').forEach((x) => x.classList.toggle('on', x === b)); drawMine(); };
+  drawMine();
   $('#list').onclick = async (e) => {
-    const b = e.target.closest('button'); if (!b) return;
+    const b = e.target.closest('button'); if (!b || !b.closest('.card[data-i]')) return;
     const c = items[+b.closest('.card').dataset.i];
     if (b.dataset.a === 'share') return shareSheet(c.title, c.share_slug, b.closest('.card'));
     if (b.dataset.a === 'del') {
