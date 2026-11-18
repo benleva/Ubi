@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180556';
+import { CONFIG } from './config.js?v=202611180609';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.26';
+const APP_VERSION = 'v.27';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1699,6 +1699,22 @@ async function commonsPhoto(name) {
   if (!/^(cc|public domain|pd|pubblico dominio)/i.test(lic)) return null;   // solo licenze libere
   return { url: ii.thumburl || ii.url, page: ii.descriptionurl, credit: `Foto: ${stripHtml(m.Artist?.value) || 'autore su Wikimedia Commons'}, ${lic}, via Wikimedia Commons` };
 }
+// Posizione da OpenStreetMap (Nominatim): una richiesta al secondo, come chiede il servizio
+let osmLast = 0;
+async function osmFind(q) {
+  let cache = {}; try { cache = JSON.parse(localStorage.getItem('ubi_osm_cache') || '{}'); } catch { /* niente cache */ }
+  if (q in cache) return cache[q];
+  const res = await osmFetch(q);
+  cache[q] = res; try { localStorage.setItem('ubi_osm_cache', JSON.stringify(cache)); } catch { /* pazienza */ }
+  return res;
+}
+async function osmFetch(q) {
+  const wait = 1100 - (Date.now() - osmLast); if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  osmLast = Date.now();
+  const u = new URL('https://nominatim.openstreetmap.org/search'); u.searchParams.set('q', q); u.searchParams.set('format', 'json'); u.searchParams.set('limit', '1'); u.searchParams.set('countrycodes', 'it');
+  const r = await fetch(u, { headers: { 'Accept-Language': 'it' } }); if (!r.ok) return null;
+  const j = await r.json(); return j[0] ? { lat: +j[0].lat, lng: +j[0].lon } : null;
+}
 async function adminSeedTab(box) {
   box.innerHTML = '<div class="card"><p class="muted">Carico le curiosità e cerco foto e posizioni su Wikipedia…</p></div>';
   const items = await (await fetch('./seed/curiosita.json?v=' + Date.now())).json();
@@ -1710,22 +1726,28 @@ async function adminSeedTab(box) {
   const rows = await Promise.all(items.map((it) => pool(async () => {
     const r = { ...it, lat0: it.lat, lng0: it.lng, done: mine.has(it.title) };
     try {
-      const w = await wikiPage(it);
-      if (w.coord) { const d = metres(it.lat, it.lng, w.coord.lat, w.coord.lon); if (d < 1500) { r.lat = w.coord.lat; r.lng = w.coord.lon; r.posOk = true; } }
-      if (w.image) r.photo = await commonsPhoto(w.image).catch(() => null);
-      r.page = w.page;
+      const w = it.wiki ? await wikiPage(it) : { page: null };
+      const townPage = w.page && w.page.toLowerCase() === it.town.toLowerCase();   // pagina del paese: niente foto né posizione
+      if (w.coord && !townPage) { const d = metres(it.lat, it.lng, w.coord.lat, w.coord.lon); if (d < 1500) { r.lat = w.coord.lat; r.lng = w.coord.lon; r.posOk = true; } }
+      if (w.image && !townPage) r.photo = await commonsPhoto(w.image).catch(() => null);
+      r.page = townPage ? null : w.page;
     } catch { r.err = true; }
     doneN++; if (doneN % 10 === 0) box.innerHTML = `<div class="card"><p class="muted">Cerco foto e posizioni su Wikipedia… ${doneN} di ${items.length}</p></div>`;
     return r;
   })));
+  const needOsm = rows.filter((r) => !r.posOk && r.osm && !r.done);
+  for (const [k, r] of needOsm.entries()) {
+    box.innerHTML = `<div class="card"><p class="muted">Cerco le posizioni su OpenStreetMap… ${k + 1} di ${needOsm.length}</p></div>`;
+    try { const o = await osmFind(r.osm); if (o && metres(r.lat, r.lng, o.lat, o.lng) < 4000) { r.lat = o.lat; r.lng = o.lng; r.posOk = true; r.posOsm = true; } } catch { /* resta la posizione approssimativa */ }
+  }
   const towns = [...new Set(rows.map((r) => r.town))];
   box.innerHTML = `<div class="card"><p><b>${rows.length}</b> curiosità pronte in ${towns.join(', ')}. Testi scritti per Ubi; foto solo con licenza libera da Wikimedia Commons, con il credito già sotto il testo.</p>
-      <p class="muted small">✓ posizione presa da Wikipedia · ⚠️ posizione approssimativa: dopo averlo creato, apri il pin e spostalo con «Modifica». I pin sono pubblici, si sbloccano entro 80 m e hanno i tag #curiosità e il nome del paese.</p>
+      <p class="muted small">✓ posizione presa da Wikipedia o da OpenStreetMap (© OpenStreetMap contributors) · ⚠️ posizione approssimativa: dopo averlo creato, apri il pin e spostalo con «Modifica». I pin sono pubblici, si sbloccano entro 80 m e hanno i tag #curiosità e il nome del paese.</p>
       <button class="accent full" id="seedgo">Crea i pin selezionati</button><div id="seedmsg"></div></div>
     ${towns.map((t) => `<h2 class="row" style="justify-content:space-between;align-items:center">${esc(t)} <button class="ghost small" type="button" data-town="${esc(t)}">Tutti / nessuno</button></h2>${rows.map((r, i) => r.town !== t ? '' : `<div class="card seedrow">
       <label class="inline"><input type="checkbox" data-i="${i}" ${r.done ? 'disabled' : 'checked'}><span><b>${esc(r.title)}</b>${r.done ? ' · <span class="muted">già creato</span>' : ''}</span></label>
       ${r.photo ? `<img src="${esc(r.photo.url)}" alt="" loading="lazy" style="max-height:140px;width:auto;border-radius:10px;margin-top:6px">` : '<p class="muted small">Nessuna foto libera trovata: diventa un pin di solo testo.</p>'}
-      <p class="small">${r.posOk ? '✓' : '⚠️'} <a href="https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}" target="_blank" rel="noopener">${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}</a>${r.page ? ` · Wikipedia: ${esc(r.page)}` : ''}</p>
+      <p class="small">${r.posOk ? '✓' : '⚠️'} <a href="https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}" target="_blank" rel="noopener">${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}</a>${r.posOsm ? ' · OpenStreetMap' : ''}${r.page ? ` · Wikipedia: ${esc(r.page)}` : ''}</p>
       <p class="muted small">${esc(r.hint)}</p></div>`).join('')}`).join('')}`;
   box.querySelectorAll('button[data-town]').forEach((btn) => { btn.onclick = () => {
     const cbs = [...box.querySelectorAll('input[data-i]:not(:disabled)')].filter((x) => rows[+x.dataset.i].town === btn.dataset.town);
