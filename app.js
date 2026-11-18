@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180540';
+import { CONFIG } from './config.js?v=202611180556';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.25';
+const APP_VERSION = 'v.26';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1703,7 +1703,11 @@ async function adminSeedTab(box) {
   box.innerHTML = '<div class="card"><p class="muted">Carico le curiosità e cerco foto e posizioni su Wikipedia…</p></div>';
   const items = await (await fetch('./seed/curiosita.json?v=' + Date.now())).json();
   const mine = new Set((await B.listMine()).map((c) => c.title));
-  const rows = await Promise.all(items.map(async (it) => {
+  const limit = (n) => { let act = 0; const q = []; const next = () => { if (act >= n || !q.length) return; act++; const [f, ok, ko] = q.shift(); f().then(ok, ko).finally(() => { act--; next(); }); };
+    return (f) => new Promise((ok, ko) => { q.push([f, ok, ko]); next(); }); };
+  const pool = limit(6);   // poche richieste alla volta, per non sovraccaricare Wikipedia
+  let doneN = 0;
+  const rows = await Promise.all(items.map((it) => pool(async () => {
     const r = { ...it, lat0: it.lat, lng0: it.lng, done: mine.has(it.title) };
     try {
       const w = await wikiPage(it);
@@ -1711,17 +1715,22 @@ async function adminSeedTab(box) {
       if (w.image) r.photo = await commonsPhoto(w.image).catch(() => null);
       r.page = w.page;
     } catch { r.err = true; }
+    doneN++; if (doneN % 10 === 0) box.innerHTML = `<div class="card"><p class="muted">Cerco foto e posizioni su Wikipedia… ${doneN} di ${items.length}</p></div>`;
     return r;
-  }));
+  })));
   const towns = [...new Set(rows.map((r) => r.town))];
   box.innerHTML = `<div class="card"><p><b>${rows.length}</b> curiosità pronte in ${towns.join(', ')}. Testi scritti per Ubi; foto solo con licenza libera da Wikimedia Commons, con il credito già sotto il testo.</p>
       <p class="muted small">✓ posizione presa da Wikipedia · ⚠️ posizione approssimativa: dopo averlo creato, apri il pin e spostalo con «Modifica». I pin sono pubblici, si sbloccano entro 80 m e hanno i tag #curiosità e il nome del paese.</p>
       <button class="accent full" id="seedgo">Crea i pin selezionati</button><div id="seedmsg"></div></div>
-    ${towns.map((t) => `<h2>${esc(t)}</h2>${rows.map((r, i) => r.town !== t ? '' : `<div class="card seedrow">
+    ${towns.map((t) => `<h2 class="row" style="justify-content:space-between;align-items:center">${esc(t)} <button class="ghost small" type="button" data-town="${esc(t)}">Tutti / nessuno</button></h2>${rows.map((r, i) => r.town !== t ? '' : `<div class="card seedrow">
       <label class="inline"><input type="checkbox" data-i="${i}" ${r.done ? 'disabled' : 'checked'}><span><b>${esc(r.title)}</b>${r.done ? ' · <span class="muted">già creato</span>' : ''}</span></label>
       ${r.photo ? `<img src="${esc(r.photo.url)}" alt="" loading="lazy" style="max-height:140px;width:auto;border-radius:10px;margin-top:6px">` : '<p class="muted small">Nessuna foto libera trovata: diventa un pin di solo testo.</p>'}
       <p class="small">${r.posOk ? '✓' : '⚠️'} <a href="https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}" target="_blank" rel="noopener">${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}</a>${r.page ? ` · Wikipedia: ${esc(r.page)}` : ''}</p>
       <p class="muted small">${esc(r.hint)}</p></div>`).join('')}`).join('')}`;
+  box.querySelectorAll('button[data-town]').forEach((btn) => { btn.onclick = () => {
+    const cbs = [...box.querySelectorAll('input[data-i]:not(:disabled)')].filter((x) => rows[+x.dataset.i].town === btn.dataset.town);
+    const on = !cbs.every((x) => x.checked); cbs.forEach((x) => { x.checked = on; });
+  }; });
   $('#seedgo').onclick = async () => {
     const pick = [...box.querySelectorAll('input[data-i]:checked')].map((x) => rows[+x.dataset.i]);
     if (!pick.length) return msg($('#seedmsg'), 'Seleziona almeno una curiosità.');

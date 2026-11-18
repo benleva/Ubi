@@ -1,56 +1,742 @@
 [
- {"town":"Bergamo","title":"Il Campanone e i 100 rintocchi","hint":"Alle 22 in punto ascolta e conta: arriverai a cento.","wiki":"Campanone (Bergamo)","lat":45.70384,"lng":9.66240,
-  "text":"Ogni sera alle 22 il Campanone, sulla Torre Civica di Piazza Vecchia, suona 100 rintocchi. Un tempo annunciavano il coprifuoco, quando si chiudevano le porte della città: oggi la tradizione continua per ricordarlo.\n\nÈ la campana più grande della Lombardia: circa 5.580 kg e più di due metri di diametro, fusa nel 1656 dopo due tentativi andati male. La torre nacque come casa fortificata della famiglia Suardi e nel Trecento ospitò anche le prigioni della città. Oggi si sale anche in ascensore: dall'alto vedi Piazza Vecchia, Piazza del Duomo e le Prealpi Orobie."},
- {"town":"Bergamo","title":"La meridiana nel pavimento","hint":"Sotto il portico, guarda in basso: c'è qualcosa che funziona col sole.","wiki":"Palazzo della Ragione (Bergamo)","lat":45.70360,"lng":9.66265,
-  "text":"Sotto il portico del Palazzo della Ragione, il passaggio tra Piazza Vecchia e Piazza del Duomo, c'è una meridiana incastonata nel pavimento. La realizzò l'abate Giovanni Albrici alla fine del Settecento; fu restaurata nel 1857 e di nuovo nel 1982. Riporta anche le coordinate e l'altitudine del punto in cui ti trovi.\n\nIl palazzo è citato già nel 1199 ed è considerato il secondo palazzo comunale più antico d'Italia. Il leone di San Marco sulla facciata fu distrutto durante l'occupazione francese e rimesso nel 1933, regalo della città di Venezia."},
- {"town":"Bergamo","title":"Il segreto dello stemma Colleoni","hint":"Un condottiero, un cognome e uno stemma molto... particolare.","wiki":"Cappella Colleoni","lat":45.70318,"lng":9.66240,
-  "text":"Nella Cappella Colleoni lo stemma di famiglia, scolpito sulla base del sarcofago, mostra tre testicoli: un gioco di parole sul cognome, che era anche il grido di battaglia dei Colleoni.\n\nPer secoli i sarcofagi furono trovati vuoti e nacque la leggenda che il corpo fosse stato portato altrove. Solo il 21 novembre 1969 la bara di Bartolomeo Colleoni fu ritrovata nel sarcofago principale; nel 1970, sotto il corpo, spuntò una spada di legno che nessuno ha mai spiegato.\n\nGuarda le finestre ai lati dell'ingresso: hanno la forma di canne di cannone, un omaggio all'artiglieria che si attribuiva a Colleoni."},
- {"town":"Bergamo","title":"Il genio nato sottoterra","hint":"Qui è nato un grande compositore... ma non al piano terra.","wiki":"Casa natale di Gaetano Donizetti","lat":45.70440,"lng":9.65480,
-  "text":"In via Borgo Canale 14 nacque Gaetano Donizetti. La famiglia era povera e viveva nel seminterrato: tre stanze raggiunte da una scala stretta, dove la luce non arrivava. Il padre faceva il custode al Monte di Pietà.\n\nAnni dopo Donizetti scrisse al suo maestro Simone Mayr di essere nato «sotto terra», e scherzò dicendo di esserne poi volato via come un gufo. La casa è monumento nazionale dal 1926 e ai piani di sopra c'è un piccolo museo."},
- {"town":"Bergamo","title":"L'unica porta di marmo rosa","hint":"Delle porte delle Mura, solo una è fatta così.","wiki":"Porta San Giacomo","lat":45.70110,"lng":9.66250,
-  "text":"Tra le porte delle Mura venete, Porta San Giacomo è l'unica costruita con il marmo bianco-rosato di Zandobbio, in Val Cavallina. È degli anni 1592–1593 e fu pensata più per fare colpo su chi arrivava dalla pianura che per difendere la città.\n\nIl leone di San Marco che vedi oggi è dello scultore Piero Brolis ed è stato messo nel 1958: prima al suo posto c'era lo stemma del Regno d'Italia. Dal 9 luglio 2017 le Mura sono Patrimonio dell'Umanità UNESCO."},
-
- {"town":"Clusone","title":"L'orologio che segna le stelle","hint":"Guarda la torre: questo orologio non segna solo le ore.","wiki":"Orologio planetario Fanzago","lat":45.88935,"lng":9.94770,
-  "text":"Sulla torre del Palazzo Comunale c'è l'orologio planetario costruito nel 1583 da Pietro Fanzago. Oltre a ore e minuti mostra i movimenti del sole e della luna, la durata del giorno e della notte, equinozi e solstizi, le costellazioni dello zodiaco e i mesi.\n\nFunziona ancora, e per circa 400 anni è stato caricato a mano ogni giorno. Pietro Fanzago riparò anche l'orologio della torre di Piazza San Marco a Venezia e inventò una macchina per togliere il fango, il «cavafanghi»."},
- {"town":"Clusone","title":"La Morte balla con tutti","hint":"Papi, re, ricchi e poveri: su questa facciata nessuno si salva.","wiki":"Oratorio dei Disciplini (Clusone)","lat":45.88990,"lng":9.94880,
-  "text":"Sulla facciata dell'Oratorio dei Disciplini c'è il grande affresco della morte dipinto intorno al 1485 da Giacomo Borlone de Buschis, pittore di Clusone. È diviso in tre fasce: in alto il Trionfo della Morte e l'incontro dei tre vivi e dei tre morti, al centro la Danza macabra, in basso ciò che resta di dannati e giusti.\n\nNel 1673 una scala e una porta aggiunte rovinarono per sempre una parte del dipinto. Nel 1846 lo storico Gabriele Rosa fu il primo a studiarlo: se passi da Iseo, sul lungolago c'è il suo monumento."},
- {"town":"Clusone","title":"Un pavimento di marmo nero","hint":"Prima di entrare in basilica, guarda dove metti i piedi.","wiki":"Basilica di Santa Maria Assunta (Clusone)","lat":45.88980,"lng":9.94860,
-  "text":"La Basilica di Santa Maria Assunta fu costruita tra il 1688 e il 1698 su progetto di Giovanni Battista Quadrio, architetto della Fabbrica del Duomo di Milano. Fu consacrata il 6 luglio 1711 e nel 1960 papa Giovanni XXIII, bergamasco, la elevò a basilica minore.\n\nEntrando guarda in basso: il pavimento di marmo nero è del 1887. Di fronte alla basilica c'è l'Oratorio dei Disciplini con la sua Danza macabra."},
- {"town":"Clusone","title":"San Rocco, 26 volte","hint":"Conta i santi sulle pareti: sono più di cinquanta.","wiki":"Chiesa dei Santi Defendente e Rocco (Clusone)","search":"Chiesa dei Santi Defendente e Rocco Clusone","lat":45.88800,"lng":9.94600,
-  "text":"Nella chiesa dei Santi Defendente e Rocco, del Quattrocento, gli affreschi ripetono i due santi protettori decine di volte: San Rocco compare 26 volte e San Defendente 25.\n\nLa chiesa nacque come parte di un monastero. Il 2 gennaio 1895, proprio nel giorno della festa di San Defendente, gli abitanti di Clusone la ricomprarono."},
- {"town":"Clusone","title":"Tre sequoie e mille ingranaggi","hint":"Dietro un arco di trionfo c'è un museo del tempo.","wiki":"Palazzo Marinoni Barca","search":"Palazzo Marinoni Barca Clusone","lat":45.88850,"lng":9.94700,
-  "text":"Il portale a forma di arco di trionfo di Palazzo Marinoni Barca porta a un parco con tre sequoie giganti. Dentro c'è il MAT – Museo Arte Tempo, con la collezione Gorla di meccanismi di orologi da torre: perfetto nella città dell'orologio planetario.\n\nUna curiosità in più: Clusone ha il titolo di città dal 12 novembre 1801, e i suoi abitanti sono soprannominati «baradèlli», forse dal castello Baradello di Como, ma l'origine non è sicura."},
-
- {"town":"Lovere","title":"L'ultimo saluto di Canova","hint":"Un padre, un figlio perduto e un amico scultore.","wiki":"Accademia Tadini","lat":45.81270,"lng":10.06980,
-  "text":"Nel giardino dell'Accademia Tadini c'è una cappella costruita apposta per la Stele Tadini, una delle ultime opere di Antonio Canova, scolpita tra il 1819 e il 1821.\n\nÈ dedicata a Faustino, figlio del conte Luigi Tadini e amico di Canova, morto giovane nel 1799 nel crollo di un edificio. Dopo la tragedia il conte rimase lontano da Lovere per molto tempo; poi tornò e costruì attorno alla cappella il palazzo che ospita ancora la sua collezione, uno dei musei più antichi della Lombardia."},
- {"town":"Lovere","title":"La chiesa otto metri più in basso","hint":"Per entrare in questa basilica devi scendere.","wiki":"Basilica di Santa Maria in Valvendra","lat":45.81500,"lng":10.06800,
-  "text":"La Basilica di Santa Maria in Valvendra sta circa otto metri sotto il livello della strada, su un terrazzamento sopra il torrente Valvendra. Fu costruita tra il 1473 e il 1483: nata gotica, fu finita in stile rinascimentale.\n\nIn epoca napoleonica ci tennero i cavalli dell'esercito per almeno sei mesi. Nel 1890 il Comune vendette il battiporta del Quattrocento per pagare le riparazioni: oggi è stato recuperato ed è all'Accademia Tadini. Le ante dell'organo sono dipinte dal Moretto e da Floriano Ferramola."},
- {"town":"Lovere","title":"Le due sante di Lovere","hint":"Due ragazze di qui hanno fondato un ordine conosciuto nel mondo.","wiki":"Santuario delle Sante Bartolomea Capitanio e Vincenza Gerosa","search":"Santuario Capitanio Gerosa Lovere","lat":45.81250,"lng":10.07000,
-  "text":"Questo santuario neogotico, costruito negli anni Venti del Novecento, custodisce i resti di Bartolomea Capitanio e Vincenza Gerosa, due donne di Lovere.\n\nNel 1832 fondarono insieme l'istituto delle Suore di Carità, oggi conosciute come Suore di Maria Bambina."},
- {"town":"Lovere","title":"Una torre dentro una chiesa","hint":"Questa torre è più vecchia della chiesa che la contiene.","wiki":"Torre Soca","search":"Torre Soca Lovere","lat":45.81350,"lng":10.07050,
-  "text":"La Torre Soca è una casa-torre del Duecento della famiglia Celeri, poi inglobata nella chiesa di San Giorgio, documentata già nel 1263.\n\nCuriosità: sempre i Celeri di Lovere possedettero fino al 1585 il castello di Iseo, sull'altra sponda del lago, poi lo donarono ai frati Cappuccini."},
- {"town":"Lovere","title":"Il «nuovo Canova»","hint":"Sul lungolago, una statua racconta un'amicizia tra scultori.","wiki":"Giovanni Maria Benzoni","lat":45.81240,"lng":10.06960,
-  "text":"Nel giardino sul lago, di fronte all'Accademia Tadini, c'è la statua del conte Luigi Tadini scolpita da Giovanni Maria Benzoni. Il conte aveva notato il talento di Benzoni quando gli fece copiare la Stele di Canova, e gli pagò gli studi.\n\nBenzoni diventò famoso a Roma, dove i collezionisti lo chiamavano «il nuovo Canova», e ricambiò il suo primo mecenate con questa statua."},
-
- {"town":"Iseo","title":"Il primo Garibaldi in piedi","hint":"Questa statua ha un primato mondiale.","wiki":"Monumento a Giuseppe Garibaldi (Iseo)","search":"Monumento Garibaldi Iseo","lat":45.65880,"lng":10.05080,
-  "text":"La statua di Giuseppe Garibaldi in piazza fu inaugurata nel 1883, un anno dopo la morte dell'eroe, ed è opera dello scultore Pietro Bordini. È considerata la prima statua non equestre dedicata a Garibaldi al mondo.\n\nA presentarla fu Gabriele Rosa, storico di Iseo: il suo monumento è sul lungolago."},
- {"town":"Iseo","title":"Un campanile in mezzo alla facciata","hint":"Questa chiesa ha il campanile nel posto più strano.","wiki":"Pieve di Sant'Andrea (Iseo)","lat":45.65940,"lng":10.04990,
-  "text":"La Pieve di Sant'Andrea ha il campanile al centro della facciata, e dentro il campanile c'è un piccolo oratorio. La tradizione ne attribuisce la fondazione al vescovo Vigilio di Brescia, tra V e VI secolo; la chiesa che vedi nasce nell'XI secolo.\n\nA destra del campanile è murata l'arca di Giacomo III Oldofredi, morto nel 1325: fu podestà di Milano e fece costruire le mura di Iseo. Il nome Iseo potrebbe venire da un tempio dedicato a Ercole e Iside. Dentro c'è un San Michele di Francesco Hayez del 1839."},
- {"town":"Iseo","title":"Il castello che non era degli Oldofredi","hint":"Si chiama come una famiglia... che forse non l'ha mai avuto.","wiki":"Castello Oldofredi","lat":45.65850,"lng":10.05300,
-  "text":"Il Castello Oldofredi esisteva già nel IX–X secolo e apparteneva al monastero di Santa Giulia di Brescia. Federico Barbarossa lo fece distruggere nel 1161 o 1162; fu ricostruito con quattro torri e un fossato scavato nella roccia.\n\nNonostante il nome, nessun documento prova che gli Oldofredi lo possedessero. Fino al 1585 fu della famiglia Celeri di Lovere, che lo donò ai frati Cappuccini: furono loro ad abbassare le torri. Oggi ospita la biblioteca comunale."},
- {"town":"Iseo","title":"Un'altra Danza macabra","hint":"Non solo Clusone: anche qui la Morte danza.","wiki":"Chiesa di San Silvestro (Iseo)","search":"Chiesa di San Silvestro Iseo","lat":45.66000,"lng":10.04800,
-  "text":"Anche Iseo ha la sua Danza macabra, nella chiesa di San Silvestro. Rappresentazioni di questo tipo comparvero nelle chiese di Iseo alla fine del Quattrocento, negli stessi anni del celebre affresco dell'Oratorio dei Disciplini di Clusone.\n\nSe ti piacciono queste storie, la prossima tappa è Clusone."},
- {"town":"Iseo","title":"Lo storico che scoprì la Danza di Clusone","hint":"Sul lungolago, un monumento a chi amava le storie antiche.","wiki":"Gabriele Rosa","lat":45.65850,"lng":10.05000,
-  "text":"Sul lungolago c'è il monumento a Gabriele Rosa, opera dello scultore Ettore Ferrari, con figure allegoriche. Rosa, storico e patriota di Iseo, nel 1846 fu il primo a studiare gli affreschi dell'Oratorio dei Disciplini di Clusone.\n\nNel 1883 fu lui a presentare la statua di Garibaldi in piazza, la prima statua non equestre di Garibaldi al mondo."},
-
- {"town":"Sarnico","title":"La villa nata da una filanda","hint":"Una vecchia filanda trasformata in un sogno Liberty.","wiki":"Villa Faccanoni (Sarnico)","search":"Villa Giuseppe Faccanoni Sarnico Sommaruga","lat":45.67050,"lng":9.96250,
-  "text":"Villa Giuseppe Faccanoni, in via Vittorio Veneto 56, fu ricavata nel 1907 da una vecchia filanda dall'architetto Giuseppe Sommaruga, uno dei protagonisti del Liberty italiano. Già allora aveva tapparelle, termosifoni, acqua corrente e luce elettrica.\n\nIl parco segue linee curve, quasi senza angoli retti. È una proprietà privata: la vista migliore è dal lago."},
- {"town":"Sarnico","title":"Il fondale del cimitero","hint":"Un capolavoro Liberty dove non te lo aspetti.","wiki":"Mausoleo Faccanoni","search":"Mausoleo Faccanoni Sarnico","lat":45.67400,"lng":9.95800,
-  "text":"Il Mausoleo Faccanoni, del 1907, è opera di Giuseppe Sommaruga e fa da scenografico fondale al cimitero di Sarnico. Il cancello della cripta, in bronzo e ferro battuto, e i lampadari li disegnò lo stesso architetto.\n\nSarnico è il paese con più edifici di Sommaruga: tre ville per i fratelli Faccanoni, il mausoleo e l'asilo comunale, ancora in funzione."},
- {"town":"Sarnico","title":"Dove nacque l'Aquarama","hint":"Da qui sono partiti i motoscafi più famosi del mondo.","wiki":"Riva (cantiere navale)","search":"Riva cantiere nautico Sarnico","lat":45.66800,"lng":9.96000,
-  "text":"A metà Ottocento il maestro d'ascia Pietro Riva aprì a Sarnico un piccolo cantiere per riparare le barche dei pescatori. Da lì nacquero alcuni dei motoscafi più famosi del mondo.\n\nNel novembre 1962, al Salone Nautico di Milano, Carlo Riva presentò l'Aquarama: scafo in mogano, motori americani, diventato un simbolo della Dolce Vita. Fu prodotto, nelle sue versioni, fino al 1996. Carlo Riva è morto qui a Sarnico nel 2017, a 95 anni, e il cantiere storico costruisce ancora barche."},
- {"town":"Sarnico","title":"Una torre diventata campanile","hint":"Questa chiesetta ha quasi seicento anni.","wiki":"Chiesa di San Paolo (Sarnico)","search":"chiesetta di San Paolo Sarnico","lat":45.66950,"lng":9.96050,
-  "text":"La chiesetta di San Paolo è del 1428 e conserva affreschi di quell'epoca. Il suo campanile era una torre del castello dei Marenzi.\n\nA Sarnico restano anche parti delle mura e una torre della Rocca degli Zucchelli, una fortezza del Duecento."},
- {"town":"Sarnico","title":"Un asilo d'autore","hint":"Qui i bambini giocano in un'opera d'arte.","wiki":"Giuseppe Sommaruga","lat":45.66900,"lng":9.95900,
-  "text":"L'asilo comunale di Sarnico, del 1912, porta la firma di Giuseppe Sommaruga, lo stesso architetto delle ville Faccanoni e del mausoleo, ed è ancora attivo.\n\nSommaruga fu chiamato a Sarnico nel 1907 dai fratelli Faccanoni, che avevano fatto fortuna con grandi lavori a Vienna e Trieste. Il paese diventò così uno dei luoghi del Liberty italiano."}
+ {
+  "town": "Bergamo",
+  "title": "Il Campanone e i 100 rintocchi",
+  "hint": "Alle 22 in punto ascolta e conta: arriverai a cento.",
+  "wiki": "Campanone (Bergamo)",
+  "lat": 45.70384,
+  "lng": 9.6624,
+  "text": "Ogni sera alle 22 il Campanone, sulla Torre Civica di Piazza Vecchia, suona 100 rintocchi. Un tempo annunciavano il coprifuoco, quando si chiudevano le porte della città: oggi la tradizione continua per ricordarlo.\n\nÈ la campana più grande della Lombardia: circa 5.580 kg e più di due metri di diametro, fusa nel 1656 dopo due tentativi andati male. La torre nacque come casa fortificata della famiglia Suardi e nel Trecento ospitò anche le prigioni della città. Oggi si sale anche in ascensore: dall'alto vedi Piazza Vecchia, Piazza del Duomo e le Prealpi Orobie."
+ },
+ {
+  "town": "Bergamo",
+  "title": "La meridiana nel pavimento",
+  "hint": "Sotto il portico, guarda in basso: c'è qualcosa che funziona col sole.",
+  "wiki": "Palazzo della Ragione (Bergamo)",
+  "lat": 45.7036,
+  "lng": 9.66265,
+  "text": "Sotto il portico del Palazzo della Ragione, il passaggio tra Piazza Vecchia e Piazza del Duomo, c'è una meridiana incastonata nel pavimento. La realizzò l'abate Giovanni Albrici alla fine del Settecento; fu restaurata nel 1857 e di nuovo nel 1982. Riporta anche le coordinate e l'altitudine del punto in cui ti trovi.\n\nIl palazzo è citato già nel 1199 ed è considerato il secondo palazzo comunale più antico d'Italia. Il leone di San Marco sulla facciata fu distrutto durante l'occupazione francese e rimesso nel 1933, regalo della città di Venezia."
+ },
+ {
+  "town": "Bergamo",
+  "title": "Il segreto dello stemma Colleoni",
+  "hint": "Un condottiero, un cognome e uno stemma molto... particolare.",
+  "wiki": "Cappella Colleoni",
+  "lat": 45.70318,
+  "lng": 9.6624,
+  "text": "Nella Cappella Colleoni lo stemma di famiglia, scolpito sulla base del sarcofago, mostra tre testicoli: un gioco di parole sul cognome, che era anche il grido di battaglia dei Colleoni.\n\nPer secoli i sarcofagi furono trovati vuoti e nacque la leggenda che il corpo fosse stato portato altrove. Solo il 21 novembre 1969 la bara di Bartolomeo Colleoni fu ritrovata nel sarcofago principale; nel 1970, sotto il corpo, spuntò una spada di legno che nessuno ha mai spiegato.\n\nGuarda le finestre ai lati dell'ingresso: hanno la forma di canne di cannone, un omaggio all'artiglieria che si attribuiva a Colleoni."
+ },
+ {
+  "town": "Bergamo",
+  "title": "Il genio nato sottoterra",
+  "hint": "Qui è nato un grande compositore... ma non al piano terra.",
+  "wiki": "Casa natale di Gaetano Donizetti",
+  "lat": 45.7044,
+  "lng": 9.6548,
+  "text": "In via Borgo Canale 14 nacque Gaetano Donizetti. La famiglia era povera e viveva nel seminterrato: tre stanze raggiunte da una scala stretta, dove la luce non arrivava. Il padre faceva il custode al Monte di Pietà.\n\nAnni dopo Donizetti scrisse al suo maestro Simone Mayr di essere nato «sotto terra», e scherzò dicendo di esserne poi volato via come un gufo. La casa è monumento nazionale dal 1926 e ai piani di sopra c'è un piccolo museo."
+ },
+ {
+  "town": "Bergamo",
+  "title": "L'unica porta di marmo rosa",
+  "hint": "Delle porte delle Mura, solo una è fatta così.",
+  "wiki": "Porta San Giacomo",
+  "lat": 45.7011,
+  "lng": 9.6625,
+  "text": "Tra le porte delle Mura venete, Porta San Giacomo è l'unica costruita con il marmo bianco-rosato di Zandobbio, in Val Cavallina. È degli anni 1592–1593 e fu pensata più per fare colpo su chi arrivava dalla pianura che per difendere la città.\n\nIl leone di San Marco che vedi oggi è dello scultore Piero Brolis ed è stato messo nel 1958: prima al suo posto c'era lo stemma del Regno d'Italia. Dal 9 luglio 2017 le Mura sono Patrimonio dell'Umanità UNESCO."
+ },
+ {
+  "town": "Clusone",
+  "title": "L'orologio che segna le stelle",
+  "hint": "Guarda la torre: questo orologio non segna solo le ore.",
+  "wiki": "Orologio planetario Fanzago",
+  "lat": 45.88935,
+  "lng": 9.9477,
+  "text": "Sulla torre del Palazzo Comunale c'è l'orologio planetario costruito nel 1583 da Pietro Fanzago. Oltre a ore e minuti mostra i movimenti del sole e della luna, la durata del giorno e della notte, equinozi e solstizi, le costellazioni dello zodiaco e i mesi.\n\nFunziona ancora, e per circa 400 anni è stato caricato a mano ogni giorno. Pietro Fanzago riparò anche l'orologio della torre di Piazza San Marco a Venezia e inventò una macchina per togliere il fango, il «cavafanghi»."
+ },
+ {
+  "town": "Clusone",
+  "title": "La Morte balla con tutti",
+  "hint": "Papi, re, ricchi e poveri: su questa facciata nessuno si salva.",
+  "wiki": "Oratorio dei Disciplini (Clusone)",
+  "lat": 45.8899,
+  "lng": 9.9488,
+  "text": "Sulla facciata dell'Oratorio dei Disciplini c'è il grande affresco della morte dipinto intorno al 1485 da Giacomo Borlone de Buschis, pittore di Clusone. È diviso in tre fasce: in alto il Trionfo della Morte e l'incontro dei tre vivi e dei tre morti, al centro la Danza macabra, in basso ciò che resta di dannati e giusti.\n\nNel 1673 una scala e una porta aggiunte rovinarono per sempre una parte del dipinto. Nel 1846 lo storico Gabriele Rosa fu il primo a studiarlo: se passi da Iseo, sul lungolago c'è il suo monumento."
+ },
+ {
+  "town": "Clusone",
+  "title": "Un pavimento di marmo nero",
+  "hint": "Prima di entrare in basilica, guarda dove metti i piedi.",
+  "wiki": "Basilica di Santa Maria Assunta (Clusone)",
+  "lat": 45.8898,
+  "lng": 9.9486,
+  "text": "La Basilica di Santa Maria Assunta fu costruita tra il 1688 e il 1698 su progetto di Giovanni Battista Quadrio, architetto della Fabbrica del Duomo di Milano. Fu consacrata il 6 luglio 1711 e nel 1960 papa Giovanni XXIII, bergamasco, la elevò a basilica minore.\n\nEntrando guarda in basso: il pavimento di marmo nero è del 1887. Di fronte alla basilica c'è l'Oratorio dei Disciplini con la sua Danza macabra."
+ },
+ {
+  "town": "Clusone",
+  "title": "San Rocco, 26 volte",
+  "hint": "Conta i santi sulle pareti: sono più di cinquanta.",
+  "wiki": "Chiesa dei Santi Defendente e Rocco (Clusone)",
+  "search": "Chiesa dei Santi Defendente e Rocco Clusone",
+  "lat": 45.888,
+  "lng": 9.946,
+  "text": "Nella chiesa dei Santi Defendente e Rocco, del Quattrocento, gli affreschi ripetono i due santi protettori decine di volte: San Rocco compare 26 volte e San Defendente 25.\n\nLa chiesa nacque come parte di un monastero. Il 2 gennaio 1895, proprio nel giorno della festa di San Defendente, gli abitanti di Clusone la ricomprarono."
+ },
+ {
+  "town": "Clusone",
+  "title": "Tre sequoie e mille ingranaggi",
+  "hint": "Dietro un arco di trionfo c'è un museo del tempo.",
+  "wiki": "Palazzo Marinoni Barca",
+  "search": "Palazzo Marinoni Barca Clusone",
+  "lat": 45.8885,
+  "lng": 9.947,
+  "text": "Il portale a forma di arco di trionfo di Palazzo Marinoni Barca porta a un parco con tre sequoie giganti. Dentro c'è il MAT – Museo Arte Tempo, con la collezione Gorla di meccanismi di orologi da torre: perfetto nella città dell'orologio planetario.\n\nUna curiosità in più: Clusone ha il titolo di città dal 12 novembre 1801, e i suoi abitanti sono soprannominati «baradèlli», forse dal castello Baradello di Como, ma l'origine non è sicura."
+ },
+ {
+  "town": "Lovere",
+  "title": "L'ultimo saluto di Canova",
+  "hint": "Un padre, un figlio perduto e un amico scultore.",
+  "wiki": "Accademia Tadini",
+  "lat": 45.8127,
+  "lng": 10.0698,
+  "text": "Nel giardino dell'Accademia Tadini c'è una cappella costruita apposta per la Stele Tadini, una delle ultime opere di Antonio Canova, scolpita tra il 1819 e il 1821.\n\nÈ dedicata a Faustino, figlio del conte Luigi Tadini e amico di Canova, morto giovane nel 1799 nel crollo di un edificio. Dopo la tragedia il conte rimase lontano da Lovere per molto tempo; poi tornò e costruì attorno alla cappella il palazzo che ospita ancora la sua collezione, uno dei musei più antichi della Lombardia."
+ },
+ {
+  "town": "Lovere",
+  "title": "La chiesa otto metri più in basso",
+  "hint": "Per entrare in questa basilica devi scendere.",
+  "wiki": "Basilica di Santa Maria in Valvendra",
+  "lat": 45.815,
+  "lng": 10.068,
+  "text": "La Basilica di Santa Maria in Valvendra sta circa otto metri sotto il livello della strada, su un terrazzamento sopra il torrente Valvendra. Fu costruita tra il 1473 e il 1483: nata gotica, fu finita in stile rinascimentale.\n\nIn epoca napoleonica ci tennero i cavalli dell'esercito per almeno sei mesi. Nel 1890 il Comune vendette il battiporta del Quattrocento per pagare le riparazioni: oggi è stato recuperato ed è all'Accademia Tadini. Le ante dell'organo sono dipinte dal Moretto e da Floriano Ferramola."
+ },
+ {
+  "town": "Lovere",
+  "title": "Le due sante di Lovere",
+  "hint": "Due ragazze di qui hanno fondato un ordine conosciuto nel mondo.",
+  "wiki": "Santuario delle Sante Bartolomea Capitanio e Vincenza Gerosa",
+  "search": "Santuario Capitanio Gerosa Lovere",
+  "lat": 45.8125,
+  "lng": 10.07,
+  "text": "Questo santuario neogotico, costruito negli anni Venti del Novecento, custodisce i resti di Bartolomea Capitanio e Vincenza Gerosa, due donne di Lovere.\n\nNel 1832 fondarono insieme l'istituto delle Suore di Carità, oggi conosciute come Suore di Maria Bambina."
+ },
+ {
+  "town": "Lovere",
+  "title": "Una torre dentro una chiesa",
+  "hint": "Questa torre è più vecchia della chiesa che la contiene.",
+  "wiki": "Torre Soca",
+  "search": "Torre Soca Lovere",
+  "lat": 45.8135,
+  "lng": 10.0705,
+  "text": "La Torre Soca è una casa-torre del Duecento della famiglia Celeri, poi inglobata nella chiesa di San Giorgio, documentata già nel 1263.\n\nCuriosità: sempre i Celeri di Lovere possedettero fino al 1585 il castello di Iseo, sull'altra sponda del lago, poi lo donarono ai frati Cappuccini."
+ },
+ {
+  "town": "Lovere",
+  "title": "Il «nuovo Canova»",
+  "hint": "Sul lungolago, una statua racconta un'amicizia tra scultori.",
+  "wiki": "Giovanni Maria Benzoni",
+  "lat": 45.8124,
+  "lng": 10.0696,
+  "text": "Nel giardino sul lago, di fronte all'Accademia Tadini, c'è la statua del conte Luigi Tadini scolpita da Giovanni Maria Benzoni. Il conte aveva notato il talento di Benzoni quando gli fece copiare la Stele di Canova, e gli pagò gli studi.\n\nBenzoni diventò famoso a Roma, dove i collezionisti lo chiamavano «il nuovo Canova», e ricambiò il suo primo mecenate con questa statua."
+ },
+ {
+  "town": "Iseo",
+  "title": "Il primo Garibaldi in piedi",
+  "hint": "Questa statua ha un primato mondiale.",
+  "wiki": "Monumento a Giuseppe Garibaldi (Iseo)",
+  "search": "Monumento Garibaldi Iseo",
+  "lat": 45.6588,
+  "lng": 10.0508,
+  "text": "La statua di Giuseppe Garibaldi in piazza fu inaugurata nel 1883, un anno dopo la morte dell'eroe, ed è opera dello scultore Pietro Bordini. È considerata la prima statua non equestre dedicata a Garibaldi al mondo.\n\nA presentarla fu Gabriele Rosa, storico di Iseo: il suo monumento è sul lungolago."
+ },
+ {
+  "town": "Iseo",
+  "title": "Un campanile in mezzo alla facciata",
+  "hint": "Questa chiesa ha il campanile nel posto più strano.",
+  "wiki": "Pieve di Sant'Andrea (Iseo)",
+  "lat": 45.6594,
+  "lng": 10.0499,
+  "text": "La Pieve di Sant'Andrea ha il campanile al centro della facciata, e dentro il campanile c'è un piccolo oratorio. La tradizione ne attribuisce la fondazione al vescovo Vigilio di Brescia, tra V e VI secolo; la chiesa che vedi nasce nell'XI secolo.\n\nA destra del campanile è murata l'arca di Giacomo III Oldofredi, morto nel 1325: fu podestà di Milano e fece costruire le mura di Iseo. Il nome Iseo potrebbe venire da un tempio dedicato a Ercole e Iside. Dentro c'è un San Michele di Francesco Hayez del 1839."
+ },
+ {
+  "town": "Iseo",
+  "title": "Il castello che non era degli Oldofredi",
+  "hint": "Si chiama come una famiglia... che forse non l'ha mai avuto.",
+  "wiki": "Castello Oldofredi",
+  "lat": 45.6585,
+  "lng": 10.053,
+  "text": "Il Castello Oldofredi esisteva già nel IX–X secolo e apparteneva al monastero di Santa Giulia di Brescia. Federico Barbarossa lo fece distruggere nel 1161 o 1162; fu ricostruito con quattro torri e un fossato scavato nella roccia.\n\nNonostante il nome, nessun documento prova che gli Oldofredi lo possedessero. Fino al 1585 fu della famiglia Celeri di Lovere, che lo donò ai frati Cappuccini: furono loro ad abbassare le torri. Oggi ospita la biblioteca comunale."
+ },
+ {
+  "town": "Iseo",
+  "title": "Un'altra Danza macabra",
+  "hint": "Non solo Clusone: anche qui la Morte danza.",
+  "wiki": "Chiesa di San Silvestro (Iseo)",
+  "search": "Chiesa di San Silvestro Iseo",
+  "lat": 45.66,
+  "lng": 10.048,
+  "text": "Anche Iseo ha la sua Danza macabra, nella chiesa di San Silvestro. Rappresentazioni di questo tipo comparvero nelle chiese di Iseo alla fine del Quattrocento, negli stessi anni del celebre affresco dell'Oratorio dei Disciplini di Clusone.\n\nSe ti piacciono queste storie, la prossima tappa è Clusone."
+ },
+ {
+  "town": "Iseo",
+  "title": "Lo storico che scoprì la Danza di Clusone",
+  "hint": "Sul lungolago, un monumento a chi amava le storie antiche.",
+  "wiki": "Gabriele Rosa",
+  "lat": 45.6585,
+  "lng": 10.05,
+  "text": "Sul lungolago c'è il monumento a Gabriele Rosa, opera dello scultore Ettore Ferrari, con figure allegoriche. Rosa, storico e patriota di Iseo, nel 1846 fu il primo a studiare gli affreschi dell'Oratorio dei Disciplini di Clusone.\n\nNel 1883 fu lui a presentare la statua di Garibaldi in piazza, la prima statua non equestre di Garibaldi al mondo."
+ },
+ {
+  "town": "Sarnico",
+  "title": "La villa nata da una filanda",
+  "hint": "Una vecchia filanda trasformata in un sogno Liberty.",
+  "wiki": "Villa Faccanoni (Sarnico)",
+  "search": "Villa Giuseppe Faccanoni Sarnico Sommaruga",
+  "lat": 45.6705,
+  "lng": 9.9625,
+  "text": "Villa Giuseppe Faccanoni, in via Vittorio Veneto 56, fu ricavata nel 1907 da una vecchia filanda dall'architetto Giuseppe Sommaruga, uno dei protagonisti del Liberty italiano. Già allora aveva tapparelle, termosifoni, acqua corrente e luce elettrica.\n\nIl parco segue linee curve, quasi senza angoli retti. È una proprietà privata: la vista migliore è dal lago."
+ },
+ {
+  "town": "Sarnico",
+  "title": "Il fondale del cimitero",
+  "hint": "Un capolavoro Liberty dove non te lo aspetti.",
+  "wiki": "Mausoleo Faccanoni",
+  "search": "Mausoleo Faccanoni Sarnico",
+  "lat": 45.674,
+  "lng": 9.958,
+  "text": "Il Mausoleo Faccanoni, del 1907, è opera di Giuseppe Sommaruga e fa da scenografico fondale al cimitero di Sarnico. Il cancello della cripta, in bronzo e ferro battuto, e i lampadari li disegnò lo stesso architetto.\n\nSarnico è il paese con più edifici di Sommaruga: tre ville per i fratelli Faccanoni, il mausoleo e l'asilo comunale, ancora in funzione."
+ },
+ {
+  "town": "Sarnico",
+  "title": "Dove nacque l'Aquarama",
+  "hint": "Da qui sono partiti i motoscafi più famosi del mondo.",
+  "wiki": "Riva (cantiere navale)",
+  "search": "Riva cantiere nautico Sarnico",
+  "lat": 45.668,
+  "lng": 9.96,
+  "text": "A metà Ottocento il maestro d'ascia Pietro Riva aprì a Sarnico un piccolo cantiere per riparare le barche dei pescatori. Da lì nacquero alcuni dei motoscafi più famosi del mondo.\n\nNel novembre 1962, al Salone Nautico di Milano, Carlo Riva presentò l'Aquarama: scafo in mogano, motori americani, diventato un simbolo della Dolce Vita. Fu prodotto, nelle sue versioni, fino al 1996. Carlo Riva è morto qui a Sarnico nel 2017, a 95 anni, e il cantiere storico costruisce ancora barche."
+ },
+ {
+  "town": "Sarnico",
+  "title": "Una torre diventata campanile",
+  "hint": "Questa chiesetta ha quasi seicento anni.",
+  "wiki": "Chiesa di San Paolo (Sarnico)",
+  "search": "chiesetta di San Paolo Sarnico",
+  "lat": 45.6695,
+  "lng": 9.9605,
+  "text": "La chiesetta di San Paolo è del 1428 e conserva affreschi di quell'epoca. Il suo campanile era una torre del castello dei Marenzi.\n\nA Sarnico restano anche parti delle mura e una torre della Rocca degli Zucchelli, una fortezza del Duecento."
+ },
+ {
+  "town": "Sarnico",
+  "title": "Un asilo d'autore",
+  "hint": "Qui i bambini giocano in un'opera d'arte.",
+  "wiki": "Giuseppe Sommaruga",
+  "lat": 45.669,
+  "lng": 9.959,
+  "text": "L'asilo comunale di Sarnico, del 1912, porta la firma di Giuseppe Sommaruga, lo stesso architetto delle ville Faccanoni e del mausoleo, ed è ancora attivo.\n\nSommaruga fu chiamato a Sarnico nel 1907 dai fratelli Faccanoni, che avevano fatto fortuna con grandi lavori a Vienna e Trieste. Il paese diventò così uno dei luoghi del Liberty italiano."
+ },
+ {
+  "town": "Milano",
+  "title": "Il toro che porta fortuna",
+  "hint": "Nell'ottagono della Galleria, guarda per terra: tre giri e niente di più.",
+  "wiki": "Galleria Vittorio Emanuele II",
+  "lat": 45.4656,
+  "lng": 9.1899,
+  "text": "Nel pavimento dell'ottagono della Galleria c'è un toro in mosaico, simbolo di Torino. La tradizione vuole che si giri tre volte sul tallone destro proprio sui suoi genitali: porta fortuna. Probabilmente nacque come presa in giro verso Torino ed è diventata una superstizione da turisti. Il mosaico si consuma così tanto che va rifatto spesso; nel restauro del 1967 il toro fu rifatto senza genitali, ma il rito è continuato lo stesso.\n\nL'architetto Giuseppe Mengoni non vide mai la Galleria inaugurata: cadde da un'impalcatura poco prima."
+ },
+ {
+  "town": "Milano",
+  "title": "Il dito davanti alla Borsa",
+  "hint": "Un gesto di marmo alto quasi quanto una casa, proprio davanti alla Borsa.",
+  "wiki": "L.O.V.E.",
+  "lat": 45.4642,
+  "lng": 9.1829,
+  "text": "In Piazza Affari, davanti a Palazzo Mezzanotte, sede della Borsa, c'è L.O.V.E. di Maurizio Cattelan: una mano di marmo di Carrara con tutte le dita mozzate tranne il medio. È alta 4,6 metri, circa 11 con il piedistallo.\n\nFu inaugurata il 24 settembre 2010 e doveva restare una sola settimana: è ancora lì. Il titolo è l'acrostico di Libertà, Odio, Vendetta, Eternità. Cattelan l'ha donata alla città a una condizione: che resti in questa piazza."
+ },
+ {
+  "town": "Milano",
+  "title": "La chiesa decorata con le ossa",
+  "hint": "Entra in punta di piedi: le pareti qui sono fatte di... ossa.",
+  "wiki": "Chiesa di San Bernardino alle Ossa",
+  "lat": 45.4622,
+  "lng": 9.1958,
+  "text": "Nella cappella ossario di San Bernardino alle Ossa le pareti sono decorate con teschi e ossa disposti in motivi barocchi e rococò. Una stanza per raccogliere le ossa del vicino cimitero dell'ospedale fu costruita già nel 1210.\n\nUna leggenda raccontava che fossero milanesi morti combattendo l'eresia ariana ai tempi di Sant'Ambrogio, ma non regge: le analisi indicano malati dell'ospedale, frati, condannati e persone sepolte nei cimiteri soppressi. La volta fu dipinta da Sebastiano Ricci nel 1695, e si racconta che il re Giovanni V del Portogallo ne rimase così colpito da farne costruire una copia a Évora."
+ },
+ {
+  "town": "Milano",
+  "title": "La vigna di Leonardo",
+  "hint": "Dietro questo portone c'è un giardino con un regalo di Ludovico il Moro.",
+  "wiki": "Casa degli Atellani",
+  "lat": 45.4659,
+  "lng": 9.1711,
+  "text": "Nel giardino della Casa degli Atellani, in corso Magenta, c'è la vigna che Ludovico il Moro regalò a Leonardo da Vinci come compenso per i suoi lavori.\n\nI ricercatori dell'Università di Milano hanno trovato tracce vive delle radici originali scavando a mano, e hanno scoperto che il vitigno era Malvasia di Candia. Con quelle informazioni la vigna è stata ripiantata. La casa è a pochi passi dal Cenacolo."
+ },
+ {
+  "town": "Milano",
+  "title": "Il raggio di sole nel Duomo",
+  "hint": "Dentro il Duomo, a mezzogiorno, un raggio di luce cade su una striscia di ottone.",
+  "wiki": "Duomo di Milano",
+  "lat": 45.4641,
+  "lng": 9.1919,
+  "text": "Appena entrati nel Duomo, nel pavimento c'è una lunga striscia di ottone: è una meridiana costruita nel 1786 dagli astronomi dell'Osservatorio di Brera. Sulla parete sud, a circa 24 metri d'altezza, un piccolo foro lascia passare la luce del sole, che a mezzogiorno solare cade sulla striscia.\n\nFu modificata nel 1827, quando venne rifatto il pavimento. Alzando lo sguardo fuori, sulla guglia maggiore c'è la Madonnina di rame dorato, messa intorno al 1774."
+ },
+ {
+  "town": "Brescia",
+  "title": "La Vittoria nascosta per secoli",
+  "hint": "Una dea di bronzo, sepolta per salvarla, ritrovata in una sera d'estate.",
+  "wiki": "Vittoria alata di Brescia",
+  "search": "Capitolium Brescia",
+  "lat": 45.5406,
+  "lng": 10.2253,
+  "text": "La sera del 20 luglio 1826, scavando accanto al Capitolium, fu trovata la Vittoria Alata, una statua di bronzo del I secolo dopo Cristo. Era stata smontata in parte e nascosta insieme ad altri bronzi romani: probabilmente per salvarla dalla fusione durante le invasioni, ed è per questo che è arrivata a noi così ben conservata.\n\nDurante la Prima guerra mondiale fu portata a Roma per sicurezza e tornò a Brescia con una cerimonia solenne nell'aprile 1920. Dopo un lungo restauro all'Opificio delle Pietre Dure è tornata al Capitolium su una nuova base antisismica. Carducci le dedicò un'ode."
+ },
+ {
+  "town": "Brescia",
+  "title": "I «matti delle ore»",
+  "hint": "Allo scoccare dell'ora, guarda in cima alla torre: qualcuno colpisce la campana.",
+  "wiki": "Torre dell'Orologio (Brescia)",
+  "lat": 45.5404,
+  "lng": 10.2194,
+  "text": "Sulla Torre dell'Orologio di Piazza della Loggia, accanto alla campana del 1581, due figure di rame battono le ore: i bresciani le chiamano «Màcc de le ure», i matti delle ore.\n\nIl quadrante astronomico mostra la Terra al centro, con Luna, Sole e zodiaco che le girano intorno, come si pensava prima di Copernico. Segna l'equinozio di primavera all'11 marzo, la data del calendario giuliano prima della riforma del 1582. In cima, nel timpano, è dipinto Saturno, simbolo del tempo."
+ },
+ {
+  "town": "Brescia",
+  "title": "La cattedrale sprofondata",
+  "hint": "Questa chiesa rotonda è più in basso della piazza. Perché?",
+  "wiki": "Duomo vecchio (Brescia)",
+  "lat": 45.5388,
+  "lng": 10.2214,
+  "text": "Il Duomo Vecchio, chiamato la Rotonda, è una grande chiesa romanica circolare costruita soprattutto tra la fine dell'XI e l'inizio del XII secolo. Sembra sprofondata, ma è il contrario: nei secoli la piazza è stata alzata di molto, e oggi si entra scendendo.\n\nSotto c'è la cripta del VI secolo, la parte più antica del patrimonio cristiano di Brescia, con molte colonne romane riutilizzate. Nel 2023, dentro l'organo, è stato trovato un biglietto del Cinquecento scritto in dialetto lombardo da uno dei costruttori."
+ },
+ {
+  "town": "Brescia",
+  "title": "La torre del tesoro",
+  "hint": "Una torre del 1254 con una fontana di fiumi ai suoi piedi.",
+  "wiki": "Torre della Pallata",
+  "lat": 45.541,
+  "lng": 10.2147,
+  "text": "La Torre della Pallata fu costruita nel 1254 per difendere una porta della prima cerchia di mura medievali, ed è l'unica fortificazione di quelle mura ancora in piedi. È alta circa 32 metri.\n\nDopo l'assedio del 1311 ci fu custodito il tesoro della città. Il nome viene forse da una palizzata difensiva, la «pallata»; un'altra ipotesi lo collega a Pallade Atena. Ai piedi, dal 1597, c'è la Fontana dei Fiumi con le statue del Mella e del Garza."
+ },
+ {
+  "town": "Brescia",
+  "title": "Perché Brescia è la «Leonessa»",
+  "hint": "Dieci giorni nel 1849 e un soprannome che non se n'è più andato.",
+  "wiki": "Dieci giornate di Brescia",
+  "search": "Tito Speri monumento Brescia",
+  "lat": 45.5401,
+  "lng": 10.223,
+  "text": "Dal 23 marzo al 1° aprile 1849 Brescia insorse contro gli austriaci: sono le Dieci Giornate. Fra i capi c'era Tito Speri, ricordato dal monumento in questa piazzetta.\n\nIl soprannome «Leonessa d'Italia» lo usò per primo il poeta Aleardo Aleardi nel 1857, e lo rese famoso Giosuè Carducci nelle Odi barbare. Molti bresciani, ingannati dai capi della rivolta, seppero solo verso la fine che il Piemonte era stato sconfitto a Novara proprio il giorno in cui l'insurrezione era cominciata."
+ },
+ {
+  "town": "Monza",
+  "title": "La corona di ferro... senza ferro",
+  "hint": "Si dice che dentro ci sia un chiodo della Croce. Le analisi dicono altro.",
+  "wiki": "Corona ferrea",
+  "search": "Duomo di Monza",
+  "lat": 45.5836,
+  "lng": 9.2745,
+  "text": "Nella cappella di Teodolinda, nel Duomo, è custodita la Corona Ferrea. Secondo la tradizione la sottile lamina interna sarebbe ricavata da un chiodo della Crocifissione. Le analisi però hanno scoperto che è d'argento quasi puro: nella corona non c'è ferro.\n\nÈ piccola, circa 15 centimetri di diametro, troppo per la testa di un uomo adulto. Con lei furono incoronati imperatori come Federico Barbarossa e Carlo V. Nel 1805 Napoleone se la mise in testa da solo nel Duomo di Milano, dicendo: «Dio me l'ha data, guai a chi la tocca»."
+ },
+ {
+  "town": "Monza",
+  "title": "Un parco chiuso da 14 km di muro",
+  "hint": "Le mura che vedi girano tutto intorno per chilometri.",
+  "wiki": "Parco di Monza",
+  "lat": 45.6011,
+  "lng": 9.2771,
+  "text": "Il Parco di Monza misura circa 732 ettari ed è chiuso da un muro lungo circa 14 chilometri, costruito nel 1808 in parte con i resti delle mura medievali della città. È il terzo parco cintato più grande d'Europa.\n\nLo volle Eugenio di Beauharnais, figliastro di Napoleone, con un decreto del 1805, come tenuta modello e riserva di caccia accanto alla Villa Reale. Fu aperto al pubblico per la prima volta nel 1818."
+ },
+ {
+  "town": "Monza",
+  "title": "Il tempio della velocità",
+  "hint": "Costruito in 110 giorni, è tra i circuiti più antichi del mondo.",
+  "wiki": "Autodromo nazionale di Monza",
+  "lat": 45.6156,
+  "lng": 9.2811,
+  "text": "L'Autodromo di Monza fu costruito in soli 110 giorni e inaugurato il 3 settembre 1922: è il terzo circuito permanente più antico del mondo e quello che ha ospitato più Gran Premi di Formula 1.\n\nLa famosa sopraelevata, con le curve inclinatissime, fu inaugurata nel 1955 e ospitò l'ultima gara ufficiale nel 1969. Qui sono stati sviluppati il guard rail e il transponder da cui è nato il Telepass. Nel 2020 Lewis Hamilton ci ha fatto il giro più veloce della storia della F1 come media oraria."
+ },
+ {
+  "town": "Monza",
+  "title": "La reggia di 700 stanze",
+  "hint": "Una villa per l'estate... con circa 700 stanze.",
+  "wiki": "Villa Reale (Monza)",
+  "lat": 45.5958,
+  "lng": 9.2752,
+  "text": "La Villa Reale fu commissionata nel 1777 dall'imperatrice Maria Teresa d'Austria come residenza estiva per il figlio Ferdinando, governatore della Lombardia. La progettò Giuseppe Piermarini, l'architetto della Scala, e fu finita in circa tre anni.\n\nHa circa 700 stanze su 22.000 metri quadrati e, cosa insolita, è orientata est-ovest. Dopo l'assassinio di Umberto I a Monza nel 1900, il figlio Vittorio Emanuele III la chiuse e fece portare gran parte degli arredi al Quirinale."
+ },
+ {
+  "town": "Monza",
+  "title": "Il punto esatto del regicidio",
+  "hint": "Qui, il 29 luglio 1900, partirono tre colpi.",
+  "wiki": "Cappella espiatoria",
+  "lat": 45.5919,
+  "lng": 9.2669,
+  "text": "La Cappella Espiatoria sorge nel punto esatto in cui, il 29 luglio 1900, l'anarchico Gaetano Bresci uccise il re Umberto I dopo un saggio di ginnastica. La progettò Giuseppe Sacconi, l'architetto del Vittoriano, e fu inaugurata il 29 luglio 1910.\n\nNella cripta un segno di marmo nero indica il punto preciso, sotto volte a mosaico che imitano un cielo stellato. Ogni anno, la notte del 29 luglio, le croci di alabastro in cima vengono illuminate da dentro. Si racconta che il giovane Mussolini, allora socialista, incise sulla ringhiera «Monumento a Bresci»."
+ },
+ {
+  "town": "Como",
+  "title": "Il cannone di mezzogiorno",
+  "hint": "Sali verso Brunate e a mezzogiorno tendi l'orecchio.",
+  "wiki": "Funicolare Como-Brunate",
+  "lat": 45.8146,
+  "lng": 9.0844,
+  "text": "La funicolare Como-Brunate è in funzione dal 1894. All'inizio l'argano era mosso da una macchina a vapore; nel 1911 arrivò l'elettricità. Sale per 494 metri di dislivello con una pendenza media del 46% e oggi ci mette circa 7 minuti.\n\nA metà percorso c'è il «cannone di mezzogiorno»: dal 1912 spara un colpo a salve ogni giorno a mezzogiorno, e dopo una pausa è stato riattivato nel 1990. Le vetture del 2011 si chiamano BRUco e bruCO."
+ },
+ {
+  "town": "Como",
+  "title": "Il tempio sulla banconota",
+  "hint": "Questo edificio era stampato su una banconota che molti ricordano.",
+  "wiki": "Tempio Voltiano",
+  "lat": 45.8143,
+  "lng": 9.0739,
+  "text": "Il Tempio Voltiano fu costruito tra il 1925 e il 1927 per il centenario della morte di Alessandro Volta, pagato dall'industriale Francesco Somaini e progettato da Federico Frigerio. Dentro ci sono gli strumenti legati agli esperimenti di Volta, dalla pila all'elettricità e ai gas, e i suoi ricordi personali.\n\nÈ rialzato di oltre due metri per difendersi dalle piene del lago. Il retro della banconota da 10.000 lire dedicata a Volta mostrava proprio questo tempio, fino all'arrivo dell'euro nel 2002."
+ },
+ {
+  "town": "Como",
+  "title": "La rana sulla porta del Duomo",
+  "hint": "Sulla porta nord del Duomo si nasconde un piccolo animale.",
+  "wiki": "Duomo di Como",
+  "lat": 45.8118,
+  "lng": 9.0841,
+  "text": "Ai lati del portale principale del Duomo ci sono le statue dei due Plinii, il Vecchio e il Giovane, nati a Como: le scolpì Tommaso Rodari intorno al 1480 e sopravvissero a un tentativo di rimuoverle nel 1578.\n\nSul lato nord c'è la «Porta della Rana»: tra le foglie scolpite si nasconde una piccola rana. La leggenda dice che durante un'alluvione una rana salì sulla porta e ci rimase. Curiosità: il Duomo non ha un campanile suo, le campane sono nella torre civica accanto. La cupola è di Filippo Juvarra, finita nel 1740."
+ },
+ {
+  "town": "Como",
+  "title": "Il palazzo che è mezzo cubo",
+  "hint": "Misura i lati: l'altezza è esattamente la metà.",
+  "wiki": "Casa del Fascio (Como)",
+  "lat": 45.811,
+  "lng": 9.0855,
+  "text": "L'ex Casa del Fascio, oggi chiamata anche Palazzo Terragni, è il capolavoro dell'architetto razionalista Giuseppe Terragni, costruito tra il 1933 e il 1936. La pianta è un quadrato di 33,20 metri di lato e l'altezza è 16,60 metri, esattamente la metà: l'edificio è mezzo cubo, e le facciate seguono le regole della sezione aurea.\n\nOggi è sede della Guardia di Finanza ed è studiato dagli architetti di tutto il mondo. Nel 2004 è finito su un francobollo per il centenario di Terragni."
+ },
+ {
+  "town": "Como",
+  "title": "Due campanili gemelli",
+  "hint": "Una chiesa romanica con due campanili, come lungo il Reno.",
+  "wiki": "Basilica di Sant'Abbondio",
+  "lat": 45.8037,
+  "lng": 9.0791,
+  "text": "La Basilica di Sant'Abbondio fu consacrata il 3 giugno 1095 da papa Urbano II. Ha due campanili gemelli vicino all'abside, una soluzione comune nelle chiese della valle del Reno ma rara in Italia.\n\nNel presbiterio c'è un ciclo di affreschi del primo Trecento, tra i più completi di quell'epoca in Lombardia. Qui sono sepolti quindici santi vescovi di Como, e l'antico monastero oggi ospita l'Università dell'Insubria."
+ },
+ {
+  "town": "Varese",
+  "title": "La strada delle quattordici cappelle",
+  "hint": "Un acciottolato di due chilometri, quattordici tappe e un borgo in cima.",
+  "wiki": "Sacro Monte di Varese",
+  "lat": 45.8605,
+  "lng": 8.7915,
+  "text": "La Via Sacra del Sacro Monte sale per poco più di 2 chilometri lungo il monte, toccando 14 cappelle dedicate ai misteri del Rosario; il santuario di Santa Maria del Monte, in cima, è la quindicesima. I lavori cominciarono nel 1604 e ogni cappella ha un'architettura diversa, scelta da Giuseppe Bernascone, detto il Mancino.\n\nL'idea del percorso venne a una suora, Maria Tecla Cid. Dal 2003 è Patrimonio UNESCO insieme agli altri Sacri Monti di Piemonte e Lombardia. Il borgo in cima è a circa 844 metri e si raggiunge anche con una funicolare riaperta nel 2000."
+ },
+ {
+  "town": "Varese",
+  "title": "Le ferite del campanile",
+  "hint": "Guarda bene la torre: alcuni segni sono rimasti lì apposta.",
+  "wiki": "Campanile del Bernascone",
+  "lat": 45.8178,
+  "lng": 8.8253,
+  "text": "Il Campanile del Bernascone è alto 77,91 metri, l'edificio più alto di Varese. Fu cominciato nel 1617 e finito solo nel 1773.\n\nNel 1859 alcune palle di cannone austriache lo colpirono per rappresaglia: i segni non furono mai riparati e oggi sono un ricordo del Risorgimento. Le teste di leone all'altezza dell'orologio, i «guardiani», hanno il muso di bronzo. Ogni dicembre, dal 1999, i vigili del fuoco salgono fin sulla punta per appendere una corona per l'Immacolata."
+ },
+ {
+  "town": "Varese",
+  "title": "Il giardino che imita Vienna",
+  "hint": "Un duca appassionato di caccia volle qui un pezzo di Schönbrunn.",
+  "wiki": "Giardini Estensi",
+  "lat": 45.8168,
+  "lng": 8.8243,
+  "text": "I Giardini Estensi nacquero per Francesco III d'Este, duca di Modena e governatore della Lombardia austriaca, che ricevette Varese in feudo nel 1765. Il parco, progettato da Giuseppe Antonio Bianchi, si ispira al palazzo imperiale di Schönbrunn a Vienna e unisce un giardino all'italiana con uno romantico.\n\nIl duca amava la caccia e fece trasformare una parte del parco in un roccolo. Sulla facciata del palazzo c'è una meridiana sormontata dall'aquila ducale. Il Comune comprò tutto nel 1882 e l'anno dopo lo aprì al pubblico."
+ },
+ {
+  "town": "Varese",
+  "title": "L'albergo fantasma sul monte",
+  "hint": "Lassù c'è un grande albergo Liberty che non ospita nessuno.",
+  "wiki": "Grand Hotel Campo dei Fiori",
+  "lat": 45.8686,
+  "lng": 8.7713,
+  "text": "Il Grand Hotel Campo dei Fiori fu progettato nel 1908 da Giuseppe Sommaruga, lo stesso architetto delle ville Liberty di Sarnico, e costruito tra il 1910 e il 1912. Dopo la chiusura della funicolare nel 1953 i turisti calarono, e intorno al 1968 l'albergo chiuse.\n\nDagli anni Ottanta il tetto si riempì di antenne radio e TV, molte oggi abbandonate. Sotto il prato c'è una grotta carsica lunga quasi 3 km, la Grotta Marelli, e le grondaie a forma di drago sono di Alessandro Mazzucotelli. L'albergo compare nel film Suspiria di Luca Guadagnino."
+ },
+ {
+  "town": "Varese",
+  "title": "Arte americana in una villa del Settecento",
+  "hint": "In una villa di delizie, stanze trasformate in opere d'arte.",
+  "wiki": "Villa Menafoglio Litta Panza",
+  "lat": 45.8239,
+  "lng": 8.8155,
+  "text": "La villa nacque nel Settecento come «villa di delizia», fatta per le feste più che per abitarci: per questo ha pochissimi spazi per la servitù. Dal 1956 il conte Giuseppe Panza di Biumo ci raccolse arte contemporanea, soprattutto americana.\n\nArtisti come Dan Flavin, James Turrell e Robert Irwin hanno creato installazioni pensate apposta per queste stanze. Nel 1996 Giuseppe e Rosa Giovanna Panza donarono la villa al FAI, che la aprì al pubblico nel 2001. Nel 1859, durante la battaglia di Varese, fu usata come ospedale."
+ },
+ {
+  "town": "Pavia",
+  "title": "Il ponte del diavolo",
+  "hint": "Per costruirlo, si dice, fu ingannato il diavolo.",
+  "wiki": "Ponte Coperto (Pavia)",
+  "lat": 45.1806,
+  "lng": 9.1572,
+  "text": "Il Ponte Coperto di oggi è una ricostruzione: quello del Trecento fu colpito da un bombardamento il 26 settembre 1944 e i resti furono abbattuti con la dinamite nel 1948. Il nuovo, aperto nel 1951, ne copia l'aspetto ma ha cinque arcate invece di sette e sta una trentina di metri più a valle.\n\nUna leggenda racconta che il diavolo si offrì di costruirlo in cambio della prima anima che lo avesse attraversato, ma fu beffato con una capra. Al centro c'è una cappella dedicata a San Giovanni Nepomuceno, protettore dalle alluvioni, e una targa ricorda una frase di Einstein, che da ragazzo visse a Pavia: pensava spesso a questo bel ponte."
+ },
+ {
+  "town": "Pavia",
+  "title": "La tomba di Sant'Agostino",
+  "hint": "Qui riposano un santo famosissimo e un filosofo citato da Dante.",
+  "wiki": "Basilica di San Pietro in Ciel d'Oro",
+  "lat": 45.191,
+  "lng": 9.1543,
+  "text": "San Pietro in Ciel d'Oro prende il nome dalle volte dorate. Qui c'è l'Arca di Sant'Agostino, una tomba gotica di marmo con oltre 150 statue, commissionata nel 1362; custodisce la cassetta d'argento donata dal re longobardo Liutprando intorno al 725.\n\nNella cripta è sepolto il filosofo Severino Boezio, fatto giustiziare da Teodorico nel 525. Dante, nel Paradiso, ricorda la sua tomba in «Cieldauro»: proprio questa chiesa."
+ },
+ {
+  "town": "Pavia",
+  "title": "La torre che non c'è più",
+  "hint": "Qui c'era una torre di 78 metri. Un venerdì mattina, in pochi secondi...",
+  "wiki": "Torre civica di Pavia",
+  "lat": 45.1847,
+  "lng": 9.157,
+  "text": "Accanto al Duomo si alzava la Torre Civica, alta 78 metri. Alle 8:55 di venerdì 17 marzo 1989 crollò all'improvviso: morirono quattro persone e quindici rimasero ferite. Le cause non sono mai state chiarite.\n\nDal 2014 un memoriale con una vasca d'acqua tra le rovine e degli specchi ne evoca la forma. Una curiosità: l'orologio montato nel 1402 aveva un quadrante con le ore da 1 a 12 ripetute due volte, e così non dovette essere cambiato quando nel 1786 l'imperatore Giuseppe II impose un nuovo modo di contare le ore."
+ },
+ {
+  "town": "Pavia",
+  "title": "Il cavaliere distrutto e rinato",
+  "hint": "Un cavallo con un cagnolino sotto lo zoccolo: c'è una ragione.",
+  "wiki": "Regisole",
+  "lat": 45.1849,
+  "lng": 9.1564,
+  "text": "Davanti al Duomo c'è il Regisole, una statua equestre di bronzo. L'originale, tardo-antico, fu conteso per secoli: i Visconti lo portarono a Milano nel 1315, nel 1527 un soldato di Ravenna lo rubò. Nel 1796 i giacobini pavesi lo distrussero, e la copia di oggi, di Francesco Messina, è del 1937.\n\nGuarda sotto lo zoccolo alzato: un cagnolino lo sostiene. Questa soluzione ispirò Donatello per il Gattamelata. Petrarca scrisse del Regisole e Leonardo lo ammirò nel 1490."
+ },
+ {
+  "town": "Pavia",
+  "title": "La biblioteca che visitò Chaucer",
+  "hint": "In questo castello c'era una biblioteca di oltre mille codici.",
+  "wiki": "Castello Visconteo (Pavia)",
+  "lat": 45.192,
+  "lng": 9.159,
+  "text": "Il Castello Visconteo fu costruito dal 1360 per Galeazzo II Visconti, che ci spostò la corte da Milano. In una torre c'era la biblioteca ducale, con oltre mille codici miniati: nel 1378 la visitò lo scrittore inglese Geoffrey Chaucer. Nel 1500 il re di Francia Luigi XII la portò via.\n\nL'ala nord fu distrutta dall'artiglieria francese nel 1527 e mai ricostruita. Il parco visconteo arrivava fino alla Certosa di Pavia e fu il campo della famosa battaglia del 1525."
+ },
+ {
+  "town": "Cremona",
+  "title": "Il drago dell'orologio",
+  "hint": "Sull'orologio del Torrazzo c'è un drago: segna qualcosa di raro.",
+  "wiki": "Torrazzo di Cremona",
+  "lat": 45.133,
+  "lng": 10.0246,
+  "text": "Il Torrazzo è alto 112,54 metri ed è una delle torri campanarie medievali in mattoni più alte d'Europa. È fatto di due torri una dentro l'altra, e nell'intercapedine corre una scala di 502 gradini.\n\nL'orologio astronomico, costruito tra il 1583 e il 1588 da Francesco e Giovan Battista Divizioli, ha un quadrante di oltre 8 metri e va caricato ogni giorno. Mostra lo zodiaco, le fasi lunari, i solstizi e gli equinozi; una lancetta a forma di drago indica le eclissi di sole e di luna."
+ },
+ {
+  "town": "Cremona",
+  "title": "Il violino «Il Cremonese»",
+  "hint": "In una stanza chiamata «scrigno» c'è un violino del 1715.",
+  "wiki": "Museo del Violino",
+  "lat": 45.1355,
+  "lng": 10.0228,
+  "text": "Il Museo del Violino, aperto nel 2013, raccoglie strumenti dei più grandi liutai, da Antonio Stradivari a Giuseppe Guarneri del Gesù. Nella sala chiamata «Lo scrigno dei tesori» c'è il violino Stradivari del 1715 detto «Il Cremonese».\n\nÈ l'unico museo italiano con laboratori universitari di ricerca all'interno. Fuori c'è una scultura in acciaio di Jaume Plensa: un uomo seduto con la pelle fatta di spartiti. Dal 2012 il saper fare liutario di Cremona è Patrimonio immateriale UNESCO."
+ },
+ {
+  "town": "Cremona",
+  "title": "Le misure scolpite nel muro",
+  "hint": "Sul lato sud di questo edificio c'è un «righello» del Trecento.",
+  "wiki": "Battistero di Cremona",
+  "lat": 45.1329,
+  "lng": 10.0243,
+  "text": "Il Battistero di Cremona, iniziato nel 1167, è ottagonale: l'otto è il numero della rinascita e della risurrezione. La sua cupola è di circa due secoli più antica di quella del Duomo di Firenze.\n\nSul lato sud sono murate le unità di misura ufficiali della città, stabilite nel 1388: servivano a controllare che i commercianti non imbrogliassero. In origine le porte erano tre; nel 1592 due furono chiuse."
+ },
+ {
+  "town": "Cremona",
+  "title": "Dove riposava Stradivari",
+  "hint": "Questo giardino era una chiesa. Qui era sepolto il liutaio più famoso.",
+  "wiki": "Antonio Stradivari",
+  "lat": 45.1349,
+  "lng": 10.0233,
+  "text": "Antonio Stradivari morì a Cremona il 18 dicembre 1737 e fu sepolto nella tomba di famiglia nella chiesa di San Domenico. La chiesa fu demolita nel 1869 perché pericolante: al suo posto oggi c'è il giardino di Piazza Roma. La lapide originale è al Museo del Violino dal 2014.\n\nStradivari lavorò fino alla morte in una casa-bottega che si affacciava proprio su questa piazza. Costruì circa 1.100 strumenti, e ne sopravvivono circa 650. La leggenda che scegliesse il legno ascoltando i tronchi rotolare non ha fondamento."
+ },
+ {
+  "town": "Cremona",
+  "title": "La cattedrale abbattuta dal terremoto",
+  "hint": "Questo Duomo fu quasi distrutto pochi anni dopo l'inizio dei lavori.",
+  "wiki": "Duomo di Cremona",
+  "lat": 45.1331,
+  "lng": 10.024,
+  "text": "La prima pietra del Duomo fu posata il 26 agosto 1107. Il terremoto del 3 gennaio 1117 lo danneggiò gravemente e fu ricostruito quasi del tutto; fu consacrato nel 1190.\n\nIl progetto prevedeva due torri in facciata come nelle cattedrali imperiali tedesche, ma non furono mai costruite, probabilmente perché c'era già il Torrazzo. Dentro c'è una grande croce d'argento alta circa tre metri, fatta di oltre mille pezzi."
+ },
+ {
+  "town": "Mantova",
+  "title": "Lo scherzo nel soffitto",
+  "hint": "Alza gli occhi: qualcuno sta per far cadere un vaso.",
+  "wiki": "Camera degli Sposi",
+  "lat": 45.1606,
+  "lng": 10.7981,
+  "text": "La Camera degli Sposi, nel Castello di San Giorgio, fu dipinta da Andrea Mantegna tra il 1465 e il 1474 per Ludovico Gonzaga. Al centro del soffitto un finto oculo si apre sul cielo: dalla balaustra si affacciano dame, putti, un pavone e un vaso, e il gruppo sembra pronto a farlo cadere per scherzo.\n\nCerca nelle nuvole vicino al vaso: un profilo nascosto è probabilmente un autoritratto di Mantegna. Sotto il trono c'è Rubino, il cane preferito di Ludovico. Il nome «Camera degli Sposi» arrivò solo nel 1648: in realtà non era una camera da letto."
+ },
+ {
+  "town": "Mantova",
+  "title": "La stanza che crolla",
+  "hint": "Entra nella Sala dei Giganti: sembra che il palazzo ti cada addosso.",
+  "wiki": "Palazzo Te",
+  "lat": 45.1475,
+  "lng": 10.7894,
+  "text": "Palazzo Te fu costruito tra il 1524 e il 1534 da Giulio Romano per Federico II Gonzaga, come luogo di svago da condividere con l'amata Isabella Boschetti. Il nome viene dall'isola su cui sorgeva, detta Tejeto.\n\nNella Sala dei Giganti l'affresco copre pareti e soffitto senza spigoli visibili: i giganti che tentano di scalare l'Olimpo vengono travolti, e sembra che tutto crolli intorno a te. Nel cortile alcuni triglifi paiono scivolare giù, come se il palazzo fosse instabile apposta. Nella Sala dei Cavalli ci sono i ritratti a grandezza naturale dei cavalli preferiti dei Gonzaga."
+ },
+ {
+  "town": "Mantova",
+  "title": "La chiesa nascosta tra le case",
+  "hint": "Per secoli nessuno la vedeva, eppure era qui.",
+  "wiki": "Rotonda di San Lorenzo",
+  "lat": 45.1579,
+  "lng": 10.7942,
+  "text": "La Rotonda di San Lorenzo, secondo la tradizione voluta da Matilde di Canossa nel 1082, imita il Santo Sepolcro di Gerusalemme. È circa un metro e mezzo più bassa di Piazza Erbe, forse perché costruita su una struttura romana.\n\nChiusa al culto nel 1579, fu usata come magazzino e poi come cortile privato, nascosta dalle case intorno: nelle vecchie foto della piazza non si vede. Fu riscoperta solo nel 1908, durante lavori che dovevano demolire gli edifici attorno."
+ },
+ {
+  "town": "Mantova",
+  "title": "La gabbia appesa alla torre",
+  "hint": "Guarda in alto: quella gabbia di ferro non era per gli uccelli.",
+  "wiki": "Torre della Gabbia",
+  "lat": 45.1588,
+  "lng": 10.7932,
+  "text": "Sulla Torre della Gabbia, alta 55 metri, c'è ancora una gabbia di ferro fatta mettere nel 1576 dal duca Guglielmo Gonzaga: era una prigione all'aperto. I condannati venivano esposti alla vista della piazza, in uno spazio di circa due metri per uno, alto poco più di un metro.\n\nSi racconta che un borseggiatore, Marchino Ziganti, ci rimase per tre mesi. Prima di allora la torre si chiamava Torre degli Acerbi."
+ },
+ {
+  "town": "Mantova",
+  "title": "Il sangue di Cristo e la tomba di Mantegna",
+  "hint": "Sotto questa basilica si custodisce una reliquia portata, si dice, da un centurione.",
+  "wiki": "Basilica di Sant'Andrea (Mantova)",
+  "lat": 45.1577,
+  "lng": 10.7948,
+  "text": "La Basilica di Sant'Andrea fu progettata da Leon Battista Alberti per Ludovico II Gonzaga, con lavori iniziati intorno al 1460. Nella cripta sono custoditi i Sacri Vasi: secondo la tradizione contengono terra intrisa del sangue di Cristo, portata a Mantova dal centurione Longino. Il Venerdì Santo vengono portati in processione.\n\nIn una cappella c'è la tomba di Andrea Mantegna, l'autore della Camera degli Sposi. La cupola, aggiunta da Filippo Juvarra nel 1732, è alta circa 80 metri ed è tra le più grandi d'Italia."
+ },
+ {
+  "town": "Lecco",
+  "title": "Il ponte della Gioconda?",
+  "hint": "Qualcuno dice che questo ponte compare in un quadro famosissimo.",
+  "wiki": "Ponte Azzone Visconti",
+  "lat": 45.8516,
+  "lng": 9.3943,
+  "text": "Il Ponte Azzone Visconti fu costruito tra il 1336 e il 1338 per volere del signore di Milano. Nato con otto arcate, arrivò a undici nel 1440 sotto Francesco Sforza. Era armato di cannoni e nel Seicento si pagava un pedaggio salato per attraversarlo.\n\nNei Promessi Sposi segna il punto in cui finisce il lago e ricomincia l'Adda. C'è chi sostiene che sia il ponte che si vede alle spalle della Gioconda di Leonardo. Nel 1959 gli operai trovarono dentro un'arcata una scala segreta che portava il castellano fino al fiume."
+ },
+ {
+  "town": "Lecco",
+  "title": "Un campanile di 96 metri",
+  "hint": "Il campanile più alto della diocesi di Milano è qui.",
+  "wiki": "Basilica di San Nicolò (Lecco)",
+  "lat": 45.8551,
+  "lng": 9.3922,
+  "text": "Il campanile della Basilica di San Nicolò è alto 96 metri: uno dei più alti d'Italia e il più alto dell'arcidiocesi di Milano. In stile neogotico, fu costruito tra il 1882 e il 1904 e inaugurato la notte di Natale.\n\nPoggia sui resti di un antico bastione spagnolo circolare. Nella basilica, la cappella del battistero è l'unica parte rimasta della chiesa del Duecento."
+ },
+ {
+  "town": "Lecco",
+  "title": "La torre che fu prigione",
+  "hint": "L'edificio più antico della città oggi parla di montagna.",
+  "wiki": "Torre Viscontea (Lecco)",
+  "lat": 45.8541,
+  "lng": 9.3934,
+  "text": "La Torre Viscontea, costruita nel Trecento come torre di guardia, è probabilmente l'edificio più antico di Lecco ed è l'unico resto delle mura e del castello, demoliti tra il 1782 e il 1784.\n\nSotto gli spagnoli e poi dopo il 1816 fu usata come prigione. Al piano terra si vedono ancora palle di cannone in pietra; ai piani superiori oggi c'è il Museo della Montagna e dell'Alpinismo. Manzoni, nei Promessi Sposi, mise proprio nel castello di Lecco una guarnigione spagnola."
+ },
+ {
+  "town": "Lecco",
+  "title": "Il borgo di fra Cristoforo",
+  "hint": "L'unico luogo di Lecco che Manzoni chiama per nome.",
+  "wiki": "Pescarenico",
+  "lat": 45.8432,
+  "lng": 9.4037,
+  "text": "Pescarenico, «Pescarenech» in dialetto, era un borgo di pescatori sull'Adda, con le barche tirate a riva vicino alla piazza Era. È l'unico luogo di Lecco che Manzoni nomina esplicitamente nei Promessi Sposi.\n\nQui mise il convento dei cappuccini di fra Cristoforo e fra Galdino, costruito davvero nel 1576 e soppresso da Napoleone nel 1810. Da qui Lucia parte in barca per sfuggire a don Rodrigo."
+ },
+ {
+  "town": "Lecco",
+  "title": "La casa del giovane Manzoni",
+  "hint": "Qui è cresciuto lo scrittore dei Promessi Sposi.",
+  "wiki": "Villa Manzoni",
+  "lat": 45.8494,
+  "lng": 9.4043,
+  "text": "In Villa Manzoni, nel quartiere del Caleotto, Alessandro Manzoni passò l'infanzia, l'adolescenza e la prima giovinezza. La vendette nel 1818 alla famiglia Scola.\n\nOggi al piano terra c'è il museo manzoniano, con arredi d'epoca, autografi e prime edizioni del romanzo: è tra i musei letterari più visitati della Lombardia. Nella cappella dell'Assunta, finita nel 1777, è sepolto il padre Pietro. In cantina c'è ancora una ghiacciaia a pozzo."
+ },
+ {
+  "town": "Lodi",
+  "title": "Una città nata in un giorno",
+  "hint": "Il Duomo e la città hanno lo stesso compleanno.",
+  "wiki": "Duomo di Lodi",
+  "lat": 45.3141,
+  "lng": 9.5036,
+  "text": "Lodi fu fondata da Federico Barbarossa il 3 agosto 1158, dopo che i milanesi avevano distrutto l'antica Laus Pompeia, oggi Lodi Vecchio. Lo stesso giorno fu posata simbolicamente la prima pietra del Duomo.\n\nNel 1163, alla presenza del Barbarossa, le reliquie di San Bassiano furono portate nella cripta, dove riposano ancora in un'urna d'argento. Il campanile fu lasciato incompiuto per motivi di sicurezza militare. Nell'abside c'è un gruppo di statue di dolenti del Quattrocento che i lodigiani chiamano «caragnòn del Dòmm»."
+ },
+ {
+  "town": "Lodi",
+  "title": "La sera in cui Napoleone si sentì superiore",
+  "hint": "Su questo fiume nel 1796 cambiò la storia d'Europa.",
+  "wiki": "Battaglia del ponte di Lodi",
+  "search": "Ponte di Lodi Adda",
+  "lat": 45.3122,
+  "lng": 9.5103,
+  "text": "Il 10 maggio 1796, sul ponte dell'Adda, l'Armata d'Italia di Napoleone sconfisse la retroguardia austriaca. La vittoria gli aprì la strada per Milano, dove entrò cinque giorni dopo.\n\nAnni dopo Napoleone scrisse che fu proprio la sera di Lodi che cominciò a considerarsi un uomo superiore. A Parigi c'è ancora una «rue du Pont de Lodi» che ricorda la battaglia."
+ },
+ {
+  "town": "Lodi",
+  "title": "La piazza con i portici su quattro lati",
+  "hint": "Fai il giro della piazza: non uscirai mai da sotto i portici.",
+  "wiki": "Piazza della Vittoria (Lodi)",
+  "search": "Piazza della Vittoria Lodi",
+  "lat": 45.314,
+  "lng": 9.5032,
+  "text": "Piazza della Vittoria, chiamata piazza Maggiore fino al 1924, è rettangolare e ha i portici su tutti e quattro i lati, cosa rara. Ci si affacciano il Duomo e il Broletto, ed è pavimentata con il tradizionale acciottolato lombardo di sassi di fiume.\n\nNel 2004 il Touring Club l'ha inserita tra le piazze più belle d'Italia. Una curiosità lodigiana: si dice che il cane a sei zampe dell'Agip sia ispirato al drago Tarantasio, che secondo la leggenda viveva nel lago Gerundo."
+ },
+ {
+  "town": "Lodi",
+  "title": "Il tempio ottagonale",
+  "hint": "Da fuori è semplice, dentro è un'esplosione d'oro.",
+  "wiki": "Tempio civico della Beata Vergine Incoronata",
+  "search": "Incoronata Lodi tempio",
+  "lat": 45.3152,
+  "lng": 9.5025,
+  "text": "Il Tempio Civico dell'Incoronata è un tempio rinascimentale a pianta ottagonale, progettato nel 1488 da Giovanni Battagio. Da fuori è sobrio in mattoni; dentro le pareti sono interamente decorate e dorate.\n\nLodi è conosciuta anche per la ceramica artistica, una tradizione che risale al Quattrocento."
+ },
+ {
+  "town": "Lodi",
+  "title": "Il Torrione del castello",
+  "hint": "Questo castello non si può visitare: dentro c'è la Questura.",
+  "wiki": "Castello di Lodi",
+  "search": "Castello Visconteo Lodi Torrione",
+  "lat": 45.3156,
+  "lng": 9.5009,
+  "text": "Il Castello Visconteo di Lodi fu costruito dai Visconti tra il 1355 e il 1370 ed è in gran parte distrutto. Il suo alto Torrione è uno dei simboli della città, ma non si visita: ospita la Questura.\n\nUn primato lodigiano: Lodi fu la prima città italiana a usare il metano per uso domestico e industriale."
+ },
+ {
+  "town": "Sondrio",
+  "title": "Il castello che si salvò",
+  "hint": "Dei tre castelli di Sondrio, solo uno rimase in piedi.",
+  "wiki": "Castel Masegra",
+  "lat": 46.1732,
+  "lng": 9.8717,
+  "text": "Nel 1639 i Grigioni fecero smantellare le fortificazioni della Valtellina. Dei tre castelli di Sondrio si salvò solo Castel Masegra, perché era la residenza della potente famiglia Salis, che lo usava soprattutto come cantina per il vino.\n\nFondato intorno all'XI secolo all'ingresso della Valmalenco, conserva due torri medievali; una torre a sud fu usata come colombaia. Oggi ospita il museo storico dedicato ai quasi tre secoli di dominio grigione sulla Valtellina (1512–1797)."
+ },
+ {
+  "town": "Sondrio",
+  "title": "La piazza nuova",
+  "hint": "Questa piazza è nata per essere il nuovo centro della città.",
+  "wiki": "Piazza Garibaldi (Sondrio)",
+  "search": "Piazza Garibaldi Sondrio",
+  "lat": 46.1699,
+  "lng": 9.8716,
+  "text": "Piazza Garibaldi nacque all'inizio dell'Ottocento come «piazza nuova», pensata per essere il centro del nuovo capoluogo di provincia. Prese il nome di Garibaldi quando la sua statua fu collocata qui nel settembre 1909.\n\nSul lato sud c'è il Teatro Sociale, progettato da Luigi Canonica e aperto nel 1824. Curiosità: il nome Sondrio verrebbe dal germanico «sundrium», una terra lavorata direttamente dal suo proprietario."
+ },
+ {
+  "town": "Sondrio",
+  "title": "«Invictae Unitati»",
+  "hint": "Sopra il portale di questo palazzo c'è un motto in latino.",
+  "wiki": "Palazzo Pretorio (Sondrio)",
+  "search": "Palazzo Pretorio Sondrio",
+  "lat": 46.1713,
+  "lng": 9.8708,
+  "text": "Il Palazzo Pretorio fu acquistato nel 1552 dal Consiglio di Valle. Il portale, datato 1553, porta il motto «Invictae Unitati», all'unità invitta.\n\nLa facciata fu rifatta nel 1917 e oggi mostra gli stemmi viscontei dipinti."
+ },
+ {
+  "town": "Sondrio",
+  "title": "Il ponte portato via dal fiume",
+  "hint": "Qui il Mallero ha fatto paura più di una volta.",
+  "wiki": "Mallero",
+  "search": "Mallero torrente Sondrio",
+  "lat": 46.1711,
+  "lng": 9.8727,
+  "text": "Il torrente Mallero attraversa Sondrio, e qui in piazza Cavour c'era l'unico ponte in muratura della città, a tre arcate, del Trecento. Nel 1748 vi fu aggiunta una statua di San Giovanni Nepomuceno, protettore dalle acque.\n\nNon bastò: l'alluvione del 1834 distrusse il ponte, ruppe l'argine sinistro e abbatté trenta case. Il Mallero aveva già esondato nel 1463 e nel 1541."
+ },
+ {
+  "town": "Sondrio",
+  "title": "Il primo treno a corrente trifase",
+  "hint": "Da questa stazione è partito un primato italiano.",
+  "wiki": "Stazione di Sondrio",
+  "lat": 46.1683,
+  "lng": 9.8732,
+  "text": "La linea ferroviaria Lecco–Sondrio è considerata la prima in Italia elettrificata con corrente alternata trifase ad alta tensione: il servizio cominciò il 15 ottobre 1902.\n\nUna curiosità sulla città: Sondrio è il capoluogo di provincia più piccolo d'Italia per superficie e il secondo meno popoloso, dopo Isernia."
+ }
 ]
