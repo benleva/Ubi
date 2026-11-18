@@ -5680,5 +5680,245 @@
   "lat": 45.655,
   "lng": 9.355,
   "text": "All'inizio dell'Ottocento il conte Rinaldo di Barbiano trasformò la sua casa di Velate in una villa di delizie, con oratorio privato e un grande parco. La figlia Maria Beatrice fece costruire la cappella di San Felice come tomba di famiglia."
+ },
+ {
+  "town": "Roma",
+  "title": "Il buco della serratura più famoso",
+  "hint": "Avvicina un occhio al portone: vedrai una cupola incorniciata.",
+  "wiki": "Villa del Priorato di Malta",
+  "osm": "Piazza dei Cavalieri di Malta, Roma",
+  "lat": 41.8834,
+  "lng": 12.4776,
+  "text": "Guardando dal buco della serratura del portone della Villa del Priorato di Malta, sull'Aventino, si vede in fondo al viale del giardino, perfettamente incorniciata, la cupola di San Pietro. La piazza davanti, con i trofei e gli stemmi, è opera di Giovanni Battista Piranesi, che la progettò nel 1765."
+ },
+ {
+  "town": "Roma",
+  "title": "Dove morì Cesare, oggi regnano i gatti",
+  "hint": "Qui fu ucciso Giulio Cesare. Ora è casa di tantissimi gatti.",
+  "search": "Largo di Torre Argentina",
+  "osm": "Largo di Torre Argentina, Roma",
+  "lat": 41.8955,
+  "lng": 12.4767,
+  "text": "Nell'area sacra di Largo di Torre Argentina si vedono i resti della Curia di Pompeo, dove si riuniva il Senato: qui, alle Idi di marzo del 44 a.C., fu ucciso Giulio Cesare. Dal 1929, quando gli scavi riportarono alla luce le rovine, i gatti randagi ne hanno fatto la loro casa, e oggi una colonia felina curata da volontari vive tra i templi. Il nome «Argentina» non c'entra con il Sudamerica: viene da Argentoratum, il nome latino di Strasburgo."
+ },
+ {
+  "town": "Roma",
+  "title": "La Bocca della Verità era un tombino",
+  "hint": "Metti la mano nella bocca... ma sappi cos'era davvero.",
+  "wiki": "Bocca della Verità",
+  "osm": "Bocca della Verità, Roma",
+  "lat": 41.8881,
+  "lng": 12.4815,
+  "text": "La Bocca della Verità, nel portico di Santa Maria in Cosmedin, era in origine un tombino romano: un disco con il volto di una divinità che «inghiottiva» l'acqua piovana. Nel Medioevo si diceva che mordesse la mano dei bugiardi e dei coniugi infedeli. È murata in verticale dal 1632 ed è diventata famosa nel mondo con il film «Vacanze romane» del 1953."
+ },
+ {
+  "town": "Roma",
+  "title": "Pasquino, la statua che parla",
+  "hint": "Per secoli su questa statua mutilata si appendevano satire contro il papa.",
+  "wiki": "Pasquino",
+  "osm": "Piazza di Pasquino, Roma",
+  "lat": 41.8977,
+  "lng": 12.4724,
+  "text": "Pasquino è la più famosa «statua parlante» di Roma: un frammento ellenistico trovato nel 1501, forse Menelao che sostiene Patroclo. Di notte la gente ci appendeva versi satirici contro i potenti, soprattutto i papi: da qui la parola «pasquinata». Le guardie li toglievano al mattino, ma intanto tutti li avevano letti. Pasquino «dialogava» con il Marforio, sul Campidoglio."
+ },
+ {
+  "town": "Roma",
+  "title": "La galleria che inganna gli occhi",
+  "hint": "Sembra lunga 37 metri. Misurala.",
+  "wiki": "Palazzo Spada",
+  "osm": "Palazzo Spada, Roma",
+  "lat": 41.8936,
+  "lng": 12.4718,
+  "text": "Nel cortile di Palazzo Spada c'è la galleria prospettica del Borromini: sembra lunga circa 37 metri, ma è di appena 8. La statua in fondo sembra a grandezza naturale e invece è alta solo 60 centimetri. Il trucco sta nel pavimento che sale, nel soffitto che scende e nelle colonne sempre più piccole."
+ },
+ {
+  "town": "Roma",
+  "title": "La cupola che non esiste",
+  "hint": "Alza gli occhi: quella cupola è solo dipinta.",
+  "wiki": "Chiesa di Sant'Ignazio di Loyola in Campo Marzio",
+  "osm": "Chiesa di Sant'Ignazio di Loyola, Roma",
+  "lat": 41.899,
+  "lng": 12.4796,
+  "text": "Nella chiesa di Sant'Ignazio la cupola non è mai stata costruita, forse per mancanza di soldi o perché i vicini non volevano perdere la luce. Andrea Pozzo la dipinse in prospettiva su una tela piatta. Mettiti sul segno nel pavimento davanti all'altare: da lì sembra vera. Anche la volta della navata, del 1685, ha il suo disco da cui guardarla."
+ },
+ {
+  "town": "Roma",
+  "title": "La piramide costruita in 330 giorni",
+  "hint": "A Roma c'è una piramide vera, con una scadenza nel testamento.",
+  "wiki": "Piramide Cestia",
+  "osm": "Piramide Cestia, Roma",
+  "lat": 41.8765,
+  "lng": 12.4808,
+  "text": "La Piramide Cestia, alta 36,40 metri, è la tomba di Gaio Cestio Epulone, costruita tra il 18 e il 12 a.C. Il suo testamento imponeva di finirla in 330 giorni, e gli eredi forse ci misero anche meno. Nel III secolo fu inglobata nelle Mura Aureliane come bastione, e probabilmente fu proprio questo a salvarla."
+ },
+ {
+  "town": "Roma",
+  "title": "La collina fatta di cocci",
+  "hint": "Questa collina non è naturale: sotto ci sono milioni di anfore.",
+  "wiki": "Monte Testaccio",
+  "osm": "Monte Testaccio, Roma",
+  "lat": 41.8758,
+  "lng": 12.4757,
+  "text": "Il Monte Testaccio è una collina artificiale fatta di cocci di oltre 53 milioni di anfore d'olio, buttate qui dal porto fluviale romano fino alla metà del III secolo. Le anfore non si potevano riusare, quindi venivano rotte e accatastate con ordine. Le grotte ai piedi del monte restano a circa 10 gradi tutto l'anno: prima cantine, poi osterie, oggi locali."
+ },
+ {
+  "town": "Roma",
+  "title": "La vendetta dell'elefantino",
+  "hint": "Guarda bene dove punta il sedere di questo elefante.",
+  "search": "Obelisco della Minerva",
+  "osm": "Piazza della Minerva, Roma",
+  "lat": 41.8981,
+  "lng": 12.4777,
+  "text": "L'elefantino che regge l'obelisco in piazza della Minerva fu disegnato da Bernini e scolpito dal suo allievo Ercole Ferrata nel 1667. I frati domenicani lo criticarono e gli fecero aggiungere un sostegno sotto la pancia, che lo rese tozzo: i romani lo chiamarono «porcino», poi «pulcino» della Minerva. Si racconta che Bernini, per ripicca, abbia girato il posteriore dell'elefante verso il loro convento."
+ },
+ {
+  "town": "Roma",
+  "title": "La porta dell'alchimista",
+  "hint": "Su questa porta c'è inciso il segreto per fare l'oro. Dicono.",
+  "wiki": "Porta Magica",
+  "osm": "Porta Magica, Piazza Vittorio Emanuele II, Roma",
+  "lat": 41.8952,
+  "lng": 12.5049,
+  "text": "La Porta Magica, nei giardini di piazza Vittorio, era una porta della villa del marchese Massimiliano Palombara (l'iscrizione porta la data 1680). Si racconta che un alchimista, ospitato una notte, cercò nel giardino l'erba per fare l'oro e sparì all'alba da questa porta, lasciando pagliuzze d'oro e una carta piena di simboli. Il marchese, non riuscendo a decifrarla, li fece incidere sulla porta. Le due statue del dio Bes sono state aggiunte nel 1888."
+ },
+ {
+  "town": "Roma",
+  "title": "Il museo delle anime del Purgatorio",
+  "hint": "In una sacrestia sul Tevere ci sono impronte di mani bruciate.",
+  "wiki": "Museo delle anime del Purgatorio",
+  "osm": "Chiesa del Sacro Cuore del Suffragio, Roma",
+  "lat": 41.904,
+  "lng": 12.471,
+  "text": "Nella sacrestia della chiesa del Sacro Cuore del Suffragio, sul lungotevere Prati, c'è un piccolissimo museo nato dopo un incendio del 15 settembre 1897: il fondatore, don Victor Jouët, credette di vedere un volto sofferente sul muro dietro l'altare. Raccolse in Europa oggetti con impronte di fuoco che, secondo la tradizione, sarebbero segni lasciati dalle anime dei defunti."
+ },
+ {
+  "town": "Roma",
+  "title": "Una chiesa sopra una chiesa sopra un tempio",
+  "hint": "Scendendo le scale si va indietro di duemila anni.",
+  "wiki": "Basilica di San Clemente al Laterano",
+  "osm": "Basilica di San Clemente, Roma",
+  "lat": 41.8893,
+  "lng": 12.4976,
+  "text": "La basilica di San Clemente, del XII secolo, è costruita sopra una basilica più antica, che a sua volta poggia su edifici romani del I secolo e su un mitreo, il tempio del dio Mitra. Gli scavi iniziarono nel 1857 con il domenicano irlandese Joseph Mullooly. In un affresco della chiesa inferiore c'è una delle prime frasi scritte in italiano volgare... ed è un insulto."
+ },
+ {
+  "town": "Roma",
+  "title": "La fontana costruita in una notte",
+  "hint": "Una leggenda d'amore. Peccato che le date non tornino.",
+  "wiki": "Fontana delle Tartarughe",
+  "osm": "Fontana delle Tartarughe, Piazza Mattei, Roma",
+  "lat": 41.8938,
+  "lng": 12.4776,
+  "text": "Si racconta che il duca Mattei fece costruire la Fontana delle Tartarughe in una sola notte per convincere il futuro suocero a dargli la figlia, e poi fece murare la finestra da cui l'avevano ammirata. Ma la fontana è del 1581-88 e il palazzo del 1616. Le tartarughe sono state aggiunte nel 1658, forse da Bernini."
+ },
+ {
+  "town": "Roma",
+  "title": "Il bagno dei Beatles",
+  "hint": "Si dice che in questa fontana ci siano finiti i Beatles, vestiti.",
+  "search": "Quartiere Coppedè",
+  "osm": "Piazza Mincio, Roma",
+  "lat": 41.918,
+  "lng": 12.504,
+  "text": "La Fontana delle Rane, al centro di piazza Mincio nel fiabesco quartiere Coppedè, fu progettata da Gino Coppedè nel 1924 ed è ispirata alla Fontana delle Tartarughe. Ha dodici rane e, sul bordo, un'ape che omaggia Bernini. Si racconta che nel 1965, dopo il concerto al vicino Piper, i Beatles ci si tuffarono vestiti."
+ },
+ {
+  "town": "Roma",
+  "title": "L'isola a forma di nave",
+  "hint": "Quest'isola ha una prua di pietra.",
+  "wiki": "Isola Tiberina",
+  "osm": "Isola Tiberina, Roma",
+  "lat": 41.8905,
+  "lng": 12.4776,
+  "text": "Gli antichi romani rivestirono una punta dell'Isola Tiberina di travertino per farla sembrare la prua di una nave, in ricordo della nave che portò a Roma il culto di Esculapio, il dio della medicina. Sul lato verso valle se ne vedono ancora i resti, con il bastone e il serpente del dio. Ancora oggi sull'isola c'è un ospedale."
+ },
+ {
+  "town": "Roma",
+  "title": "La pioggia di petali",
+  "hint": "Una volta l'anno da quel buco nel soffitto piovono rose.",
+  "wiki": "Pantheon (Roma)",
+  "osm": "Pantheon, Roma",
+  "lat": 41.8986,
+  "lng": 12.4769,
+  "text": "La cupola del Pantheon ha al centro un'apertura, l'oculo, senza vetro: quando piove l'acqua entra e scorre via dai piccoli fori del pavimento. Il giorno di Pentecoste, alla fine della messa, dall'oculo vengono fatti cadere migliaia di petali di rosa rossa, per ricordare la discesa dello Spirito Santo."
+ },
+ {
+  "town": "Roma",
+  "title": "Il lago di piazza Navona",
+  "hint": "Questa piazza d'estate diventava un lago.",
+  "wiki": "Piazza Navona",
+  "osm": "Piazza Navona, Roma",
+  "lat": 41.8992,
+  "lng": 12.4731,
+  "text": "Piazza Navona ha la forma allungata dello stadio di Domiziano, su cui è costruita. Dal Seicento all'Ottocento, nei fine settimana d'agosto, si chiudevano gli scarichi delle fontane e la piazza si allagava: nobili e popolani ci passavano in carrozza e a piedi per rinfrescarsi. Lo chiamavano il «lago di piazza Navona»."
+ },
+ {
+  "town": "Roma",
+  "title": "La barca che non può zampillare",
+  "hint": "Perché questa fontana è più bassa della strada?",
+  "wiki": "Fontana della Barcaccia",
+  "osm": "Fontana della Barcaccia, Piazza di Spagna, Roma",
+  "lat": 41.9057,
+  "lng": 12.4823,
+  "text": "La Barcaccia di piazza di Spagna è di Pietro Bernini, con l'aiuto del figlio Gian Lorenzo, finita nel 1629. Una leggenda dice che si ispira a una barca rimasta in piazza dopo la piena del Tevere del 1598. Il vero motivo della forma è tecnico: qui l'acquedotto dell'Acqua Vergine ha poca pressione, così Bernini mise una barca semiaffondata in una vasca più bassa della strada, da cui l'acqua trabocca."
+ },
+ {
+  "town": "Roma",
+  "title": "Il cannone del Gianicolo",
+  "hint": "Ogni giorno a mezzogiorno da qui parte un colpo.",
+  "wiki": "Cannone del Gianicolo",
+  "osm": "Piazzale Giuseppe Garibaldi, Roma",
+  "lat": 41.8916,
+  "lng": 12.4614,
+  "text": "Ogni giorno a mezzogiorno in punto, dal Gianicolo, sotto la statua di Garibaldi, spara un colpo a salve. Lo volle Pio IX nel 1847 perché le campane delle chiese suonassero tutte alla stessa ora; dal Gianicolo spara dal 24 gennaio 1904. Nei giorni tranquilli il colpo si sente fino all'Esquilino."
+ },
+ {
+  "town": "Roma",
+  "title": "I frati diventati decorazione",
+  "hint": "Sotto questa chiesa i lampadari sono fatti di ossa.",
+  "search": "Santa Maria della Concezione dei Cappuccini",
+  "osm": "Santa Maria della Concezione dei Cappuccini, Roma",
+  "lat": 41.9045,
+  "lng": 12.4882,
+  "text": "Sotto la chiesa di Santa Maria della Concezione, in via Veneto, la cripta dei Cappuccini ha cinque piccole cappelle decorate con le ossa di circa 4000 frati morti tra il 1528 e il 1870: rosoni, archi e lampadari fatti di teschi e ossa. È un «memento mori», un invito a ricordare che la vita è breve."
+ },
+ {
+  "town": "Roma",
+  "title": "La gatta sul cornicione",
+  "hint": "Alza gli occhi: c'è una gatta di pietra che guarda qualcosa.",
+  "search": "Via della Gatta Roma",
+  "osm": "Via della Gatta, Roma",
+  "lat": 41.8973,
+  "lng": 12.4807,
+  "text": "In via della Gatta, sul cornicione di Palazzo Grazioli, c'è una piccola gatta di marmo antico, forse dal vicino tempio di Iside. La strada prende il nome da lei. Una leggenda dice che la gatta guardi il punto dove è sepolto un tesoro."
+ },
+ {
+  "town": "Roma",
+  "title": "Madama Lucrezia",
+  "hint": "Anche questa grande testa di pietra era una statua parlante.",
+  "wiki": "Madama Lucrezia",
+  "osm": "Piazza San Marco, Roma",
+  "lat": 41.896,
+  "lng": 12.4815,
+  "text": "Madama Lucrezia, il grande busto di pietra all'angolo della basilica di San Marco, in piazza Venezia, è l'unica «statua parlante» femminile di Roma: come Pasquino, riceveva i cartelli satirici contro i potenti. Probabilmente raffigura la dea Iside."
+ },
+ {
+  "town": "Roma",
+  "title": "La fontana dei desideri",
+  "hint": "Si lancia la moneta di spalle. Ma dove finiscono i soldi?",
+  "wiki": "Fontana di Trevi",
+  "osm": "Fontana di Trevi, Roma",
+  "lat": 41.9009,
+  "lng": 12.4833,
+  "text": "La tradizione vuole che si lanci una moneta nella Fontana di Trevi con la mano destra sopra la spalla sinistra, per essere sicuri di tornare a Roma. Le monete vengono raccolte regolarmente e donate alla Caritas, che le usa per aiutare chi ha bisogno: sono più di un milione di euro l'anno."
+ },
+ {
+  "town": "Roma",
+  "title": "La casa delle civette",
+  "hint": "In questa villa c'è una casetta da fiaba piena di civette.",
+  "wiki": "Casina delle Civette",
+  "osm": "Casina delle Civette, Villa Torlonia, Roma",
+  "lat": 41.9135,
+  "lng": 12.512,
+  "text": "Nel parco di Villa Torlonia c'è la Casina delle Civette, una casetta da fiaba trasformata a inizio Novecento dal principe Giovanni Torlonia. Prende il nome dalle civette che compaiono nelle decorazioni e nelle vetrate Liberty; oggi è un museo delle vetrate artistiche."
  }
 ]
