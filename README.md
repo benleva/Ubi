@@ -55,7 +55,8 @@ Sul telefono: aprire il sito > menu del browser > "Aggiungi a schermata Home".
 ## Curiosità pronte (admin)
 
 In Amministrazione › 🗺️ Curiosità trovi i pin di `seed/curiosita.json` (testi scritti per Ubi).
-L'app cerca su Wikipedia la posizione e una foto con licenza libera su Wikimedia Commons, mette il credito sotto il testo e crea i pin pubblici a tuo nome.
+Scegli un comune: l'app cerca su Wikipedia la posizione e propone fino a 6 foto con licenza libera da Wikimedia Commons (pagina Wikipedia, ricerca per nome del luogo, foto geotaggate entro 300 m). Tocchi quella giusta, l'app mette il credito sotto il testo e crea i pin pubblici a tuo nome.
+Le curiosità già create come solo testo compaiono con «già creato, senza foto»: scegli una foto e premi il pulsante, la foto viene aggiunta al pin esistente.
 Per aggiungere altri paesi basta aggiungere voci al file (title, hint, text, wiki, lat, lng).
 
 ## Prossimi passi

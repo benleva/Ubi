@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180639';
+import { CONFIG } from './config.js?v=202611180643';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.31';
+const APP_VERSION = 'v.32';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -164,6 +164,14 @@ async function supabaseBackend() {
       if (res.error) { if (media_path) await sb.storage.from('media').remove([media_path]); throw res.error; }
       if (d.recipients.length) must(await sb.from('content_recipients').insert(d.recipients.map((email) => ({ content_id: id, email }))));
       return res.data.share_slug;
+    },
+    // aggiunge una foto a un pin di solo testo (curiosità già create)
+    async addPhoto(c, file, text_body) {
+      const u = await B.user();
+      const media_path = `${u.id}/${c.id}/media-${Date.now()}.jpg`;
+      must(await sb.storage.from('media').upload(media_path, file, { contentType: file.type, upsert: false }));
+      const res = await sb.from('contents').update({ media_type: 'photo', media_path, text_body }).eq('id', c.id).eq('owner_id', u.id).select('id').single();
+      if (res.error) { await sb.storage.from('media').remove([media_path]); throw res.error; }
     },
     async notifyRecipients(slug) {
       const { data, error } = await sb.functions.invoke(CONFIG.NOTIFY_FUNCTION || 'notify-recipients', { body: { slug } });
@@ -409,6 +417,10 @@ function demoBackend() {
         unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
       });
       save(); return slug;
+    },
+    async addPhoto(c, file, text_body) {
+      const x = db.contents.find((y) => y.id === c.id); if (!x) throw new Error('Pin non trovato');
+      await putBlob(x.id, file); Object.assign(x, { media_type: 'photo', media_path: x.id, text_body }); save();
     },
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
     _book() { db.book = db.book || {}; db.book[db.user.id] = db.book[db.user.id] || []; return db.book[db.user.id]; },
@@ -1715,69 +1727,107 @@ async function osmFetch(q) {
   const r = await fetch(u, { headers: { 'Accept-Language': 'it' } }); if (!r.ok) return null;
   const j = await r.json(); return j[0] ? { lat: +j[0].lat, lng: +j[0].lon } : null;
 }
+// Altre foto libere su Commons: prima per nome del luogo, poi geotaggate vicino al punto
+async function commonsCandidates(r) {
+  const props = { prop: 'imageinfo', iiprop: 'url|extmetadata|mime', iiurlwidth: 400 };
+  const take = (j) => Object.values(j.query?.pages || {}).sort((x, y) => (x.index || 0) - (y.index || 0)).map((pg) => {
+    const ii = pg.imageinfo?.[0]; if (!ii || !/^image\/(jpeg|png|webp)/.test(ii.mime || '')) return null;
+    const lic = stripHtml(ii.extmetadata?.LicenseShortName?.value);
+    if (!/^(cc|public domain|pd|pubblico dominio)/i.test(lic)) return null;
+    return { name: pg.title.replace(/^File:/, ''), thumb: ii.thumburl || ii.url };
+  }).filter(Boolean);
+  const out = []; const add = (list) => list.forEach((c) => { if (!out.some((o) => o.name === c.name)) out.push(c); });
+  const q = (r.osm || `${r.title} ${r.town}`).replace(/,/g, ' ');
+  try { add(take(await wget(COMMONS, { action: 'query', generator: 'search', gsrnamespace: 6, gsrsearch: `${q} filetype:bitmap`, gsrlimit: 8, ...props }))); } catch { /* niente */ }
+  if (out.length < 3 && r.posOk) {
+    try { add(take(await wget(COMMONS, { action: 'query', generator: 'geosearch', ggsnamespace: 6, ggscoord: `${r.lat}|${r.lng}`, ggsradius: 300, ggslimit: 8, ...props }))); } catch { /* niente */ }
+  }
+  return out.slice(0, 6);
+}
 async function adminSeedTab(box) {
-  box.innerHTML = '<div class="card"><p class="muted">Carico le curiosità e cerco foto e posizioni su Wikipedia…</p></div>';
+  box.innerHTML = '<div class="card"><p class="muted">Carico le curiosità…</p></div>';
   const items = await (await fetch('./seed/curiosita.json?v=' + Date.now())).json();
-  const mine = new Set((await B.listMine()).map((c) => c.title));
-  const limit = (n) => { let act = 0; const q = []; const next = () => { if (act >= n || !q.length) return; act++; const [f, ok, ko] = q.shift(); f().then(ok, ko).finally(() => { act--; next(); }); };
-    return (f) => new Promise((ok, ko) => { q.push([f, ok, ko]); next(); }); };
-  const pool = limit(6);   // poche richieste alla volta, per non sovraccaricare Wikipedia
-  let doneN = 0;
-  const rows = await Promise.all(items.map((it) => pool(async () => {
-    const r = { ...it, lat0: it.lat, lng0: it.lng, done: mine.has(it.title) };
-    try {
-      const w = it.wiki ? await wikiPage(it) : { page: null };
-      const townPage = w.page && w.page.toLowerCase() === it.town.toLowerCase();   // pagina del paese: niente foto né posizione
-      if (w.coord && !townPage) { const d = metres(it.lat, it.lng, w.coord.lat, w.coord.lon); if (d < 1500) { r.lat = w.coord.lat; r.lng = w.coord.lon; r.posOk = true; } }
-      if (w.image && !townPage) r.photo = await commonsPhoto(w.image).catch(() => null);
-      r.page = townPage ? null : w.page;
-    } catch { r.err = true; }
-    doneN++; if (doneN % 10 === 0) box.innerHTML = `<div class="card"><p class="muted">Cerco foto e posizioni su Wikipedia… ${doneN} di ${items.length}</p></div>`;
-    return r;
-  })));
-  const tryOsm = async (r) => {   // la posizione da OpenStreetMap si cerca solo quando serve (alla creazione)
-    if (r.posOk || !r.osm) return;
-    try { const o = await osmFind(r.osm); if (o && metres(r.lat0, r.lng0, o.lat, o.lng) < 4000) { r.lat = o.lat; r.lng = o.lng; r.posOk = true; r.posOsm = true; } } catch { /* resta la posizione approssimativa */ }
-  };
-  const towns = [...new Set(rows.map((r) => r.town))];
-  box.innerHTML = `<div class="card"><p><b>${rows.length}</b> curiosità pronte in ${towns.join(', ')}. Testi scritti per Ubi; foto solo con licenza libera da Wikimedia Commons, con il credito già sotto il testo.</p>
-      <p class="muted small">✓ posizione presa da Wikipedia · 📍 la posizione viene cercata su OpenStreetMap (© OpenStreetMap contributors) mentre crea il pin · ⚠️ posizione approssimativa: dopo averlo creato, apri il pin e spostalo con «Modifica». I pin sono pubblici, si sbloccano entro 80 m e hanno i tag #curiosità e il nome del paese.</p>
-      <button class="accent full" id="seedgo">Crea i pin selezionati</button><div id="seedmsg"></div></div>
-    ${towns.map((t) => `<h2 class="row" style="justify-content:space-between;align-items:center">${esc(t)} <button class="ghost small" type="button" data-town="${esc(t)}">Tutti / nessuno</button></h2>${rows.map((r, i) => r.town !== t ? '' : `<div class="card seedrow">
-      <label class="inline"><input type="checkbox" data-i="${i}" ${r.done ? 'disabled' : 'checked'}><span><b>${esc(r.title)}</b>${r.done ? ' · <span class="muted">già creato</span>' : ''}</span></label>
-      ${r.photo ? `<img src="${esc(r.photo.url)}" alt="" loading="lazy" style="max-height:140px;width:auto;border-radius:10px;margin-top:6px">` : '<p class="muted small">Nessuna foto libera trovata: diventa un pin di solo testo.</p>'}
-      <p class="small">${r.posOk ? '✓' : r.osm ? '📍' : '⚠️'} <a href="https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}" target="_blank" rel="noopener">${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}</a>${r.posOsm ? ' · OpenStreetMap' : ''}${r.page ? ` · Wikipedia: ${esc(r.page)}` : ''}</p>
-      <p class="muted small">${esc(r.hint)}</p></div>`).join('')}`).join('')}`;
-  box.querySelectorAll('button[data-town]').forEach((btn) => { btn.onclick = () => {
-    const cbs = [...box.querySelectorAll('input[data-i]:not(:disabled)')].filter((x) => rows[+x.dataset.i].town === btn.dataset.town);
-    const on = !cbs.every((x) => x.checked); cbs.forEach((x) => { x.checked = on; });
-  }; });
-  $('#seedgo').onclick = async () => {
-    const pick = [...box.querySelectorAll('input[data-i]:checked')].map((x) => rows[+x.dataset.i]);
-    if (!pick.length) return msg($('#seedmsg'), 'Seleziona almeno una curiosità.');
-    $('#seedgo').disabled = true; let ok = 0; const bad = [];
-    for (const r of pick) {
-      msg($('#seedmsg'), `Creo «${r.title}» (${ok + bad.length + 1} di ${pick.length})…`, 'info');
+  const mineList = await B.listMine(); const mine = new Map(mineList.map((c) => [c.title, c]));
+  const towns = [...new Set(items.map((i) => i.town))];
+  const stat = (t) => { const its = items.filter((i) => i.town === t); const d = its.filter((i) => mine.has(i.title)); const txt = d.filter((i) => mine.get(i.title).media_type === 'text').length;
+    return `${t} · ${d.length}/${its.length} creati${txt ? ` · ${txt} senza foto` : ''}`; };
+  const noPhoto = mineList.filter((c) => c.media_type === 'text' && (c.tags || []).includes('curiosità')).length;
+  box.innerHTML = `<div class="card"><p><b>${items.length}</b> curiosità in ${towns.length} comuni. Scegli un comune: cerco le foto libere su Wikimedia Commons e tu scegli quella giusta.</p>
+    ${noPhoto ? `<p class="small">📷 Hai <b>${noPhoto}</b> curiosità già create senza foto: apri il loro comune, scegli una foto e premi «Aggiungi foto».</p>` : ''}
+    <select id="seedtown" class="full"><option value="">— scegli un comune —</option>${towns.map((t) => `<option value="${esc(t)}">${esc(stat(t))}</option>`).join('')}</select></div><div id="seedbox"></div>`;
+  $('#seedtown').onchange = () => { const t = $('#seedtown').value; if (t) seedTown(t); };
+
+  async function seedTown(town) {
+    const sbx = $('#seedbox'); sbx.innerHTML = '<div class="card"><p class="muted">Cerco foto e posizioni…</p></div>';
+    const rows = await Promise.all(items.filter((i) => i.town === town).map(async (it) => {
+      const old = mine.get(it.title);
+      const r = { ...it, lat0: it.lat, lng0: it.lng, old, done: !!old, cands: [], pick: -1 };
+      if (old && old.media_type !== 'text') return r;   // già creato con foto: niente da fare
       try {
-        await tryOsm(r);
-        let file = null;
-        if (r.photo) {
-          const res = await fetch(r.photo.url); if (!res.ok) throw new Error('foto non scaricabile');
-          file = new File([await fitImage(await res.blob(), 1600)], 'foto.jpg', { type: 'image/jpeg' });
-        }
-        const text = r.photo ? `${r.text}\n\n${r.photo.credit} – ${r.photo.page}` : r.text;
-        await B.create({
-          title: r.title, hint: r.hint, media_type: file ? 'photo' : 'text', file, text_body: text.slice(0, 2000),
-          lat: r.lat, lng: r.lng, radius: 80, source: 'coordinates', visibility: 'public', recipients: [],
-          tags: ['curiosità', (r.tag || r.town).toLowerCase().replace(/[^a-zà-ù0-9' ]/g, '').slice(0, 24)], replies_enabled: true,
-        });
-        ok++; box.querySelector(`input[data-i="${rows.indexOf(r)}"]`).disabled = true;
-      } catch (e) { bad.push(`${r.title}: ${errText(e)}`); }
+        const w = it.wiki ? await wikiPage(it) : { page: null };
+        const townPage = w.page && w.page.toLowerCase() === it.town.toLowerCase();
+        if (w.coord && !townPage) { const d = metres(it.lat, it.lng, w.coord.lat, w.coord.lon); if (d < 1500) { r.lat = w.coord.lat; r.lng = w.coord.lon; r.posOk = true; } }
+        r.page = townPage ? null : w.page;
+        if (w.image && !townPage) r.cands.push({ name: w.image, thumb: null });
+      } catch { /* resta senza */ }
+      for (const c of await commonsCandidates(r)) if (!r.cands.some((o) => o.name === c.name)) r.cands.push(c);
+      if (r.cands[0] && !r.cands[0].thumb) {   // miniatura della foto di Wikipedia
+        const p = await commonsPhoto(r.cands[0].name).catch(() => null); if (p) r.cands[0].thumb = p.url; else r.cands.shift();
+      }
+      r.pick = r.cands.length ? 0 : -1;
+      return r;
+    }));
+    const tryOsm = async (r) => {
+      if (r.posOk || !r.osm) return;
+      try { const o = await osmFind(r.osm); if (o && metres(r.lat0, r.lng0, o.lat, o.lng) < 4000) { r.lat = o.lat; r.lng = o.lng; r.posOk = true; r.posOsm = true; } } catch { /* approssimativa */ }
+    };
+    const thumbs = (r, i) => r.cands.length ? `<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px">${r.cands.map((c, k) => `<img src="${esc(c.thumb)}" alt="" loading="lazy" data-r="${i}" data-k="${k}" style="height:82px;width:110px;max-width:110px;object-fit:cover;flex:0 0 auto;border-radius:8px;cursor:pointer;outline:${k === r.pick ? '4px solid var(--accent, #e4572e)' : 'none'};opacity:${k === r.pick ? 1 : .6}">`).join('')}
+        <button type="button" class="ghost small" data-r="${i}" data-k="-1" style="width:auto;flex:0 0 auto;opacity:${r.pick < 0 ? 1 : .6}">${r.pick < 0 ? '✓ ' : ''}Senza foto</button></div>` : '<p class="muted small">Nessuna foto libera trovata su Wikimedia Commons.</p>';
+    const draw = () => {
+      sbx.innerHTML = `<div class="card"><p class="small">Tocca la foto che corrisponde davvero al luogo (le prime sono le più probabili). Le foto sono tutte con licenza libera; il credito viene messo sotto il testo.</p>
+        <button class="accent full" id="seedgo">Crea i pin selezionati e aggiungi le foto scelte</button><div id="seedmsg"></div></div>
+        ${rows.map((r, i) => `<div class="card seedrow">
+          <label class="inline"><input type="checkbox" data-i="${i}" ${r.done && r.old.media_type !== 'text' ? 'disabled' : 'checked'}><span><b>${esc(r.title)}</b>${r.done ? (r.old.media_type === 'text' ? ' · <span class="muted">già creato, senza foto: aggiungo quella scelta</span>' : (r.old.media_type === 'new' ? ' · <span class="muted">appena creato (per aggiungere la foto ricarica la pagina)</span>' : ' · <span class="muted">già creato con foto</span>')) : ''}</span></label>
+          ${r.done && r.old.media_type !== 'text' ? '' : thumbs(r, i)}
+          ${r.done ? '' : `<p class="small">${r.posOk ? '✓' : r.osm ? '📍' : '⚠️'} <a href="https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}" target="_blank" rel="noopener">${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}</a>${r.page ? ` · Wikipedia: ${esc(r.page)}` : ''}</p>`}
+          <p class="muted small">${esc(r.hint)}</p></div>`).join('')}`;
+      sbx.querySelectorAll('[data-k]').forEach((el) => { el.onclick = () => { const r = rows[+el.dataset.r]; r.pick = +el.dataset.k; const keep = [...sbx.querySelectorAll('input[data-i]')].map((x) => x.checked); draw(); sbx.querySelectorAll('input[data-i]').forEach((x, j) => { if (!x.disabled) x.checked = keep[j]; }); }; });
+      $('#seedgo').onclick = go;
+    };
+    async function go() {
+      const pick = [...sbx.querySelectorAll('input[data-i]:checked')].map((x) => rows[+x.dataset.i]).filter((r) => !r.done || r.pick >= 0);
+      if (!pick.length) return msg($('#seedmsg'), 'Niente da fare: seleziona una curiosità (per quelle già create scegli una foto).');
+      $('#seedgo').disabled = true; let ok = 0; const bad = [], made = [];
+      for (const r of pick) {
+        msg($('#seedmsg'), `«${r.title}» (${ok + bad.length + 1} di ${pick.length})…`, 'info');
+        try {
+          let file = null, photo = null;
+          if (r.pick >= 0) {
+            photo = await commonsPhoto(r.cands[r.pick].name); if (!photo) throw new Error('foto non disponibile');
+            const res = await fetch(photo.url); if (!res.ok) throw new Error('foto non scaricabile');
+            file = new File([await fitImage(await res.blob(), 1600)], 'foto.jpg', { type: 'image/jpeg' });
+          }
+          const text = (photo ? `${r.text}\n\n${photo.credit} – ${photo.page}` : r.text).slice(0, 2000);
+          if (r.done) { await B.addPhoto(r.old, file, text); r.old.media_type = 'photo'; }
+          else {
+            await tryOsm(r);
+            await B.create({
+              title: r.title, hint: r.hint, media_type: file ? 'photo' : 'text', file, text_body: text,
+              lat: r.lat, lng: r.lng, radius: 80, source: 'coordinates', visibility: 'public', recipients: [],
+              tags: ['curiosità', (r.tag || r.town).toLowerCase().replace(/[^a-zà-ù0-9' ]/g, '').slice(0, 24)], replies_enabled: true,
+            });
+            r.done = true; r.old = { media_type: file ? 'photo' : 'new' }; mine.set(r.title, r.old); made.push(r);
+          }
+          ok++;
+        } catch (e) { bad.push(`${r.title}: ${errText(e)}`); }
+      }
+      const approx = made.filter((r) => !r.posOk).map((r) => r.title);
+      draw();
+      msg($('#seedmsg'), `Fatto: ${ok}.${bad.length ? ' Non riusciti: ' + bad.map(esc).join(' · ') : ''}${approx.length ? `<br>Posizione approssimativa, da spostare con «Modifica»: ${approx.map(esc).join(' · ')}` : ''}`, bad.length ? 'err' : 'ok');
+      const opt = $('#seedtown').querySelector(`option[value="${CSS.escape(town)}"]`); if (opt) opt.textContent = stat(town);
     }
-    $('#seedgo').disabled = false;
-    const approx = pick.filter((r) => !r.posOk).map((r) => r.title);
-    msg($('#seedmsg'), `${ok} pin creati.${bad.length ? ' Non riusciti: ' + bad.join(' · ') : ''}${approx.length ? `<br>Posizione approssimativa, da spostare con «Modifica»: ${approx.map(esc).join(' · ')}` : ''}`, bad.length ? 'err' : 'ok');
-  };
+    draw();
+  }
 }
 async function adminUsersTab(box) {
   const rows = await B.adminUsers();
