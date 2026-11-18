@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180806';
+import { CONFIG } from './config.js?v=202611180832';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.46';
+const APP_VERSION = 'v.47';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -819,7 +819,13 @@ async function homeMap(opts = {}) {
   if (!document.body.contains(el)) return;
   const map = makeMap(el, 42.5, 12.5, 6);
   if (!map) return;
-  const layer = L.layerGroup().addTo(map);
+  // pin vicini raggruppati in un cerchio con il numero: toccandolo si ingrandisce
+  let layer;
+  try { layer = (L.markerClusterGroup ? L.markerClusterGroup({
+    maxClusterRadius: 45, showCoverageOnHover: false, spiderfyOnMaxZoom: true, disableClusteringAtZoom: 17, chunkedLoading: true,
+    iconCreateFunction: (cl) => { const n = cl.getChildCount(); const z = n < 10 ? 34 : n < 100 ? 40 : 48;
+      return L.divIcon({ className: '', iconSize: [z, z], iconAnchor: [z / 2, z / 2], html: `<span class="clus" style="width:${z}px;height:${z}px">${n}</span>` }); },
+  }) : L.layerGroup()).addTo(map); } catch { layer = L.layerGroup().addTo(map); }   // senza raggruppamento, ma la mappa funziona
   let me = null, timer = null, first = true;
   const icon = (c) => L.divIcon({
     className: '', iconSize: [34, 34], iconAnchor: [17, 17],
@@ -840,11 +846,9 @@ async function homeMap(opts = {}) {
       b.classList.toggle('on', k === 'all' ? !showCats.size && !onlyMine : k === 'mine' ? onlyMine : showCats.has(k));
       const n = b.querySelector('.n'); if (n) n.textContent = k === 'all' ? rows.length : cnt[k] || 0;
     });
-    shown.forEach((c) => {
-      L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
-        .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
-        .addTo(layer);
-    });
+    const mks = shown.map((c) => L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
+      .on('click', () => { location.hash = `#/c/${c.share_slug}`; }));
+    if (layer.addLayers) layer.addLayers(mks); else mks.forEach((m) => m.addTo(layer));
     // nuvola: tag presenti nella zona, i più usati prima; i selezionati restano sempre visibili
     const count = new Map();
     rows.filter((c) => !opts.dating || c.is_dating).forEach((c) => (c.tags || []).forEach((t) => count.set(t, (count.get(t) || 0) + 1)));
