@@ -7,6 +7,7 @@
 //   Le frasi corte (una parola) vengono tradotte solo se sono l'intero testo di un elemento.
 
 const KEY = 'ubi_lang';
+try { const q = new URLSearchParams(location.search).get('lang'); if (q === 'en' || q === 'it') localStorage.setItem(KEY, q); } catch { /* */ }
 const saved = (() => { try { return localStorage.getItem(KEY); } catch { return null; } })();
 export const LANG = saved === 'it' || saved === 'en' ? saved : (/^it\b/i.test(navigator.language || 'it') ? 'it' : 'en');
 export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';

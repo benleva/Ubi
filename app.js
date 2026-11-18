@@ -1,10 +1,10 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611181754';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611181754';
+import { CONFIG } from './config.js?v=202611181944';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611181944';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.50';
+const APP_VERSION = 'v.51';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
