@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180619';
+import { CONFIG } from './config.js?v=202611180628';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.29';
+const APP_VERSION = 'v.30';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1769,7 +1769,7 @@ async function adminSeedTab(box) {
         await B.create({
           title: r.title, hint: r.hint, media_type: file ? 'photo' : 'text', file, text_body: text.slice(0, 2000),
           lat: r.lat, lng: r.lng, radius: 80, source: 'coordinates', visibility: 'public', recipients: [],
-          tags: ['curiosità', r.town.toLowerCase().replace(/[^a-zà-ù0-9 ]/g, '').slice(0, 24)], replies_enabled: true,
+          tags: ['curiosità', (r.tag || r.town).toLowerCase().replace(/[^a-zà-ù0-9' ]/g, '').slice(0, 24)], replies_enabled: true,
         });
         ok++; box.querySelector(`input[data-i="${rows.indexOf(r)}"]`).disabled = true;
       } catch (e) { bad.push(`${r.title}: ${errText(e)}`); }

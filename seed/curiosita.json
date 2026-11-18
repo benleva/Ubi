@@ -2838,5 +2838,960 @@
   "lat": 45.656,
   "lng": 10.201,
   "text": "Nel 1557 il rettore Ludovico Dolzi cercò di impedire a un predicatore itinerante di parlare nella piazza di Sarezzo. Gli ascoltatori protestarono e gli dissero di lasciarlo continuare, come avevano lasciato parlare altri preti."
+ },
+ {
+  "town": "Vigevano",
+  "title": "La piazza disegnata per un duca",
+  "hint": "Una delle piazze più belle d'Italia, costruita in soli due anni.",
+  "wiki": "Piazza Ducale (Vigevano)",
+  "search": "Piazza Ducale Vigevano",
+  "osm": "Piazza Ducale, Vigevano",
+  "lat": 45.3167,
+  "lng": 8.8586,
+  "text": "Piazza Ducale fu costruita per Ludovico il Moro in circa due anni, dal 1492 al 1494, e la tradizione la lega al genio di Leonardo da Vinci. Misura 138 metri per 46, e il quarto lato è chiuso dalla facciata del Duomo."
+ },
+ {
+  "town": "Vigevano",
+  "title": "La torre del Bramante",
+  "hint": "Sali la rampa dall'angolo della piazza e passa sotto questa torre.",
+  "osm": "Torre del Bramante, Vigevano",
+  "lat": 45.3172,
+  "lng": 8.858,
+  "text": "Dall'angolo sud-ovest di Piazza Ducale una rampa porta al cortile del castello passando sotto la Torre del Bramante. Al grande architetto sono attribuite anche la Loggia delle Dame e la Falconiera."
+ },
+ {
+  "town": "Vigevano",
+  "title": "La strada sopra i tetti",
+  "hint": "Nel 1347 qui si costruì una strada coperta che passava sopra le case.",
+  "wiki": "Castello Sforzesco (Vigevano)",
+  "search": "Castello Sforzesco Vigevano",
+  "osm": "Castello Sforzesco, Vigevano",
+  "lat": 45.3178,
+  "lng": 8.8578,
+  "text": "Nel 1347, sotto Luchino Visconti, fu costruita la «Strada Coperta», un passaggio che collegava il castello alla Rocca passando sopra le case della città. Nel castello ci sono anche le grandi scuderie volute da Galeazzo Maria Sforza e poi ampliate da Ludovico il Moro."
+ },
+ {
+  "town": "Vigevano",
+  "title": "La capitale delle scarpe",
+  "hint": "Qui nel 1866 nacque il primo calzaturificio industriale.",
+  "osm": "Museo internazionale della calzatura, Vigevano",
+  "lat": 45.3176,
+  "lng": 8.8582,
+  "text": "Nel castello c'è il Museo internazionale della calzatura. Vigevano è legata alle scarpe dal 1866, quando Luigi Bocca aprì il primo calzaturificio industriale."
+ },
+ {
+  "town": "Vigevano",
+  "title": "La facciata che chiude la piazza",
+  "hint": "Il Duomo qui fa da quarto lato della piazza.",
+  "osm": "Duomo di Vigevano",
+  "lat": 45.3163,
+  "lng": 8.859,
+  "text": "La Cattedrale di Sant'Ambrogio chiude con la sua facciata il quarto lato di Piazza Ducale, così che la piazza sembra un grande salotto con il Duomo come parete di fondo."
+ },
+ {
+  "town": "Voghera",
+  "title": "Gli affreschi del Bramantino",
+  "hint": "In questo castello quadrato ci sono affreschi di un grande pittore.",
+  "osm": "Castello Visconteo, Voghera",
+  "lat": 44.993,
+  "lng": 9.008,
+  "text": "Il Castello Visconteo di Voghera fu costruito tra il 1335 e il 1372 per volontà di Gian Galeazzo Visconti. Ha pianta quadrata con quattro torri agli angoli, e nell'ala est conserva affreschi di Bartolomeo Suardi, detto il Bramantino."
+ },
+ {
+  "town": "Voghera",
+  "title": "La Sacra Spina",
+  "hint": "Nel Duomo si custodisce un frammento di una corona famosa.",
+  "osm": "Duomo di San Lorenzo, Voghera",
+  "lat": 44.992,
+  "lng": 9.009,
+  "text": "Nel Duomo, la Collegiata di San Lorenzo, si custodisce la Sacra Spina, che secondo la tradizione è un frammento della corona di spine di Gesù. Il tiburio ottagonale, alto 47 metri, è il punto più alto dell'edificio."
+ },
+ {
+  "town": "Voghera",
+  "title": "La Chiesa Rossa della cavalleria",
+  "hint": "Dentro questa chiesa ci sono gli stemmi di tutti i reggimenti a cavallo.",
+  "osm": "Tempio Sacrario della Cavalleria Italiana, Voghera",
+  "lat": 44.99,
+  "lng": 9.01,
+  "text": "Il Tempio Sacrario della Cavalleria Italiana è chiamato anche «Chiesa Rossa» per il colore dei mattoni. Nel 1956 la Cavalleria lo scelse come proprio tempio sacrario, e dentro sono conservati gli stemmi dei reggimenti."
+ },
+ {
+  "town": "Voghera",
+  "title": "Il «Pirellino»",
+  "hint": "A Voghera c'è un piccolo fratello di un grattacielo famoso di Milano.",
+  "osm": "Istituto Gallini, Voghera",
+  "lat": 44.995,
+  "lng": 9.005,
+  "text": "L'ex Istituto Gallini è un edificio di Gio Ponti costruito tra il 1956 e il 1962, ispirato al progetto del Grattacielo Pirelli di Milano: per questo lo chiamano «Pirellino»."
+ },
+ {
+  "town": "Voghera",
+  "title": "Il museo dei cimeli",
+  "hint": "In questo museo c'è la piccola auto di un generale.",
+  "osm": "Museo storico Giuseppe Beccari, Voghera",
+  "lat": 44.9925,
+  "lng": 9.0085,
+  "text": "Il Museo storico «Giuseppe Beccari» conserva, tra molti cimeli, l'Autobianchi A112 appartenuta al generale Carlo Alberto dalla Chiesa."
+ },
+ {
+  "town": "Mortara",
+  "title": "L'altare dei morti",
+  "hint": "Il nome di questa città forse ricorda una battaglia di Carlo Magno.",
+  "osm": "Abbazia di Sant'Albino, Mortara",
+  "lat": 45.245,
+  "lng": 8.73,
+  "text": "Secondo la leggenda, nel 773 qui si combatté la battaglia tra l'esercito di Carlo Magno e i Longobardi di re Desiderio, e il nome Mortara verrebbe da «Mortis Ara», l'altare dei morti. Altri lo collegano a un altare dedicato a Marte. Appena fuori città c'è l'Abbazia di Sant'Albino, che la leggenda vuole fondata da Carlo Magno: è una tappa importante della Via Francigena."
+ },
+ {
+  "town": "Mortara",
+  "title": "Il miliario romano",
+  "hint": "Accanto a questa porta c'è l'unica pietra romana sicura della città.",
+  "osm": "Basilica di San Lorenzo, Mortara",
+  "lat": 45.2505,
+  "lng": 8.7375,
+  "text": "La Basilica di San Lorenzo, in gotico lombardo, fu costruita tra il 1375 e il 1380. All'ingresso laterale c'è un miliario romano, l'unico elemento antico certo della città. Sulla cassa dell'organo c'è un sigillo del 1592 con un mortaio, un cervo e un'aquila."
+ },
+ {
+  "town": "Mortara",
+  "title": "Le colombe sulle pertiche",
+  "hint": "Il vecchio nome di questa chiesa ricorda un'usanza dei Longobardi.",
+  "osm": "Santuario di Santa Maria del Campo, Mortara",
+  "lat": 45.255,
+  "lng": 8.74,
+  "text": "Il Santuario della Madonna del Campo esisteva già nel 1145 come Santa Maria della Pertica. Il nome richiama un'usanza longobarda: in onore dei morti si alzavano pertiche con in cima colombe di legno."
+ },
+ {
+  "town": "Mortara",
+  "title": "Il re prima della battaglia",
+  "hint": "In questo palazzo dormì un re tre giorni prima di una battaglia.",
+  "osm": "Palazzo Lateranense, Mortara",
+  "lat": 45.251,
+  "lng": 8.738,
+  "text": "Il Palazzo Lateranense, ex convento con un cortile quadrato porticato, ospitò il re Carlo Alberto il 17 marzo 1849, tre giorni prima della battaglia di Mortara."
+ },
+ {
+  "town": "Mortara",
+  "title": "La Via Francigena in città",
+  "hint": "Su questo corso passano i pellegrini diretti a Roma.",
+  "osm": "Corso Garibaldi, Mortara",
+  "lat": 45.25,
+  "lng": 8.736,
+  "text": "La Via Francigena, l'antico cammino dei pellegrini verso Roma, attraversa Mortara lungo corso Garibaldi, arriva all'Abbazia di Sant'Albino e prosegue verso Tromello."
+ },
+ {
+  "town": "Stradella",
+  "title": "La prima fisarmonica",
+  "hint": "Qui c'è il prototipo di uno strumento che ha reso famosa la città.",
+  "osm": "Museo della fisarmonica, Stradella",
+  "lat": 45.075,
+  "lng": 9.301,
+  "text": "Nel Museo della fisarmonica, a Palazzo Garibaldi, si racconta la storia dello strumento che ha reso famosa Stradella. C'è anche il primo prototipo costruito da Mariano Dallapè, del 1876."
+ },
+ {
+  "town": "Stradella",
+  "title": "La rocca del vescovo",
+  "hint": "Sulla collina c'era un castello dei vescovi di Pavia.",
+  "osm": "Rocca di Montalino, Stradella",
+  "lat": 45.07,
+  "lng": 9.305,
+  "text": "Sulla collina sopra la città c'è la Rocca di Montalino, detta anche Rocca del Vescovo: un castello fortificato che era molto importante per i vescovi di Pavia."
+ },
+ {
+  "town": "Stradella",
+  "title": "Il borgo scomparso",
+  "hint": "Su questa collinetta c'era un villaggio.",
+  "osm": "Oratorio di San Marcello, Montalino, Stradella",
+  "lat": 45.071,
+  "lng": 9.304,
+  "text": "L'oratorio di San Marcello sorge dove c'era l'antico villaggio di Montalino, su una piccola altura al margine sud della città."
+ },
+ {
+  "town": "Stradella",
+  "title": "Il discorso di Stradella",
+  "hint": "Qui un presidente del Consiglio fece un discorso rimasto nella storia.",
+  "osm": "Monumento ad Agostino Depretis, Stradella",
+  "lat": 45.0755,
+  "lng": 9.3005,
+  "text": "Agostino Depretis, più volte presidente del Consiglio, aveva il suo collegio elettorale a Stradella, dove pronunciò il celebre «Discorso di Stradella», e qui morì nel 1887. In città c'è un monumento a lui dedicato."
+ },
+ {
+  "town": "Broni",
+  "title": "Il pellegrino che non arrivò",
+  "hint": "Un nobile diretto a Santiago morì qui e diventò il patrono.",
+  "osm": "Santuario di San Contardo, Broni",
+  "lat": 45.064,
+  "lng": 9.261,
+  "text": "San Contardo d'Este morì a Broni nel 1249 mentre andava in pellegrinaggio a Santiago di Compostela, ed è sepolto qui. La leggenda dice che le campane suonarono da sole e che intorno al suo corpo comparvero piccole luci. È diventato il patrono della città."
+ },
+ {
+  "town": "Broni",
+  "title": "La basilica di Pio XII",
+  "hint": "Questa chiesa è diventata basilica nel 1953.",
+  "osm": "Basilica di San Pietro Apostolo, Broni",
+  "lat": 45.0645,
+  "lng": 9.2615,
+  "text": "Nel luglio 1953 papa Pio XII elevò la chiesa di San Pietro Apostolo al rango di basilica minore."
+ },
+ {
+  "town": "Broni",
+  "title": "Il set di Mastroianni",
+  "hint": "In questa frazione si girò un film con Marcello Mastroianni.",
+  "osm": "Cassino Po, Broni",
+  "lat": 45.08,
+  "lng": 9.25,
+  "text": "A Cassino Po furono girate scene di «Fantasma d'amore» (1981) con Marcello Mastroianni. Cassino Po fu comune autonomo fino al 1869 ed è cresciuto intorno a una grande cascina a corte quadrata."
+ },
+ {
+  "town": "Broni",
+  "title": "La scuola di Aldo Rossi",
+  "hint": "Questa scuola media l'ha progettata un architetto famoso nel mondo.",
+  "osm": "Scuola media Contardo Ferrini, Broni",
+  "lat": 45.063,
+  "lng": 9.26,
+  "text": "La scuola secondaria «Contardo Ferrini» di Broni è stata progettata da Aldo Rossi, uno dei più importanti architetti italiani del Novecento, vincitore del Premio Pritzker."
+ },
+ {
+  "town": "Castiglione delle Stiviere",
+  "title": "Dove nacque l'idea della Croce Rossa",
+  "hint": "Dopo una battaglia, le donne di qui curarono tutti i feriti.",
+  "osm": "Museo internazionale della Croce Rossa, Castiglione delle Stiviere",
+  "lat": 45.39,
+  "lng": 10.488,
+  "text": "Dopo la battaglia di Solferino e San Martino del 1859, lo svizzero Henry Dunant vide le donne di Castiglione curare i soldati feriti di tutti gli eserciti. Da quell'esperienza nacque l'idea che portò alla Croce Rossa, fondata a Ginevra nel 1864. Nel settecentesco Palazzo Triulzi-Longhi c'è il Museo internazionale della Croce Rossa.",
+  "tag": "castiglione"
+ },
+ {
+  "town": "Castiglione delle Stiviere",
+  "title": "Il cranio di San Luigi",
+  "hint": "In questa basilica si conserva una reliquia del santo patrono.",
+  "osm": "Basilica di San Luigi Gonzaga, Castiglione delle Stiviere",
+  "lat": 45.3895,
+  "lng": 10.4875,
+  "text": "La Basilica di San Luigi Gonzaga, barocca, fu costruita all'inizio del Seicento su progetto del gesuita Luca Bienni di Salò. È dedicata al santo patrono della città, e vi è custodito il suo cranio.",
+  "tag": "castiglione"
+ },
+ {
+  "town": "Castiglione delle Stiviere",
+  "title": "Il collegio delle nipoti del santo",
+  "hint": "Tre sorelle Gonzaga fondarono qui una scuola per ragazze nobili.",
+  "osm": "Collegio delle Vergini di Gesù, Castiglione delle Stiviere",
+  "lat": 45.3905,
+  "lng": 10.4885,
+  "text": "Il Collegio delle Vergini di Gesù era la casa della famiglia Aliprandi e nel 1608 diventò una scuola per ragazze nobili. Lo fondarono Cinzia, Olimpia e Gridonia Gonzaga, nipoti di San Luigi. Oggi ospita il Museo storico aloisiano.",
+  "tag": "castiglione"
+ },
+ {
+  "town": "Castiglione delle Stiviere",
+  "title": "Un pittore siciliano in Lombardia",
+  "hint": "Nel Duomo c'è una pala di un pittore arrivato da Palermo.",
+  "osm": "Duomo, Castiglione delle Stiviere",
+  "lat": 45.3898,
+  "lng": 10.4878,
+  "text": "Il Duomo, progettato da Giovan Battista Groppi e costruito nel 1761, ha una pala del pittore siciliano Pietro Novelli e una tela del 1989 di Franco Ferlenga.",
+  "tag": "castiglione"
+ },
+ {
+  "town": "Suzzara",
+  "title": "Il premio dell'arte",
+  "hint": "Questa galleria raccoglie più di 800 opere nate da un premio.",
+  "osm": "Galleria del Premio Suzzara",
+  "lat": 44.993,
+  "lng": 10.745,
+  "text": "La Galleria del Premio Suzzara, aperta nel 1975, è dedicata all'arte contemporanea; dal 2002 c'è anche un museo con oltre 800 opere raccolte dal dopoguerra. Il Premio Suzzara si tiene ogni due anni."
+ },
+ {
+  "town": "Suzzara",
+  "title": "L'ultima torre del castello",
+  "hint": "Del castello dei Gonzaga è rimasta solo questa torre.",
+  "osm": "Torre civica, Suzzara",
+  "lat": 44.9935,
+  "lng": 10.7455,
+  "text": "La Torre civica è l'unica parte rimasta del castello costruito sotto Ludovico I Gonzaga. Era alta 24 metri e all'inizio del Quattrocento fu alzata a 32. È considerata il monumento principale della città; dopo il terremoto del 2012 è stata chiusa alle visite."
+ },
+ {
+  "town": "Suzzara",
+  "title": "Un Van Dyck?",
+  "hint": "In questa chiesa c'è un quadro attribuito a un grande fiammingo.",
+  "osm": "Chiesa di San Biagio, Suzzara",
+  "lat": 44.9932,
+  "lng": 10.7448,
+  "text": "La chiesa di San Biagio, neoclassica, fu ricostruita nel 1853–1854 girandone l'orientamento. Custodisce un San Longino attribuito ad Antoon van Dyck, anche se l'attribuzione non è confermata."
+ },
+ {
+  "town": "Suzzara",
+  "title": "Dove nacque Iveco",
+  "hint": "In questa fabbrica è nato un marchio famoso di camion.",
+  "osm": "Iveco, Suzzara",
+  "lat": 44.99,
+  "lng": 10.755,
+  "text": "Lo stabilimento di viale Zonta ha origine nella ditta Casali, fondata nel 1891. Nel 1936 passò alle Officine Meccaniche di Brescia, e dalla fusione di cinque marchi, tra cui Magirus-Deutz e Unic, nacque qui Iveco."
+ },
+ {
+  "town": "Suzzara",
+  "title": "La villa di Novecento",
+  "hint": "In questa villa si girò un film di Bertolucci.",
+  "osm": "Villa Grandi, San Prospero, Suzzara",
+  "lat": 45.005,
+  "lng": 10.73,
+  "text": "Villa Cazzaniga-Donesmondi-Grandi, a San Prospero, fu uno dei set di «Novecento» di Bernardo Bertolucci, nel 1976."
+ },
+ {
+  "town": "Viadana",
+  "title": "Il monastero della regina",
+  "hint": "Qui una regina longobarda fondò un monastero.",
+  "osm": "Chiesa di Santa Giulia, Cicognara, Viadana",
+  "lat": 44.93,
+  "lng": 10.55,
+  "text": "Nella chiesa di Santa Giulia a Cicognara, con tre vetrate del cremonese Giuseppe Moroni, è stato trovato un cippo romano del 150 dopo Cristo circa. Il vicino monastero di Santa Giulia fu fondato nel 758 da Ansa, moglie del re Desiderio."
+ },
+ {
+  "town": "Viadana",
+  "title": "Dario Fo al MuVi",
+  "hint": "In questa ex scuola sono passati i quadri di un premio Nobel.",
+  "osm": "MuVi, Viadana",
+  "lat": 44.927,
+  "lng": 10.52,
+  "text": "Il MuVi, nell'ex scuola elementare di via Manzoni, ospita la Galleria civica d'arte moderna e contemporanea. Nel 2003 ci venne Dario Fo, e poi il museo ha ospitato una mostra dei suoi dipinti e bozzetti."
+ },
+ {
+  "town": "Viadana",
+  "title": "La capitale del rugby",
+  "hint": "In questo stadio si gioca il rugby campione d'Italia.",
+  "osm": "Stadio Luigi Zaffanella, Viadana",
+  "lat": 44.925,
+  "lng": 10.515,
+  "text": "Lo Stadio Luigi Zaffanella è la casa del Rugby Viadana, campione d'Italia nel 2001-2002. Viadana ha ospitato anche gli Aironi, che giocarono in Celtic League dal 2010 al 2012."
+ },
+ {
+  "town": "Viadana",
+  "title": "Il ponte sul Po",
+  "hint": "Prima di questo ponte si attraversava su un ponte di barche.",
+  "osm": "Ponte Viadana-Boretto",
+  "lat": 44.91,
+  "lng": 10.53,
+  "text": "Il ponte tra Viadana e Boretto sul Po fu aperto il 27 maggio 1967, al posto di un ponte di barche. Il Po era la via del commercio verso Venezia, e Viadana aveva perfino un vice-ammiraglio nominato da Mantova."
+ },
+ {
+  "town": "Viadana",
+  "title": "Il rifugio del Parmigianino",
+  "hint": "Durante un assedio un grande pittore si rifugiò in questa chiesa.",
+  "osm": "Chiesa di Santa Maria Assunta e San Cristoforo, Viadana",
+  "lat": 44.9275,
+  "lng": 10.5205,
+  "text": "Nella chiesa di Santa Maria Assunta e San Cristoforo in Castello, dentro le mura medievali, si rifugiò il pittore Parmigianino durante l'assedio di Parma del 1521."
+ },
+ {
+  "town": "Porto Mantovano",
+  "title": "La battaglia della Favorita",
+  "hint": "Qui nel 1797 finì l'assedio di Mantova.",
+  "osm": "Villa La Favorita, Porto Mantovano",
+  "lat": 45.195,
+  "lng": 10.79,
+  "text": "Villa La Favorita fu costruita dal duca Ferdinando Gonzaga. Nel 1797 la battaglia della Favorita mise fine all'assedio di Mantova e portò la zona sotto il controllo francese."
+ },
+ {
+  "town": "Porto Mantovano",
+  "title": "La resa del viceré",
+  "hint": "In questa corte un viceré firmò la resa nel 1814.",
+  "osm": "Corte Schiarino Rizzino, Porto Mantovano",
+  "lat": 45.185,
+  "lng": 10.8,
+  "text": "In Corte Schiarino-Previdi, il 16 aprile 1814, Eugenio di Beauharnais, viceré del Regno d'Italia napoleonico, firmò la convenzione di Schiarino-Rizzino, arrendendosi alle truppe austriache."
+ },
+ {
+  "town": "Porto Mantovano",
+  "title": "La stazione di Radetzky",
+  "hint": "Questa stazione fu inaugurata da un maresciallo famoso.",
+  "osm": "Stazione di Sant'Antonio, Porto Mantovano",
+  "lat": 45.18,
+  "lng": 10.785,
+  "text": "La stazione di Sant'Antonio fu inaugurata nel 1851 dall'arciduca Ferdinando Carlo e dal maresciallo Radetzky come «Imperial Regia Stazione di Mantova». Dal 1934 al 1967 ne partiva anche una linea per Peschiera."
+ },
+ {
+  "town": "Porto Mantovano",
+  "title": "I cavallucci marini nello stemma",
+  "hint": "Lo stemma del comune ha due cavallucci marini. Perché?",
+  "osm": "Porto Mantovano",
+  "lat": 45.19,
+  "lng": 10.79,
+  "text": "Il comune prende il nome dalla fortezza di Porto, oggi Cittadella e parte di Mantova, che controllava l'ingresso in città dal Ponte dei Mulini. Nello stemma c'è una torre con ponte levatoio e due cavallucci marini, che rappresentano i laghi Superiore e di Mezzo."
+ },
+ {
+  "town": "Porto Mantovano",
+  "title": "Selci di 6.500 anni fa",
+  "hint": "In queste frazioni sono state trovate tracce di uomini preistorici.",
+  "osm": "Bancole, Porto Mantovano",
+  "lat": 45.17,
+  "lng": 10.78,
+  "text": "A Sant'Antonio e a Bancole sono stati trovati molti strumenti di selce e alcuni resti umani di circa 6.500 anni fa."
+ },
+ {
+  "town": "Borgo Virgilio",
+  "title": "Il paese di Virgilio",
+  "hint": "Qui, secondo la tradizione, nacque il poeta dell'Eneide.",
+  "osm": "Monumento a Virgilio, Pietole, Borgo Virgilio",
+  "lat": 45.12,
+  "lng": 10.79,
+  "text": "Pietole è identificata con l'antica Andes, il paese natale del poeta latino Virgilio. Il monumento, dello scultore mantovano Agamennone Paganini, fu inaugurato nel 1884 con un discorso di Giosuè Carducci."
+ },
+ {
+  "town": "Borgo Virgilio",
+  "title": "Il forte di Napoleone",
+  "hint": "Questo forte lo volle Napoleone per difendere Mantova.",
+  "osm": "Forte di Pietole, Borgo Virgilio",
+  "lat": 45.115,
+  "lng": 10.795,
+  "text": "Il Forte di Pietole fu costruito nel 1808 su progetto del generale francese Chasseloup-Laubat, mandato da Napoleone, insieme ai forti di Belfiore e San Giorgio per difendere Mantova."
+ },
+ {
+  "town": "Borgo Virgilio",
+  "title": "La corte dei Gonzaga",
+  "hint": "Una villa di campagna comprata dai signori di Mantova.",
+  "osm": "Corte Virgiliana, Pietole, Borgo Virgilio",
+  "lat": 45.118,
+  "lng": 10.792,
+  "text": "La Corte Virgiliana di Pietole è una villa di campagna costruita tra il Quattrocento e il 1875. I Gonzaga la comprarono e la fecero ristrutturare dall'architetto di corte Antonio Maria Viani."
+ },
+ {
+  "town": "Borgo Virgilio",
+  "title": "Una chiesa di quasi novant'anni",
+  "hint": "Per costruire questa chiesa ci vollero quasi novant'anni.",
+  "osm": "Chiesa della Natività della Beata Vergine, Cerese, Borgo Virgilio",
+  "lat": 45.13,
+  "lng": 10.795,
+  "text": "La chiesa della Natività della Beata Vergine a Cerese fu costruita tra il 1825 e il 1913, su progetto di Angelo Campi."
+ },
+ {
+  "town": "Borgo Virgilio",
+  "title": "Il forte ottagonale",
+  "hint": "Un forte a otto lati circondato da un fossato.",
+  "osm": "Forte Centrale, Borgoforte, Borgo Virgilio",
+  "lat": 45.05,
+  "lng": 10.755,
+  "text": "Il Forte Centrale di Borgoforte fu costruito dagli austriaci nel 1859–61 a nord del Po. È ottagonale, circondato da un fossato, e faceva parte della «Testa di Ponte di Borgoforte» sulla strada tra Mantova e Verona."
+ },
+ {
+  "town": "Curtatone",
+  "title": "I madonnari delle Grazie",
+  "hint": "Ogni Ferragosto questa piazza diventa un quadro.",
+  "osm": "Santuario della Beata Vergine delle Grazie, Curtatone",
+  "lat": 45.155,
+  "lng": 10.715,
+  "text": "Il Santuario della Beata Vergine delle Grazie, in gotico lombardo, si affaccia su una grande piazza davanti alle acque paludose del Mincio. Dal pomeriggio del 14 al pomeriggio del 15 agosto, durante la Fiera delle Grazie, i madonnari dipingono sul selciato: è l'Incontro Nazionale dei Madonnari."
+ },
+ {
+  "town": "Curtatone",
+  "title": "Gli studenti contro Radetzky",
+  "hint": "Qui nel 1848 combatterono soprattutto studenti universitari.",
+  "osm": "Monumento ai caduti di Curtatone e Montanara, Curtatone",
+  "lat": 45.15,
+  "lng": 10.73,
+  "text": "Il 29 maggio 1848, nella battaglia di Curtatone e Montanara, circa 6.000 volontari, in gran parte studenti universitari toscani insieme a napoletani, affrontarono un esercito austriaco di 32.000 uomini guidato da Radetzky. Il monumento ai caduti fu inaugurato il 29 maggio 1870."
+ },
+ {
+  "town": "Curtatone",
+  "title": "La villa di vetro",
+  "hint": "Una villa dell'Ottocento costruita con ghisa e vetro.",
+  "osm": "Villa dei Vetri, San Silvestro, Curtatone",
+  "lat": 45.14,
+  "lng": 10.74,
+  "text": "La Villa dei Vetri, a San Silvestro, è dell'Ottocento ed era all'avanguardia per i materiali: ghisa e vetro. Oggi ospita la Casa del Sole. Il 23 dicembre 1944 una bomba sganciata per errore la colpì, uccidendo 11 bambini e una giovane suora."
+ },
+ {
+  "town": "Curtatone",
+  "title": "Il salone a otto lati",
+  "hint": "In questa villa un salone sale per tre piani.",
+  "osm": "Corte Eremo, Curtatone",
+  "lat": 45.16,
+  "lng": 10.735,
+  "text": "La villa di Corte Eremo fu costruita nel 1757 per il marchese Ludovico Remesino. Dentro c'è un salone a pianta ottagonale alto tre piani."
+ },
+ {
+  "town": "Castel Goffredo",
+  "title": "La piazza sul foro romano",
+  "hint": "Questa piazza ha cambiato nome tante volte. Forse era un foro romano.",
+  "osm": "Piazza Mazzini, Castel Goffredo",
+  "lat": 45.297,
+  "lng": 10.474,
+  "text": "Piazza Mazzini è il centro di Castel Goffredo e secondo alcuni studiosi coincide con l'antico foro romano. Si è chiamata piazza del Ponte dell'Olmo, piazza d'Armi e piazza Umberto I. I portici del Quattrocento furono pavimentati nel 1838 con lastre di arenaria di Sarnico."
+ },
+ {
+  "town": "Castel Goffredo",
+  "title": "Un museo su sette piani",
+  "hint": "Dentro la torre civica ogni piano racconta qualcosa.",
+  "osm": "Torre civica, Castel Goffredo",
+  "lat": 45.2972,
+  "lng": 10.4742,
+  "text": "La Torre civica, alta 27 metri, è il simbolo del paese e ha un orologio pubblico dal 1438. Dal 2021 ospita un museo su sette piani, con una terrazza panoramica verso le colline moreniche del Garda."
+ },
+ {
+  "town": "Castel Goffredo",
+  "title": "La chiesa storta",
+  "hint": "Guarda bene: questa chiesa non è allineata con la piazza.",
+  "osm": "Chiesa di Sant'Erasmo, Castel Goffredo",
+  "lat": 45.2968,
+  "lng": 10.4745,
+  "text": "La prepositurale di Sant'Erasmo, del Quattrocento, fu ricostruita nel 1588–1590 da Bernardino Facciotto. È collocata in modo asimmetrico rispetto all'asse di Piazza Mazzini. Dentro, colonne di marmo di Botticino dividono tre navate."
+ },
+ {
+  "town": "Castel Goffredo",
+  "title": "Carlo V ospite dei Gonzaga",
+  "hint": "In questo palazzo dormì l'imperatore Carlo V.",
+  "osm": "Palazzo Gonzaga-Acerbi, Castel Goffredo",
+  "lat": 45.2975,
+  "lng": 10.4738,
+  "text": "Palazzo Gonzaga-Acerbi, nato intorno al 1350, occupa tutto il lato nord di Piazza Mazzini. La loggia ha grottesche attribuite a Giulio Romano e allievi. Nel 1543 l'imperatore Carlo V fu ospite di Aloisio Gonzaga."
+ },
+ {
+  "town": "Castel Goffredo",
+  "title": "La chiesa delle mostre",
+  "hint": "Questa chiesa sconsacrata oggi ospita esposizioni.",
+  "osm": "Chiesa dei Disciplini, Castel Goffredo",
+  "lat": 45.2965,
+  "lng": 10.4735,
+  "text": "La chiesa dei Disciplini fu finita nel 1587 per la confraternita omonima. Sconsacrata nel 1960, oggi ospita mostre ed eventi. L'altare maggiore, del 1772, è in marmi policromi."
+ },
+ {
+  "town": "Goito",
+  "title": "Mantegna a Goito",
+  "hint": "Qui c'era una residenza dei Gonzaga dove lavorò Mantegna.",
+  "osm": "Goito",
+  "lat": 45.253,
+  "lng": 10.672,
+  "text": "Il marchese Ludovico III Gonzaga fece costruire a Goito una residenza dove lavorò Andrea Mantegna nel 1463-64. Ludovico morì qui di peste nel 1478."
+ },
+ {
+  "town": "Goito",
+  "title": "Il battesimo dei bersaglieri",
+  "hint": "Su questo ponte i bersaglieri combatterono per la prima volta.",
+  "osm": "Monumento al Bersagliere, Goito",
+  "lat": 45.254,
+  "lng": 10.673,
+  "text": "Il Monumento al Bersagliere ricorda il battesimo del fuoco dei bersaglieri, nel 1848, nella battaglia del ponte di Goito: conquistarono il ponte sul Mincio respingendo gli austriaci, e il loro fondatore, il generale Alessandro La Marmora, fu gravemente ferito."
+ },
+ {
+  "town": "Goito",
+  "title": "Il ponte della Vittoria",
+  "hint": "È l'unico punto del paese dove si arriva al fiume.",
+  "osm": "Ponte della Vittoria, Goito",
+  "lat": 45.2535,
+  "lng": 10.674,
+  "text": "Il Ponte della Vittoria, chiamato anche Ponte della Gloria, è l'unico collegamento con il Mincio nel centro abitato. Tutto il paese fa parte del Parco regionale del Mincio dal 1984."
+ },
+ {
+  "town": "Goito",
+  "title": "Il terremoto del 1693",
+  "hint": "Un terremoto fece crollare parte di questa chiesa e della rocca.",
+  "osm": "Chiesa di San Pietro Apostolo, Goito",
+  "lat": 45.2525,
+  "lng": 10.6715,
+  "text": "Il terremoto del 5 luglio 1693 fece crollare parte della chiesa di San Pietro Apostolo, insieme alle mura della rocca e al borgo del Merlesco."
+ },
+ {
+  "town": "Crema",
+  "title": "I prigionieri sulle torri d'assedio",
+  "hint": "Nel 1159 il Barbarossa usò un trucco crudele contro Crema.",
+  "osm": "Palazzo Comunale, Crema",
+  "lat": 45.363,
+  "lng": 9.686,
+  "text": "Nel 1159, durante l'assedio di Crema, le truppe del Barbarossa appesero prigionieri cremaschi alle macchine d'assedio, sperando che i difensori non sparassero. Il trucco non funzionò e fu una strage. Nel Palazzo comunale la «sala degli Ostaggi» ha un dipinto dell'episodio."
+ },
+ {
+  "town": "Crema",
+  "title": "La cripta nascosta",
+  "hint": "Sotto il Duomo si nasconde una chiesa più antica.",
+  "osm": "Duomo di Crema",
+  "lat": 45.3628,
+  "lng": 9.6865,
+  "text": "Il Duomo di Santa Maria Assunta, del Due-Trecento, è la chiesa più antica della città. Nella cripta ci sono i resti di una chiesa ancora più antica."
+ },
+ {
+  "town": "Crema",
+  "title": "L'arco del Torrazzo",
+  "hint": "A Crema il Torrazzo non è una torre ma un arco.",
+  "osm": "Torrazzo, Crema",
+  "lat": 45.3632,
+  "lng": 9.6858,
+  "text": "A Crema il «Torrazzo» è un arco del Palazzo comunale, sulla piazza monumentale dove quasi tutti gli edifici sono del Cinquecento."
+ },
+ {
+  "town": "Crema",
+  "title": "L'apparizione a Caterina",
+  "hint": "Qui nel 1590 si racconta di un'apparizione della Madonna.",
+  "osm": "Santa Maria della Croce, Crema",
+  "lat": 45.375,
+  "lng": 9.695,
+  "text": "Secondo la tradizione, nel 1590 la Madonna apparve a Caterina degli Uberti dove oggi sorge la basilica di Santa Maria della Croce; l'anniversario si celebra il 3 aprile. Il convento carmelitano costruito accanto nel 1694 diventò poi un ospedale psichiatrico."
+ },
+ {
+  "town": "Crema",
+  "title": "Il museo nel convento",
+  "hint": "Un convento rinascimentale diventato museo.",
+  "osm": "Museo civico di Crema e del Cremasco",
+  "lat": 45.362,
+  "lng": 9.687,
+  "text": "Il Museo civico di Crema e del Cremasco è stato fondato nel 1960 nel convento rinascimentale di Sant'Agostino, che ospita anche il Centro Culturale Sant'Agostino. Crema è anche tra i luoghi legati al film «Chiamami col tuo nome» (2017)."
+ },
+ {
+  "town": "Casalmaggiore",
+  "title": "Il Po ghiacciato",
+  "hint": "Nel 1515 un esercito attraversò il fiume a piedi.",
+  "osm": "Lungo Po, Casalmaggiore",
+  "lat": 44.988,
+  "lng": 10.418,
+  "text": "Il Po scorre accanto a Casalmaggiore e l'ha allagata nel 1951, nel 1994 e nel 2000. Nel 1515 l'esercito di Francesco I attraversò il fiume ghiacciato per attaccare la città. Sulle rive c'è un idrometro della metà del Settecento."
+ },
+ {
+  "town": "Casalmaggiore",
+  "title": "Un municipio neogotico",
+  "hint": "Questo palazzo l'ha disegnato un architetto di Palermo.",
+  "osm": "Palazzo comunale, Casalmaggiore",
+  "lat": 44.989,
+  "lng": 10.418,
+  "text": "Il Palazzo comunale, in piazza Garibaldi, fu costruito in stile neogotico tra il 1891 e il 1895 su progetto del palermitano Giacomo Misuraca."
+ },
+ {
+  "town": "Casalmaggiore",
+  "title": "Il Cristo di Jacopino",
+  "hint": "In questa chiesa c'è una scultura di un maestro del Duomo di Milano.",
+  "osm": "Chiesa di San Francesco, Casalmaggiore",
+  "lat": 44.9895,
+  "lng": 10.4175,
+  "text": "Nella chiesa di San Francesco c'è il «Cristo deposto» in marmo di Jacopino da Tradate. A Casalmaggiore c'è anche il Museo del Bijou, dedicato alla bigiotteria."
+ },
+ {
+  "town": "Merate",
+  "title": "I telescopi fuggiti da Milano",
+  "hint": "Gli astronomi di Brera vennero qui per scappare dalle luci e dai tram.",
+  "osm": "Osservatorio astronomico di Merate",
+  "lat": 45.705,
+  "lng": 9.428,
+  "text": "Gli astronomi di Brera si trasferirono a Merate perché a Milano l'inquinamento luminoso e le vibrazioni dei tram disturbavano le osservazioni. L'edificio era stato convento dei cappuccini, villa, clinica e convalescenziario per ufficiali, prima di diventare osservatorio nel 1923. Ha un telescopio Zeiss da un metro."
+ },
+ {
+  "town": "Merate",
+  "title": "Il giardino all'inglese",
+  "hint": "Il giardino all'italiana di questa villa fu trasformato nel 1791.",
+  "osm": "Villa Belgiojoso Brivio Sforza, Merate",
+  "lat": 45.697,
+  "lng": 9.419,
+  "text": "Villa Belgioioso, oggi Belgioioso Brivio Sforza, esisteva già nel 1540. Nel 1791 Leopoldo Pollack trasformò il parco in giardino all'inglese, e il giardino all'italiana sparì del tutto entro il 1837."
+ },
+ {
+  "town": "Merate",
+  "title": "Il bassorilievo spostato",
+  "hint": "Un bassorilievo del 1461 ha cambiato posto.",
+  "osm": "Chiesa di Sant'Ambrogio, Merate",
+  "lat": 45.6975,
+  "lng": 9.4185,
+  "text": "La chiesa di Sant'Ambrogio ha facciata e campanile di Carlo Buzzi e interni ridecorati in stile barocco nel 1758. Un bassorilievo del santo del 1461, che era in facciata fino al 1648, oggi è all'ingresso della casa parrocchiale."
+ },
+ {
+  "town": "Merate",
+  "title": "La scuola di Manzoni",
+  "hint": "Qui ha studiato da ragazzo lo scrittore dei Promessi Sposi.",
+  "osm": "Collegio Manzoni, Merate",
+  "lat": 45.6965,
+  "lng": 9.4195,
+  "text": "Il Collegio Manzoni fu fondato all'inizio del Cinquecento e affidato ai padri Somaschi. Alessandro Manzoni ci studiò dal 1791 al 1796, e dopo la sua morte il collegio prese il suo nome."
+ },
+ {
+  "town": "Merate",
+  "title": "La gipsoteca nel cortile",
+  "hint": "Uno scultore costruì il suo museo nel cortile di casa.",
+  "osm": "Fondazione Giuseppe Mozzanica, Pagnano, Merate",
+  "lat": 45.7,
+  "lng": 9.425,
+  "text": "A Pagnano lo scultore Giuseppe Mozzanica costruì negli anni Cinquanta una gipsoteca nel cortile di casa. Oggi la Fondazione Mozzanica, nata nel 2007, conserva circa 260 sculture, disegni, dipinti e lastre fotografiche."
+ },
+ {
+  "town": "Calolziocorte",
+  "title": "Le palafitte del Lavello",
+  "hint": "Sulla riva dell'Adda forse vivevano uomini preistorici.",
+  "osm": "Monastero di Santa Maria del Lavello, Calolziocorte",
+  "lat": 45.795,
+  "lng": 9.435,
+  "text": "Vicino al monastero di Santa Maria del Lavello, sulla riva est dell'Adda, sono stati trovati resti di palafitte, segno di un possibile insediamento preistorico."
+ },
+ {
+  "town": "Calolziocorte",
+  "title": "Il ponte romano sull'Adda",
+  "hint": "Qui passava la strada romana tra Brescia, Bergamo e Como.",
+  "osm": "Ponte di Olginate",
+  "lat": 45.798,
+  "lng": 9.425,
+  "text": "Il ponte di Olginate, di epoca romana, del III secolo, portava sull'Adda la strada pedemontana che univa Brescia, Bergamo e Como. È proprio grazie a questa strada che Calolzio è cresciuta."
+ },
+ {
+  "town": "Calolziocorte",
+  "title": "Il ponte del treno in bicicletta",
+  "hint": "Su questo ponte passava il treno, oggi le biciclette.",
+  "osm": "Ponte ferroviario Calolziocorte Olginate",
+  "lat": 45.8,
+  "lng": 9.428,
+  "text": "Il vecchio ponte ferroviario sull'Adda tra Calolziocorte e Olginate fu chiuso negli anni Novanta, quando la linea Milano–Lecco fu raddoppiata. Oggi è una passerella per biciclette e pedoni."
+ },
+ {
+  "town": "Calolziocorte",
+  "title": "La capitale della Valle San Martino",
+  "hint": "Questo castello è nello stemma del comune.",
+  "osm": "Castello di Rossino, Calolziocorte",
+  "lat": 45.805,
+  "lng": 9.45,
+  "text": "Il castello di Rossino, del XII secolo, fu dei Benaglio e poi dei Rota. Rossino fu il capoluogo della Valle San Martino dal IX al XII secolo, e il suo castello compare nello stemma di Calolziocorte."
+ },
+ {
+  "town": "Casatenovo",
+  "title": "La biblioteca nella villa",
+  "hint": "In questa villa dal 1989 si prendono in prestito i libri.",
+  "osm": "Villa Facchi, Casatenovo",
+  "lat": 45.697,
+  "lng": 9.313,
+  "text": "Villa Casati-Facchi fu acquistata dai Facchi nel 1881, che la restaurarono. Dal 1989 una parte ospita la biblioteca comunale."
+ },
+ {
+  "town": "Casatenovo",
+  "title": "La residenza d'inverno",
+  "hint": "Un marchese usava questa villa per l'inverno.",
+  "osm": "Villa Casati Greppi, Casatenovo",
+  "lat": 45.6975,
+  "lng": 9.314,
+  "text": "Villa Casati Greppi di Bussero fu costruita nel 1775 da un nuovo ramo marchionale dei Casati. L'ultimo erede, Francesco Casati, la usava come residenza invernale. La cappella accanto fu consacrata nel 1828."
+ },
+ {
+  "town": "Casatenovo",
+  "title": "La villa della musica",
+  "hint": "Oggi in questa villa si studia musica.",
+  "osm": "Villa d'Adda Mariani, Galgiana, Casatenovo",
+  "lat": 45.69,
+  "lng": 9.305,
+  "text": "Villa d'Adda Mariani, a Galgiana, fu donata nel 1963 in parte a un istituto milanese per sordomuti e in parte al Comune. Oggi ospita la Civica Scuola di Musica e l'auditorium «Graziella Fumagalli»."
+ },
+ {
+  "town": "Casatenovo",
+  "title": "Il pronao di Amati",
+  "hint": "Una chiesa del Duecento con una facciata da tempio classico.",
+  "osm": "Chiesa di San Giorgio, Casatenovo",
+  "lat": 45.6972,
+  "lng": 9.3125,
+  "text": "La chiesa di San Giorgio ha origini duecentesche ma fu in gran parte ricostruita nel 1635. All'inizio dell'Ottocento l'architetto Carlo Amati le diede una facciata neoclassica con pronao."
+ },
+ {
+  "town": "Casatenovo",
+  "title": "I mesi dipinti",
+  "hint": "Sullo zoccolo di questi affreschi ci sono le scene dei mesi.",
+  "osm": "Chiesa di Santa Margherita, Casatenovo",
+  "lat": 45.7,
+  "lng": 9.31,
+  "text": "La chiesa di Santa Margherita sorge dove c'era un monastero benedettino distrutto nel 1451. Gli affreschi sono del 1463, e sullo zoccolo ci sono le scene dei mesi dell'anno."
+ },
+ {
+  "town": "Valmadrera",
+  "title": "La bomba nel santuario",
+  "hint": "In questo santuario è conservata una bomba della guerra.",
+  "osm": "Santuario di San Martino, Valmadrera",
+  "lat": 45.855,
+  "lng": 9.365,
+  "text": "Il Santuario di San Martino era un avamposto militare medievale. Conserva un contenitore con una bomba inesplosa della Seconda guerra mondiale. Fu parrocchia fino al Cinquecento, quando Carlo Borromeo spostò la parrocchia a Sant'Antonio Abate."
+ },
+ {
+  "town": "Valmadrera",
+  "title": "Il belvedere di San Tomaso",
+  "hint": "Tre chilometri di mulattiera per una vista su tutto il paese.",
+  "osm": "Santuario di San Tomaso, Valmadrera",
+  "lat": 45.86,
+  "lng": 9.36,
+  "text": "Il Santuario di San Tomaso è in posizione panoramica sopra il paese. Ci si arriva a piedi con una mulattiera di 3 chilometri che sale di 350 metri."
+ },
+ {
+  "town": "Valmadrera",
+  "title": "Un campanile di 87 metri",
+  "hint": "Questo campanile è tra i più alti d'Italia.",
+  "osm": "Chiesa di Sant'Antonio Abate, Valmadrera",
+  "lat": 45.846,
+  "lng": 9.36,
+  "text": "La chiesa di Sant'Antonio Abate fu costruita tra il 1791 e il 1811 su progetto strutturale di Simone Cantoni. Il nuovo campanile è alto 87,5 metri, tra i più alti d'Italia."
+ },
+ {
+  "town": "Valmadrera",
+  "title": "La filanda nella villa",
+  "hint": "In questo grande complesso c'era una filanda della seta.",
+  "osm": "Villa Gavazzi, Valmadrera",
+  "lat": 45.8455,
+  "lng": 9.359,
+  "text": "Villa Gavazzi, del Seicento, occupa circa 30.000 metri quadrati con un'ex filanda, una cappella di San Gaetano del 1834 e un grande giardino. Giuseppe Bovara la rinnovò in stile neoclassico."
+ },
+ {
+  "town": "Valmadrera",
+  "title": "Il sasso nero",
+  "hint": "Un masso portato dai ghiacciai, diventato scuro col tempo.",
+  "osm": "Sass Negher, Valmadrera",
+  "lat": 45.855,
+  "lng": 9.35,
+  "text": "Il Sass Negher è un masso erratico, portato dai ghiacciai, sulle pendici del Corno Birone. Il nome viene dal colore scuro che ha preso nel tempo."
+ },
+ {
+  "town": "Codogno",
+  "title": "Un presepe alla Leonardo",
+  "hint": "In questa chiesa c'è una Natività forse di un allievo di Leonardo.",
+  "osm": "Chiesa di San Biagio, Codogno",
+  "lat": 45.16,
+  "lng": 9.705,
+  "text": "La parrocchiale di San Biagio è del 1511. Ha un concerto di nove campane e un organo Serassi. Custodisce una Natività in stile leonardesco, forse di Bernardino Luini."
+ },
+ {
+  "town": "Codogno",
+  "title": "L'ospedale del Settecento",
+  "hint": "Questo ospedale neoclassico ha quasi 250 anni.",
+  "osm": "Ospedale civile, Codogno",
+  "lat": 45.158,
+  "lng": 9.708,
+  "text": "L'ospedale civile di Codogno, in stile neoclassico, fu costruito tra il 1779 e il 1781."
+ },
+ {
+  "town": "Codogno",
+  "title": "La passerella Liberty",
+  "hint": "Una passerella sopra i binari con cinque campate.",
+  "osm": "Passerella ferroviaria, Codogno",
+  "lat": 45.162,
+  "lng": 9.702,
+  "text": "La passerella pedonale sopra la ferrovia, in stile Liberty, con due rampe e cinque campate, fu progettata nel 1921 dall'ingegnere Cesare Jonghi Lavarini."
+ },
+ {
+  "town": "Casalpusterlengo",
+  "title": "La torre dei Pusterla",
+  "hint": "Del castello è rimasta solo questa torre merlata.",
+  "osm": "Torre Pusterla, Casalpusterlengo",
+  "lat": 45.178,
+  "lng": 9.649,
+  "text": "La Torre Pusterla, in piazza del Popolo, è l'unico resto del castello costruito dalla famiglia Pusterla, da cui viene anche il nome del paese. È stata restaurata di recente e compare nello stemma comunale."
+ },
+ {
+  "town": "Casalpusterlengo",
+  "title": "Le apparizioni del 1574",
+  "hint": "Qui, secondo la tradizione, apparve la Madonna.",
+  "osm": "Santuario della Madonna dei Cappuccini, Casalpusterlengo",
+  "lat": 45.182,
+  "lng": 9.645,
+  "text": "Secondo la tradizione, nel 1574 qui ci furono apparizioni della Madonna, da cui nacque il Santuario della Madonna dei Cappuccini, dove c'era la chiesa di San Salvario. Vi riposa padre Carlo da Abbiategrasso, per cui è in corso la causa di beatificazione."
+ },
+ {
+  "town": "Casalpusterlengo",
+  "title": "La villa di Coppedè",
+  "hint": "Il famoso architetto del quartiere Coppedè di Roma ha costruito anche qui.",
+  "osm": "Villa Biancardi, Zorlesco, Casalpusterlengo",
+  "lat": 45.195,
+  "lng": 9.63,
+  "text": "A Zorlesco c'è Villa Biancardi, costruita nel 1911 dall'architetto Gino Coppedè, in stile Liberty e neomedievale, dove prima c'era un castello."
+ },
+ {
+  "town": "Casalpusterlengo",
+  "title": "La stanza di Napoleone",
+  "hint": "Una scritta ricorda chi dormì qui.",
+  "osm": "Palazzo Pedroli, Casalpusterlengo",
+  "lat": 45.1785,
+  "lng": 9.6495,
+  "text": "Su Palazzo Pedroli, in via Cavour, un'iscrizione indica la stanza dove dormì Napoleone Bonaparte."
+ },
+ {
+  "town": "Casalpusterlengo",
+  "title": "L'organo del 1888",
+  "hint": "In questa chiesa c'è un organo monumentale dell'Ottocento.",
+  "osm": "Chiesa dei Santi Bartolomeo e Martino, Casalpusterlengo",
+  "lat": 45.1782,
+  "lng": 9.6488,
+  "text": "Nella chiesa dei Santi Bartolomeo e Martino, in piazza del Popolo, c'è un organo monumentale costruito da Luigi Riccardi nel 1888."
+ },
+ {
+  "town": "Sant'Angelo Lodigiano",
+  "title": "Casanova al castello",
+  "hint": "Un famoso seduttore veneziano dormì in questo castello.",
+  "wiki": "Castello Morando Bolognini",
+  "search": "Castello Bolognini Sant'Angelo Lodigiano",
+  "osm": "Castello Morando Bolognini, Sant'Angelo Lodigiano",
+  "lat": 45.238,
+  "lng": 9.405,
+  "text": "Il Castello Morando Bolognini fu voluto nel 1370 da Regina della Scala, moglie di Bernabò Visconti. Nel 1763 ci soggiornò Giacomo Casanova, che nelle sue memorie ne descrisse il declino. Oggi ospita tre musei, tra cui il Museo del Pane, nato nel 1983."
+ },
+ {
+  "town": "Sant'Angelo Lodigiano",
+  "title": "La basilica di Madre Cabrini",
+  "hint": "Questa basilica è dedicata anche a una santa degli emigranti.",
+  "osm": "Basilica di Sant'Antonio abate e Santa Francesca Cabrini, Sant'Angelo Lodigiano",
+  "lat": 45.237,
+  "lng": 9.406,
+  "text": "La Basilica di Sant'Antonio abate e Santa Francesca Cabrini fu costruita tra il 1928 e il 1938 al posto di una parrocchiale del Seicento, abbattuta perché troppo piccola. Santa Francesca Cabrini, patrona degli emigranti, è la santa di Sant'Angelo."
+ },
+ {
+  "town": "Sant'Angelo Lodigiano",
+  "title": "La chiesa della buona morte",
+  "hint": "Questa chiesa nacque fuori dal paese, per i malati di peste.",
+  "osm": "Chiesa di San Giuseppe, Sant'Angelo Lodigiano",
+  "lat": 45.24,
+  "lng": 9.4,
+  "text": "La chiesa di San Giuseppe fu costruita fuori dal paese come rifugio per gli appestati durante le epidemie del Seicento, e dedicata a San Giuseppe, patrono della buona morte. Nel Settecento prese l'attuale forma poligonale."
+ },
+ {
+  "town": "Sant'Angelo Lodigiano",
+  "title": "San Martino diventato San Bartolomeo",
+  "hint": "Questa chiesa ha cambiato santo nel Cinquecento.",
+  "osm": "Chiesa di San Bartolomeo, Sant'Angelo Lodigiano",
+  "lat": 45.2375,
+  "lng": 9.4045,
+  "text": "Già nel Duecento qui c'era una chiesa chiamata «San Martino in Stabiello». Nel Cinquecento fu ricostruita e dedicata a San Bartolomeo, e nel 1879 vi nacque il primo oratorio maschile della parrocchia."
+ },
+ {
+  "town": "Sant'Angelo Lodigiano",
+  "title": "La torre di confine",
+  "hint": "Questa torre segnava il limite del vecchio paese.",
+  "osm": "Torre della Girona, Sant'Angelo Lodigiano",
+  "lat": 45.239,
+  "lng": 9.407,
+  "text": "La Torre della Girona, in mattoni, a pianta quadrangolare con una torretta d'angolo, segnava il confine del vecchio abitato e faceva parte delle difese di epoca spagnola."
+ },
+ {
+  "town": "Morbegno",
+  "title": "L'altare di Gaudenzio Ferrari",
+  "hint": "In questo santuario c'è un grande altare di legno dipinto da maestri.",
+  "osm": "Santuario dell'Assunta, Morbegno",
+  "lat": 46.135,
+  "lng": 9.565,
+  "text": "Il Santuario dell'Assunta ha un tiburio ottagonale ed è tutto affrescato. L'ancona di legno fu intagliata da Tiburzio e Giovan Angelo Del Maino e dipinta da Gaudenzio Ferrari e Fermo Stella."
+ },
+ {
+  "town": "Morbegno",
+  "title": "Il giardino su tre terrazze",
+  "hint": "Da questo giardino si vede tutta Morbegno.",
+  "osm": "Palazzo Malacrida, Morbegno",
+  "lat": 46.1365,
+  "lng": 9.57,
+  "text": "Il giardino all'italiana di Palazzo Malacrida è disposto su tre terrazze e domina tutto il terziere di Morbegno."
+ },
+ {
+  "town": "Morbegno",
+  "title": "Il ponte per le barche a vela",
+  "hint": "L'arco di questo ponte è così alto per un motivo preciso.",
+  "osm": "Ponte di Ganda, Morbegno",
+  "lat": 46.13,
+  "lng": 9.575,
+  "text": "Il Ponte di Ganda fu finito il 2 ottobre 1778, dopo che il ponte precedente di Giovanni Antonio Amadeo era stato distrutto nel 1772. Ha la schiena d'asino con un arco centrale altissimo: un rapporto del 1808 spiega che serviva a far passare le barche a vele spiegate."
+ },
+ {
+  "town": "Morbegno",
+  "title": "Il campanile a cipolla",
+  "hint": "Questa chiesa per sessant'anni è stata protestante.",
+  "osm": "Chiesa di San Pietro, Morbegno",
+  "lat": 46.1355,
+  "lng": 9.569,
+  "text": "La chiesa di San Pietro ha il campanile con il tetto a cipolla e affreschi del 1712–1713 di Pietro Bianchi, detto il Bustino. Nel 1560 fu data al culto protestante e tornò cattolica dopo il 1620."
+ },
+ {
+  "town": "Morbegno",
+  "title": "Il santo sul ponte",
+  "hint": "Sul ponte del Bitto c'è un santo che protegge dalle piene.",
+  "osm": "Ponte sul Bitto, Morbegno",
+  "lat": 46.137,
+  "lng": 9.571,
+  "text": "Sul vecchio ponte sul torrente Bitto c'è la statua di San Giovanni Nepomuceno, che protegge il paese dalle alluvioni: è invocato contro le piene perché morì annegato. Dal Bitto prende il nome anche il celebre formaggio d'alpeggio."
  }
 ]
