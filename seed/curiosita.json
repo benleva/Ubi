@@ -4694,5 +4694,991 @@
   "lat": 45.855,
   "lng": 8.83,
   "text": "La cappella di San Pietro in Silvis è la più antica delle 11 chiese di Induno: romanica, dell'XI secolo, probabilmente costruita su un edificio precedente."
+ },
+ {
+  "town": "Lissone",
+  "title": "L'angelo in cima al campanile",
+  "hint": "In cima a questo campanile non c'è una croce.",
+  "osm": "Chiesa prepositurale dei Santi Pietro e Paolo, Lissone",
+  "lat": 45.6125,
+  "lng": 9.244,
+  "text": "Il campanile della prepositurale dei Santi Pietro e Paolo, finito nel 1927, è alto 77,45 metri: uno dei più alti della Brianza. In cima, al posto della croce, c'è una statua dell'Angelo Custode in rame dorato alta 5,10 metri, restaurata nel 1963."
+ },
+ {
+  "town": "Lissone",
+  "title": "Il palazzo di Terragni",
+  "hint": "Un edificio di un grande architetto razionalista, oggi teatro.",
+  "search": "Palazzo Terragni Lissone",
+  "osm": "Palazzo Terragni, Lissone",
+  "lat": 45.613,
+  "lng": 9.243,
+  "text": "Palazzo Terragni fu progettato nel 1937 da Giuseppe Terragni, l'architetto della Casa del Fascio di Como, e costruito tra il 1938 e il 1940. Nato come Casa del Fascio, diventò poi Casa del Popolo e oggi ospita il Teatro comunale."
+ },
+ {
+  "town": "Lissone",
+  "title": "La torre dell'arengario",
+  "hint": "Alla base di questa torre di pietra c'è un sacrario.",
+  "osm": "Piazza della Libertà, Lissone",
+  "lat": 45.6131,
+  "lng": 9.2428,
+  "text": "Accanto a Palazzo Terragni c'è la torre in pietra di Moltrasio. Alla base c'è una cappella con il sacrario dei caduti; al primo piano l'arengario, il balcone da cui si parlava alla folla."
+ },
+ {
+  "town": "Lissone",
+  "title": "L'altare della chiesa scomparsa",
+  "hint": "Questa chiesa l'hanno voluta i ragazzi e i soldati durante la guerra.",
+  "osm": "Chiesa di San Luigi, Lissone",
+  "lat": 45.614,
+  "lng": 9.245,
+  "text": "La chiesa di San Luigi, ex oratorio maschile, fu voluta da ragazzi e soldati lissonesi durante la guerra come tempio votivo. L'altare maggiore viene dalla vecchia prepositurale di San Pietro, abbattuta nel Novecento."
+ },
+ {
+  "town": "Lissone",
+  "title": "Il lago del bosco urbano",
+  "hint": "Qui c'erano campi. Dal 2002 c'è un lago.",
+  "osm": "Bosco Urbano, Lissone",
+  "lat": 45.6239,
+  "lng": 9.2561,
+  "text": "Il Bosco Urbano di Lissone occupa circa 120.000 metri quadrati di terreni un tempo agricoli. Dal 2002 vi è stato scavato un lago artificiale di circa 10.000 metri quadrati, alimentato dall'acqua di falda, dove si pesca."
+ },
+ {
+  "town": "Seregno",
+  "title": "La torre del Barbarossa",
+  "hint": "La leggenda dice Federico Barbarossa. I documenti dicono altro.",
+  "osm": "Torre del Barbarossa, Seregno",
+  "lat": 45.6505,
+  "lng": 9.204,
+  "text": "La Torre del Barbarossa è attribuita dalla leggenda all'imperatore, ma la prima notizia scritta è del 1567. Ha nove campane fuse nel 1930; la più grande, sostituita nel 1988, pesa 3.810 chili."
+ },
+ {
+  "town": "Seregno",
+  "title": "Il campanile più alto della Brianza",
+  "hint": "81 metri: nessun campanile della provincia è più alto.",
+  "osm": "Santuario di Santa Valeria, Seregno",
+  "lat": 45.644,
+  "lng": 9.199,
+  "text": "Il campanile del Santuario di Santa Valeria, del 1965, è alto 81 metri: il più alto della provincia di Monza e Brianza. Nel 2024 le sei campane sono state calate a terra per il restauro."
+ },
+ {
+  "town": "Seregno",
+  "title": "La fontana del mangiabagaj",
+  "hint": "Questa fontana è una copia. L'originale fa l'acquasantiera in Svizzera.",
+  "osm": "Piazza Martiri della Libertà, Seregno",
+  "lat": 45.651,
+  "lng": 9.2045,
+  "text": "La fontana del «mangiabagaj», il biscione visconteo che mangia un bambino, è una copia: l'originale del Quattrocento oggi è un'acquasantiera a Bellinzona, in Canton Ticino. Il biscione fu tolto durante una ristrutturazione e rimesso nel 2009, diverso dall'originale."
+ },
+ {
+  "town": "Seregno",
+  "title": "Il caduceo dei Medici",
+  "hint": "Sopra questo portone c'è il simbolo di Mercurio.",
+  "osm": "Via Cavour 25, Seregno",
+  "lat": 45.6508,
+  "lng": 9.205,
+  "text": "Al civico 25 di via Cavour la volta del portone ha un caduceo, il simbolo di Mercurio, legato ai Medici da Seregno, mercanti e ambasciatori. Un inventario del 1575 la chiama «Casa da Nobile dei Medici». Dal 1920 è la sede del Circolo San Giuseppe."
+ },
+ {
+  "town": "Seregno",
+  "title": "Dopo la peste del 1576",
+  "hint": "Questo oratorio lo volle San Carlo Borromeo.",
+  "osm": "Oratorio dei Santi Rocco e Sebastiano, Seregno",
+  "lat": 45.6515,
+  "lng": 9.206,
+  "text": "L'oratorio dei Santi Rocco e Sebastiano fu voluto da San Carlo Borromeo dopo la peste del 1576. Iniziato nel 1577, fu completato solo nel 1601 con il campanile. Dentro ci sono affreschi di Gabrio Bossi."
+ },
+ {
+  "town": "Desio",
+  "title": "La torre della battaglia",
+  "hint": "Intorno a questa torre nel 1277 cambiò la storia di Milano.",
+  "osm": "Basilica dei Santi Siro e Materno, Desio",
+  "lat": 45.618,
+  "lng": 9.209,
+  "text": "Nel gennaio 1277, intorno alla torre di Desio, Ottone Visconti sconfisse i Della Torre e catturò Guido della Torre: da lì iniziò il dominio dei Visconti su Milano. La torre fu poi ricostruita all'inizio del Quattrocento, dopo un incendio, e la sua base diventò il battistero della basilica."
+ },
+ {
+  "town": "Desio",
+  "title": "La villa del Piermarini",
+  "hint": "L'architetto della Scala progettò anche questa villa.",
+  "search": "Villa Cusani Tittoni Traversi",
+  "osm": "Villa Cusani Tittoni Traversi, Desio",
+  "lat": 45.62,
+  "lng": 9.205,
+  "text": "Villa Cusani Tittoni Traversi fu progettata nel Settecento da Giuseppe Piermarini, l'architetto della Scala, per i marchesi Cusani. Dal 2003 ospita il museo dello scultore Giuseppe Scalvini, con 35 sculture e oltre 20 disegni."
+ },
+ {
+  "town": "Desio",
+  "title": "La torre dei minerali",
+  "hint": "Nel parco c'è una torre ottocentesca piena di cristalli.",
+  "osm": "Torre del Pelagi, Desio",
+  "lat": 45.6205,
+  "lng": 9.204,
+  "text": "Nel parco di Villa Cusani c'è una torre dell'Ottocento progettata dall'architetto bolognese Pelagio Palagi. Oggi ospita un museo di minerali."
+ },
+ {
+  "town": "Desio",
+  "title": "La stazione sul ponte",
+  "hint": "Questa stazione è costruita sopra un ponte.",
+  "osm": "Stazione di Desio",
+  "lat": 45.617,
+  "lng": 9.215,
+  "text": "Secondo Wikipedia la stazione di Desio, sulla linea Milano–Chiasso, è una delle poche al mondo costruite sopra un ponte."
+ },
+ {
+  "town": "Desio",
+  "title": "Lo schizzo di Leonardo",
+  "hint": "Leonardo da Vinci disegnò Desio in fiamme.",
+  "osm": "Piazza Conciliazione, Desio",
+  "lat": 45.6182,
+  "lng": 9.2088,
+  "text": "Alla fine del Quattrocento i lanzichenecchi saccheggiarono Desio e diedero fuoco al paese. Leonardo da Vinci ne fece uno schizzo, oggi nelle Collezioni Reali inglesi."
+ },
+ {
+  "town": "Cesano Maderno",
+  "title": "L'unica torre sopravvissuta",
+  "hint": "Nel 1228 abbatterono tutte le torri. Tranne questa.",
+  "osm": "Torrazzo, Cesano Maderno",
+  "lat": 45.6305,
+  "lng": 9.147,
+  "text": "Nel 1228 una rivolta guidata da Domenico Dall'Acqua rase al suolo torri, mura e fossato di Cesano. Si salvò solo il Torrazzo, accanto a Palazzo Arese Borromeo. Le monache del monastero d'Aurona chiamarono le truppe milanesi, che fermarono subito la rivolta."
+ },
+ {
+  "town": "Cesano Maderno",
+  "title": "Il palazzo del presidente del Senato",
+  "hint": "Questo palazzo barocco è stato anche un'università.",
+  "search": "Palazzo Arese Borromeo",
+  "osm": "Palazzo Arese Borromeo, Cesano Maderno",
+  "lat": 45.63,
+  "lng": 9.1465,
+  "text": "Palazzo Arese Borromeo fu iniziato dopo il 1618 e completato tra il 1660 e il 1670 dal conte Bartolomeo Arese, presidente del Senato di Milano. Il salone d'onore è affrescato da pittori lombardi del Seicento. Ha ospitato anche la facoltà di filosofia dell'Università San Raffaele."
+ },
+ {
+  "town": "Cesano Maderno",
+  "title": "Il villaggio della Snia",
+  "hint": "Un intero quartiere costruito da una fabbrica.",
+  "osm": "Villaggio SNIA, Cesano Maderno",
+  "lat": 45.627,
+  "lng": 9.135,
+  "text": "Sulla collina a ovest la Snia Viscosa costruì un villaggio per i suoi operai. La fabbrica fece crescere molto Cesano Maderno nel Novecento."
+ },
+ {
+  "town": "Cesano Maderno",
+  "title": "L'isola tra due fiumi",
+  "hint": "Qui due corsi d'acqua si incontrano.",
+  "osm": "Stazione di Cesano Maderno",
+  "lat": 45.638,
+  "lng": 9.144,
+  "text": "A nord della città, vicino alla nuova stazione, la Certesa si getta nel Seveso. Tra i due corsi d'acqua si forma una specie di «isola» di Cesano, e dall'alto si vede la confluenza."
+ },
+ {
+  "town": "Cesano Maderno",
+  "title": "Gli stagni nelle cave",
+  "hint": "Questi stagni erano cave di argilla.",
+  "osm": "Oasi LIPU, Cesano Maderno",
+  "lat": 45.62,
+  "lng": 9.135,
+  "text": "Gli stagni dell'Oasi LIPU sono artificiali: sono nati allagando vecchie cave di argilla. In una zona molto costruita sono tra i pochi specchi d'acqua del comune e ospitano molte specie di animali e piante."
+ },
+ {
+  "town": "Limbiate",
+  "title": "Le nozze di Paolina Bonaparte",
+  "hint": "In questa villa si sposò la sorella di Napoleone.",
+  "search": "Villa Pusterla-Crivelli Mombello",
+  "osm": "Villa Pusterla Crivelli, Mombello, Limbiate",
+  "lat": 45.603,
+  "lng": 9.115,
+  "text": "Il 14 giugno 1797, nella cappella di Villa Pusterla Crivelli a Mombello, Paolina Bonaparte sposò il generale Leclerc. La villa ospitò anche Napoleone e Ferdinando IV di Napoli. Oggi è sede dell'Istituto Agrario «Luigi Castiglioni»."
+ },
+ {
+  "town": "Limbiate",
+  "title": "Il manicomio più grande d'Italia",
+  "hint": "Qui c'era un ospedale psichiatrico enorme, l'ultimo a chiudere.",
+  "osm": "Ex Ospedale psichiatrico di Mombello, Limbiate",
+  "lat": 45.604,
+  "lng": 9.114,
+  "text": "L'ospedale psichiatrico di Mombello aprì nel 1878 nel complesso della villa e copriva circa 40.000 metri quadrati: è descritto come il più grande d'Italia. Fu l'ultimo a chiudere dopo la legge Basaglia del 1978."
+ },
+ {
+  "town": "Limbiate",
+  "title": "Il luna park scomparso",
+  "hint": "Qui c'era un grande parco divertimenti, chiuso nel 2009.",
+  "osm": "Greenland, Limbiate",
+  "lat": 45.595,
+  "lng": 9.11,
+  "text": "Nel Parco delle Groane c'era Greenland, la «Città satellite», un parco divertimenti di circa 375.000 metri quadrati nato su terreni concessi nel 1965. Decadde negli anni Duemila e chiuse definitivamente nel 2009."
+ },
+ {
+  "town": "Limbiate",
+  "title": "La biblioteca nella cascina",
+  "hint": "Questa biblioteca era una cascina.",
+  "osm": "Villa Mella, Limbiate",
+  "lat": 45.597,
+  "lng": 9.129,
+  "text": "Villa Mella era una cascina, ricostruita dal 1842 per la famiglia Bazzero. Il Comune la comprò nel 1979 e la trasformò nella biblioteca civica."
+ },
+ {
+  "town": "Limbiate",
+  "title": "La villa a U di Ceresolo",
+  "hint": "Una villa lombarda con la classica pianta a U.",
+  "osm": "Villa Medolago Attanasio, Limbiate",
+  "lat": 45.59,
+  "lng": 9.125,
+  "text": "Villa Medolago-Attanasio, a Ceresolo, fu costruita tra il 1760 e il 1764 con la pianta a U tipica delle ville lombarde, dall'architetto Giuseppe Antonio Bianchi."
+ },
+ {
+  "town": "Brugherio",
+  "title": "Il primo volo in mongolfiera d'Italia",
+  "hint": "Da qui nel 1784 un uomo si alzò in volo per la prima volta in Italia.",
+  "osm": "Villa Sormani Andreani, Moncucco, Brugherio",
+  "lat": 45.556,
+  "lng": 9.295,
+  "text": "Nel 1784, dalla Villa Sormani-Andreani a Moncucco, Paolo Andreani fece il primo volo in mongolfiera in Italia."
+ },
+ {
+  "town": "Brugherio",
+  "title": "Il tempietto arrivato da Lugano",
+  "hint": "Questa cappella è stata smontata in Svizzera e rimontata qui.",
+  "osm": "Tempietto di San Lucio, Brugherio",
+  "lat": 45.5555,
+  "lng": 9.296,
+  "text": "Il tempietto di San Lucio era la cappella di Sant'Antonio da Padova nel convento francescano di Lugano. Tra il 1815 e il 1832 l'architetto Giocondo Albertolli lo trasferì a Brugherio come tempietto di famiglia degli Andreani e dei Sormani."
+ },
+ {
+  "town": "Brugherio",
+  "title": "Gli ultimi anni di De Pisis",
+  "hint": "In questa villa visse gli ultimi anni un grande pittore.",
+  "osm": "Villa Fiorita, Brugherio",
+  "lat": 45.551,
+  "lng": 9.3,
+  "text": "Villa Fiorita prende il nome dalla clinica privata per malati di mente che la possedeva dagli anni Trenta al 1976. Qui il pittore Filippo de Pisis trascorse gli ultimi anni di vita."
+ },
+ {
+  "town": "Brugherio",
+  "title": "La chiesa demolita da San Carlo",
+  "hint": "Una pergamena racconta la demolizione della chiesa che c'era qui.",
+  "osm": "Chiesa di Sant'Anna, San Damiano, Brugherio",
+  "lat": 45.56,
+  "lng": 9.305,
+  "text": "La chiesa di Sant'Anna a San Damiano sorge dove nel IX secolo c'era una chiesetta dei santi Cosma e Damiano, demolita nel 1578 durante la visita di San Carlo Borromeo. La pergamena che lo racconta è conservata dall'Arcidiocesi di Milano."
+ },
+ {
+  "town": "Brugherio",
+  "title": "I caduti del Bazzaro",
+  "hint": "Un monumento del 1933 davanti alle scuole.",
+  "osm": "Monumento ai caduti, via Vittorio Veneto, Brugherio",
+  "lat": 45.552,
+  "lng": 9.301,
+  "text": "Il monumento ai caduti davanti alle scuole «Federico Sciviero» è dello scultore Ernesto Bazzaro e fu inaugurato nel 1933 per i soldati di Brugherio morti nella Prima guerra mondiale."
+ },
+ {
+  "town": "Giussano",
+  "title": "Alberto da Giussano in vetrata",
+  "hint": "Nella sala del consiglio c'è il leggendario guerriero.",
+  "osm": "Municipio, Giussano",
+  "lat": 45.695,
+  "lng": 9.209,
+  "text": "Nella sala consiliare del municipio ci sono quattro vetrate di Aligi Sassu. Due sono dedicate a concittadini illustri: il matematico Gabrio Piola e il leggendario Alberto da Giussano, eroe della battaglia di Legnano."
+ },
+ {
+  "town": "Giussano",
+  "title": "La lapide dettata dal cardinale",
+  "hint": "Il testo sopra la porta lo scrisse il cardinale in persona.",
+  "osm": "Basilica dei Santi Filippo e Giacomo, Giussano",
+  "lat": 45.6955,
+  "lng": 9.2095,
+  "text": "La basilica dei Santi Filippo e Giacomo, dell'architetto Ottavio Cabiati, fu consacrata il 1° maggio 1932 dal cardinale Ildefonso Schuster, che dettò personalmente il testo della lapide sopra la porta maggiore."
+ },
+ {
+  "town": "Giussano",
+  "title": "Il museo del design",
+  "hint": "Qui c'è un museo con 48 pezzi di design e prototipi.",
+  "osm": "Molteni Museum, Giussano",
+  "lat": 45.699,
+  "lng": 9.215,
+  "text": "Il Museo Molteni, aperto nel 2015 su progetto di Jasper Morrison, racconta la storia dell'azienda di mobili fondata nel 1934 con 48 pezzi tra oggetti di design e prototipi."
+ },
+ {
+  "town": "Giussano",
+  "title": "Il capolinea del tram",
+  "hint": "Per quasi ottant'anni da qui partiva il tram per Milano.",
+  "osm": "Giussano",
+  "lat": 45.6948,
+  "lng": 9.2088,
+  "text": "Dal 1881 al 1958 Giussano fu uno dei capolinea della tranvia Milano–Carate–Giussano. Il territorio era attraversato già dalla strada romana tra Milano e Bellagio, che passava per Glussianum."
+ },
+ {
+  "town": "Giussano",
+  "title": "La biblioteca in villa",
+  "hint": "Questa villa restaurata nel 2004 è piena di libri.",
+  "osm": "Villa Sartirana, Giussano",
+  "lat": 45.693,
+  "lng": 9.207,
+  "text": "Villa Sartirana, ristrutturata nel 2004, ospita la biblioteca civica «Don Rinaldo Beretta»."
+ },
+ {
+  "town": "Vimercate",
+  "title": "La faccia sul ponte",
+  "hint": "Sull'arco di questa torre ti guarda una piccola testa con gli occhi spalancati.",
+  "search": "Ponte di San Rocco Vimercate",
+  "osm": "Ponte di San Rocco, Vimercate",
+  "lat": 45.614,
+  "lng": 9.364,
+  "text": "Il Ponte di San Rocco poggia sui resti di un ponte romano del III secolo. Nel XII secolo ci fu costruita sopra una porta difensiva, citata nel 1153 come «Porta de Moriano». Sull'arco della torre ovest c'è una piccola testa umana con gli occhi spalancati, della fine del XII secolo."
+ },
+ {
+  "town": "Vimercate",
+  "title": "Il caffè dei nobili",
+  "hint": "Nel parco di questa villa c'è il padiglione dove si beveva il caffè.",
+  "search": "Villa Sottocasa Vimercate",
+  "osm": "Villa Sottocasa, Vimercate",
+  "lat": 45.613,
+  "lng": 9.37,
+  "text": "Il parco di Villa Sottocasa, all'inglese, ha una torre neogotica e una Kaffeehaus, il padiglione dove i nobili andavano a prendere il caffè. A metà dello scalone c'è una copia dell'Apollo del Belvedere."
+ },
+ {
+  "town": "Vimercate",
+  "title": "L'unico affresco con la data",
+  "hint": "In questo convento solo un affresco ha una data precisa.",
+  "osm": "Convento di San Francesco, Vimercate",
+  "lat": 45.615,
+  "lng": 9.368,
+  "text": "Nel convento di San Francesco l'affresco della Crocifissione con santi, del 1354, è l'unico con una data precisa. È diviso in due da una sottile colonna tortile dipinta."
+ },
+ {
+  "town": "Vimercate",
+  "title": "La sala di Bacco",
+  "hint": "Questo palazzo passò di famiglia con un matrimonio del 1739.",
+  "osm": "Palazzo Trotti, Vimercate",
+  "lat": 45.6145,
+  "lng": 9.369,
+  "text": "Palazzo Trotti, oggi municipio, era dei conti Borella dal Cinquecento. Passò ai Trotti nel 1739, quando l'ultima erede sposò il conte Gianbattista Trotti. La sala di Bacco è dipinta da Carlo Donelli, detto il Vimercati."
+ },
+ {
+  "town": "Vimercate",
+  "title": "Gli scheletri di Ruginello",
+  "hint": "Sulla strada del cimitero ti accolgono due scheletri.",
+  "osm": "Cimitero di Ruginello, Vimercate",
+  "lat": 45.605,
+  "lng": 9.38,
+  "text": "Ai lati della strada che porta al cimitero di Ruginello ci sono due sculture che rappresentano scheletri interi: la «Morte di Ruginello»."
+ },
+ {
+  "town": "Seveso",
+  "title": "Il coltello del santo",
+  "hint": "Qui si conserva l'arma che uccise un santo nel 1252.",
+  "osm": "Santuario di San Pietro Martire, Seveso",
+  "lat": 45.642,
+  "lng": 9.141,
+  "text": "Nel 1252 il domenicano Pietro da Verona fu ucciso da due sicari; uno di loro poi si convertì e si fece frate. Il corpo del santo è a Sant'Eustorgio a Milano, ma a Seveso si conserva il coltello. Il santuario attuale fu costruito nel 1627 per volere degli Arese."
+ },
+ {
+  "town": "Seveso",
+  "title": "Il bosco sopra la memoria",
+  "hint": "Questo bosco è nato sopra le vasche dell'incidente del 1976.",
+  "wiki": "Bosco delle Querce",
+  "search": "Bosco delle Querce Seveso",
+  "osm": "Bosco delle Querce, Seveso",
+  "lat": 45.64,
+  "lng": 9.15,
+  "text": "Il Bosco delle Querce, oltre 44 ettari, sorge sopra due vasche dove furono chiusi i materiali contaminati dopo l'incidente dell'ICMESA del 1976. Il parco fu avviato nel 1986 e aperto nel 1996: oggi è un bosco e un luogo di memoria, con un percorso che racconta quei fatti."
+ },
+ {
+  "town": "Seveso",
+  "title": "Gli altari romani sotto il campanile",
+  "hint": "Demolendo il vecchio campanile trovarono cinque altari romani.",
+  "osm": "Chiesa dei Santi Gervasio e Protasio, Seveso",
+  "lat": 45.648,
+  "lng": 9.14,
+  "text": "Nel 1895, durante la demolizione del vecchio campanile della chiesa dei Santi Gervasio e Protaso, furono trovate cinque are romane, segno che qui c'erano insediamenti molto antichi."
+ },
+ {
+  "town": "Seveso",
+  "title": "Il municipio assediato",
+  "hint": "Il 25 aprile 1945 questo edificio fu circondato dai partigiani.",
+  "osm": "Municipio, Seveso",
+  "lat": 45.6475,
+  "lng": 9.1405,
+  "text": "Il municipio era la Casa del Fascio, inaugurata il 31 ottobre 1936. Il 25 aprile 1945 i partigiani circondarono l'edificio, dove si erano barricati i nazifascisti, e la situazione si risolse grazie alla mediazione del parroco."
+ },
+ {
+  "town": "Meda",
+  "title": "Il fulmine del 1813",
+  "hint": "In questa chiesa piena di gente cadde un fulmine. Nessun ferito.",
+  "osm": "Santuario del Santo Crocifisso, Meda",
+  "lat": 45.662,
+  "lng": 9.156,
+  "text": "Il 2 agosto 1813 un fulmine colpì il Santuario del Santo Crocifisso, pieno di fedeli, e attraversò tutto l'edificio senza ferire nessuno. I medesi lo attribuiscono al vecchio crocifisso, e la benedizione della città di quel giorno ricorda il fatto."
+ },
+ {
+  "town": "Meda",
+  "title": "Luini a San Vittore",
+  "hint": "L'unico pezzo intatto di un monastero, con affreschi del Luini.",
+  "osm": "Chiesa di San Vittore, Meda",
+  "lat": 45.66,
+  "lng": 9.154,
+  "text": "La chiesa di San Vittore, del 1520, è l'unica parte intatta dell'antico monastero. Ha affreschi di Bernardino Luini e della sua scuola e una pala del 1626 del Cerano. Il monastero, soppresso nel 1798, fu trasformato da Leopoldo Pollack in Villa Antona Traversi."
+ },
+ {
+  "town": "Meda",
+  "title": "L'imperatore e il Moro",
+  "hint": "Qui nel 1496 si incontrarono un imperatore e il duca di Milano.",
+  "osm": "Vicolo Santa Maria, Meda",
+  "lat": 45.661,
+  "lng": 9.155,
+  "text": "Il 31 agosto 1496 Massimiliano d'Asburgo incontrò a Meda il duca di Milano Ludovico il Moro, con i rappresentanti degli stati italiani e un legato del papa. Una lapide del 1991 sulla «Cà Rustica», all'inizio di vicolo di Santa Maria, lo ricorda."
+ },
+ {
+  "town": "Meda",
+  "title": "La cupola di Montini",
+  "hint": "Questa chiesa la consacrò il futuro papa Paolo VI.",
+  "osm": "Chiesa di Santa Maria Nascente, Meda",
+  "lat": 45.663,
+  "lng": 9.153,
+  "text": "La chiesa di Santa Maria Nascente, dell'architetto Paolo Mezzanotte, fu consacrata il 9 settembre 1956 dal cardinale Montini, futuro papa Paolo VI. La cupola ha un diametro di 22,40 metri ed è alta 43."
+ },
+ {
+  "town": "Meda",
+  "title": "Il comune scomparso di Farga",
+  "hint": "Questa chiesetta apparteneva a un paese che non esiste più.",
+  "osm": "Chiesa dei Santi Nazaro e Celso, Meda",
+  "lat": 45.656,
+  "lng": 9.148,
+  "text": "La chiesetta medievale dei Santi Nazario e Celso, al confine con Seveso, apparteneva al comune di Farga, abolito nella prima metà del Settecento e diviso tra Meda, Seveso e Barlassina."
+ },
+ {
+  "town": "Muggiò",
+  "title": "Il crocifisso con i capelli veri",
+  "hint": "Il Cristo di questa cappella aveva capelli umani.",
+  "osm": "Cappella di San Rocco, Muggiò",
+  "lat": 45.5905,
+  "lng": 9.228,
+  "text": "La cappella di San Rocco, iniziata nel 1524, custodiva un crocifisso considerato miracoloso, con ciocche di capelli veri sulla testa del Cristo. Oggi il crocifisso è nel tiburio ottagonale della chiesa madre."
+ },
+ {
+  "town": "Muggiò",
+  "title": "La bambina dei Taccona",
+  "hint": "Sotto il pavimento di questo oratorio c'era una tomba.",
+  "osm": "Palazzo Taccona, Muggiò",
+  "lat": 45.585,
+  "lng": 9.23,
+  "text": "Durante dei restauri dell'oratorio dei Santi Re Magi a Palazzo Taccona fu trovata sotto il pavimento la tomba di una ragazzina di dodici anni, probabilmente l'unica erede dei Taccona: con lei finì la famiglia. L'oratorio è monumento nazionale."
+ },
+ {
+  "town": "Muggiò",
+  "title": "Le colonne della peste",
+  "hint": "Questa colonna con la croce segna una sepoltura del 1576.",
+  "osm": "Via Santa Croce, Muggiò",
+  "lat": 45.586,
+  "lng": 9.231,
+  "text": "Due colonne di pietra con una croce di ferro segnano i luoghi dove furono sepolti i morti della peste di San Carlo del 1576: una all'incrocio tra via Marconi e via Santa Croce alla Taccona, l'altra a nord, al confine con Desio."
+ },
+ {
+  "town": "Muggiò",
+  "title": "Il pozzo sotto il vetro",
+  "hint": "In questa piazza puoi guardare dentro un pozzo antico.",
+  "osm": "Piazza Garibaldi, Muggiò",
+  "lat": 45.59,
+  "lng": 9.2275,
+  "text": "Nel 1927 Muggiò ebbe uno dei primi pozzi dell'acquedotto della provincia di Milano. Il vecchio pozzo di piazza Garibaldi si vede ancora, sotto una lastra di vetro."
+ },
+ {
+  "town": "Muggiò",
+  "title": "La villa venduta per un simbolo",
+  "hint": "Nel 1975 il Comune comprò questa villa per una cifra simbolica.",
+  "osm": "Villa Casati Stampa di Soncino, Muggiò",
+  "lat": 45.5895,
+  "lng": 9.227,
+  "text": "Su una trave del sottotetto di Villa Casati Stampa è incisa la data 1783, probabilmente l'anno di costruzione. Nel 1975 il Comune la comprò simbolicamente dall'ultima discendente della famiglia, e il restauro finì nel 1982. Nella parrocchiale c'era un dipinto di Francesco Hayez del 1827, oggi al Museo Diocesano di Milano."
+ },
+ {
+  "town": "Nova Milanese",
+  "title": "La Gesèta",
+  "hint": "Una chiesetta del VII secolo che è stata anche un magazzino.",
+  "osm": "Chiesa di Santa Maria Assunta, Grugnotorto, Nova Milanese",
+  "lat": 45.58,
+  "lng": 9.195,
+  "text": "La chiesa della Beata Vergine Assunta a Grugnotorto, detta «la Gesèta», risale al VII secolo e fu la chiesa principale di Nova fino al Duecento. Negli anni Settanta fu sconsacrata e usata come magazzino; restaurata dagli Alpini, fu riconsacrata il 20 maggio 1990."
+ },
+ {
+  "town": "Nova Milanese",
+  "title": "Il santo che manda la grandine nel pozzo",
+  "hint": "Nel quadro dell'altare un santo devia la grandine.",
+  "osm": "Chiesa di Santa Maria Assunta, Grugnotorto, Nova Milanese",
+  "lat": 45.5801,
+  "lng": 9.1951,
+  "text": "La pala d'altare della Gesèta mostra San Grato, patrono di Grugnotorto, che devia una grandinata dentro un pozzo. La porta di legno ha formelle con scene del Vangelo scolpite da Costantino Conti."
+ },
+ {
+  "town": "Nova Milanese",
+  "title": "Il vino di Carlo Porta",
+  "hint": "Nel 1815 un poeta mise il vino di qui tra i migliori.",
+  "osm": "Chiesa di Sant'Antonino Martire, Nova Milanese",
+  "lat": 45.589,
+  "lng": 9.2,
+  "text": "Nel 1815 il poeta milanese Carlo Porta mise Nova tra i migliori produttori di vino, insieme ad altri venti comuni. Poi la fillossera distrusse le vigne. La chiesa di Sant'Antonino, del Duecento, conserva pitture di Vespasiano Bignami."
+ },
+ {
+  "town": "Nova Milanese",
+  "title": "San Bernardo alla cascina",
+  "hint": "Una chiesetta del 1604 dentro una cascina.",
+  "osm": "Cascina Meda, Nova Milanese",
+  "lat": 45.592,
+  "lng": 9.205,
+  "text": "La chiesa di San Bernardo, del 1604, si trova alla cascina Meda. Il suo campanile ha le stesse note di campane della Gesèta di Grugnotorto."
+ },
+ {
+  "town": "Carate Brianza",
+  "title": "Le colonne tutte diverse",
+  "hint": "In questa basilica romanica nessuna colonna è uguale all'altra.",
+  "wiki": "Basilica dei Santi Pietro e Paolo (Agliate)",
+  "search": "Basilica Agliate",
+  "osm": "Basilica dei Santi Pietro e Paolo, Agliate, Carate Brianza",
+  "lat": 45.69,
+  "lng": 9.245,
+  "text": "La basilica dei Santi Pietro e Paolo di Agliate, con il suo battistero, risale al X secolo ed è uno dei complessi romanici più importanti della Lombardia. Le colonne all'interno sono tutte diverse, e sotto il presbiterio c'è una cripta."
+ },
+ {
+  "town": "Carate Brianza",
+  "title": "Il battistero affrescato",
+  "hint": "Qui gli affreschi vanno dal Medioevo al Quattrocento.",
+  "osm": "Battistero di Agliate, Carate Brianza",
+  "lat": 45.6901,
+  "lng": 9.2452,
+  "text": "Il battistero di Agliate, accanto alla basilica, conserva affreschi di epoche diverse, dal Medioevo al Quattrocento, restaurati da poco."
+ },
+ {
+  "town": "Carate Brianza",
+  "title": "La villa di Teresa Confalonieri",
+  "hint": "Qui visse la moglie di un patriota del Risorgimento.",
+  "osm": "Villa Cusani Confalonieri, Carate Brianza",
+  "lat": 45.676,
+  "lng": 9.238,
+  "text": "Villa Cusani Confalonieri fu fatta costruire nel Seicento da Valerio Confalonieri. Qui visse a lungo Teresa Casati, moglie del patriota Federico Confalonieri. Il giardino all'italiana è pubblico dal 1976 e nella villa c'è la biblioteca. Accanto, dove c'era il castello, c'è l'oratorio gotico di Santa Maria Maddalena."
+ },
+ {
+  "town": "Carate Brianza",
+  "title": "La foppa dei duecento",
+  "hint": "Il nome di questo posto ricorda una battaglia del 1275.",
+  "osm": "Carate Brianza",
+  "lat": 45.6758,
+  "lng": 9.2375,
+  "text": "La «Foppa dei dusent», la fossa dei duecento, ricorda il luogo dove furono sepolti i morti dello scontro del 1275 tra Visconti e Della Torre per il controllo di Milano."
+ },
+ {
+  "town": "Arcore",
+  "title": "La cappella per Maria",
+  "hint": "Un marito fece costruire questa cappella per la moglie morta a 22 anni.",
+  "osm": "Cappella Vela, Arcore",
+  "lat": 45.627,
+  "lng": 9.32,
+  "text": "La Cappella Vela, nel parco di Villa Borromeo d'Adda, fu costruita tra il 1850 e il 1853 da Giovanni D'Adda per la moglie Maria Isimbardi, morta nel 1849 a 22 anni. È ottagonale, con otto piccole absidi e statue di Lorenzo e Vincenzo Vela. Si visita una volta al mese."
+ },
+ {
+  "town": "Arcore",
+  "title": "La cappella della peste",
+  "hint": "Una croce di pietra con due date: 1576 e 1630.",
+  "osm": "Villa Borromeo d'Adda, Arcore",
+  "lat": 45.6275,
+  "lng": 9.321,
+  "text": "Nel parco di Villa Borromeo c'è una piccola cappella aperta del Seicento, costruita dopo le pesti di San Carlo e del 1630, attorno a una croce di pietra. La scritta dice «Cappella della peste 1576 1630»."
+ },
+ {
+  "town": "Arcore",
+  "title": "Sant'Apollinare",
+  "hint": "Tra Arcore e Bernate resta una cappella di un monastero del X secolo.",
+  "osm": "Sant'Apollinare, Arcore",
+  "lat": 45.635,
+  "lng": 9.335,
+  "text": "Tra Arcore e Bernate c'era un monastero altomedievale del X secolo dedicato a Sant'Apollinare. Della costruzione originale, in arenaria con tetti e pavimenti di cotto, resta solo la piccola cappella."
+ },
+ {
+  "town": "Arcore",
+  "title": "Il mulino Taboga",
+  "hint": "Un mulino ad acqua del Seicento sul Lambro.",
+  "osm": "Via Molini di Mezzo, Arcore",
+  "lat": 45.62,
+  "lng": 9.31,
+  "text": "Il Mulino Taboga, in via Molini di Mezzo, è un mulino ad acqua per il grano in mattoni e travi di legno su pilastri di pietra. I documenti che ne parlano risalgono ai primi decenni del Seicento."
+ },
+ {
+  "town": "Arcore",
+  "title": "Il palazzo diviso in tre",
+  "hint": "Nel 1922 questo palazzo fu venduto ai contadini e diviso in tre.",
+  "osm": "Bernate, Arcore",
+  "lat": 45.638,
+  "lng": 9.33,
+  "text": "Palazzo Durini a Bernate fu costruito tra Cinque e Seicento per controllare cinque cascine. Nel 1922, morto il conte Carlo Durini, fu venduto ai contadini che ci abitavano, che lo divisero in tre edifici. Dentro restano affreschi del Cinquecento."
+ },
+ {
+  "town": "Bovisio-Masciago",
+  "tag": "bovisio masciago",
+  "title": "La chiesa nata da un'alluvione",
+  "hint": "Dopo la piena del Seveso del 1765 si decise di costruire questa chiesa.",
+  "osm": "Chiesa di San Pancrazio, Bovisio-Masciago",
+  "lat": 45.61,
+  "lng": 9.15,
+  "text": "Il 17 agosto 1765 una piena del Seveso danneggiò la vecchia parrocchiale, nell'attuale piazza Aldo Moro. Lo stesso anno si iniziò la nuova chiesa di San Pancrazio, finita nel 1774; il campanile arrivò nel 1799."
+ },
+ {
+  "town": "Bovisio-Masciago",
+  "tag": "bovisio masciago",
+  "title": "La chiesa del CAI",
+  "hint": "Questa chiesetta per quarant'anni è stata la sede degli alpinisti.",
+  "osm": "Chiesa di San Martino, Masciago, Bovisio-Masciago",
+  "lat": 45.605,
+  "lng": 9.145,
+  "text": "La chiesetta di San Martino a Masciago è citata già alla fine del Duecento. Nel 1966 fu chiusa al culto e affittata al Club Alpino Italiano; dopo i restauri è tornata chiesa nel 2006."
+ },
+ {
+  "town": "Bovisio-Masciago",
+  "tag": "bovisio masciago",
+  "title": "Il nome conquistato",
+  "hint": "Il paese prese il doppio nome solo nel 1947.",
+  "osm": "Villa Erba Odescalchi, Bovisio-Masciago",
+  "lat": 45.611,
+  "lng": 9.151,
+  "text": "Masciago fu unito a Bovisio tra il 1928 e il 1929, ma il comune prese il nome di Bovisio Masciago solo nel 1947, dopo le proteste degli abitanti di Masciago. Il municipio è in Villa Erba-Odescalchi-Scotti, comprata dal Comune nel 1941."
+ },
+ {
+  "town": "Bovisio-Masciago",
+  "tag": "bovisio masciago",
+  "title": "La villa della birra e dei carabinieri",
+  "hint": "Nel 1931 metà villa era una birreria, l'altra metà una caserma.",
+  "osm": "Villa Sonzogni, Bovisio-Masciago",
+  "lat": 45.609,
+  "lng": 9.149,
+  "text": "Nel 1931 Villa Sonzoni-Mariani-Compostella fu affittata in parte a una fabbrica di birra e in parte ai Carabinieri, che la usarono come caserma. Lo scalone ha una balaustra di pietra a volute fiorite, una delle poche del genere nel Milanese."
+ },
+ {
+  "town": "Concorezzo",
+  "title": "Il re prima di Solferino",
+  "hint": "In questa villa dormì Vittorio Emanuele II prima di una grande battaglia.",
+  "osm": "Villa Pernice, Concorezzo",
+  "lat": 45.59,
+  "lng": 9.335,
+  "text": "Nella notte dell'11 giugno 1859 Villa Pernice, accanto alla chiesa dei Santi Cosma e Damiano, ospitò il re Vittorio Emanuele II e il generale Cialdini, in marcia verso Solferino e San Martino."
+ },
+ {
+  "town": "Concorezzo",
+  "title": "Gli angeli musicanti",
+  "hint": "Dietro l'altare di questa chiesa del IX secolo suonano due angeli.",
+  "osm": "Chiesa di Sant'Eugenio, Concorezzo",
+  "lat": 45.592,
+  "lng": 9.333,
+  "text": "La chiesa di Sant'Eugenio è citata già a metà del IX secolo. Dietro l'altare c'è un affresco del Quattrocento con la Madonna in trono e due angeli musicanti."
+ },
+ {
+  "town": "Concorezzo",
+  "title": "La chiesa del Cagnola",
+  "hint": "Sei colonne ioniche, come un tempio antico.",
+  "osm": "Chiesa dei Santi Cosma e Damiano, Concorezzo",
+  "lat": 45.5902,
+  "lng": 9.3352,
+  "text": "La parrocchiale dei Santi Cosma e Damiano fu progettata da Luigi Cagnola, l'architetto dell'Arco della Pace di Milano; i lavori iniziarono nel 1810. La facciata ha sei colonne ioniche e un timpano triangolare."
+ },
+ {
+  "town": "Concorezzo",
+  "title": "Il cedro di duecento anni",
+  "hint": "Nel parco di questa villa c'è un cedro più vecchio dell'Italia unita.",
+  "osm": "Villa Zoia, Concorezzo",
+  "lat": 45.588,
+  "lng": 9.337,
+  "text": "Nel grande parco di Villa Zoia c'è un cedro dell'Atlante di oltre duecento anni."
+ },
+ {
+  "town": "Concorezzo",
+  "title": "I feudatari della Val di Scalve",
+  "hint": "Il municipio è nella villa di una famiglia arrivata dalle montagne bergamasche.",
+  "osm": "Palazzo De Capitani, Concorezzo",
+  "lat": 45.591,
+  "lng": 9.334,
+  "text": "Palazzo De Capitani, oggi municipio, è una villa del Seicento probabilmente voluta da Pirro De Capitani dopo aver avuto il feudo nel 1690. La famiglia veniva dalla Val di Scalve, a nord di Bergamo."
+ },
+ {
+  "town": "Lentate sul Seveso",
+  "title": "13.000 strumenti musicali",
+  "hint": "Qui c'è una delle più grandi collezioni di strumenti d'Europa.",
+  "osm": "Villa Raimondi, Birago, Lentate sul Seveso",
+  "lat": 45.672,
+  "lng": 9.116,
+  "text": "A Birago, dal 1970, la Strumentoteca d'arte musicale custodisce circa 13.000 strumenti musicali di tutto il mondo: una delle collezioni più grandi d'Europa. Villa Raimondi, sempre a Birago, fu costruita da Simone Cantoni tra il 1794 e il 1798."
+ },
+ {
+  "town": "Lentate sul Seveso",
+  "title": "Il Guercino venduto",
+  "hint": "Questo santuario aveva un quadro del Guercino.",
+  "osm": "Santuario di San Mauro, Copreno, Lentate sul Seveso",
+  "lat": 45.668,
+  "lng": 9.104,
+  "text": "Alla fine del Seicento il capitano Francesco Clerici ricostruì il Santuario di San Mauro a Copreno, dove c'era un antico luogo di culto benedettino. Lo dotò di quadri, tra cui un «Guercino», poi venduti dagli ultimi proprietari."
+ },
+ {
+  "town": "Lentate sul Seveso",
+  "title": "L'amico di Cattaneo",
+  "hint": "Qui è sepolto un protagonista delle Cinque giornate di Milano.",
+  "osm": "Oratorio di San Francesco Saverio, Copreno",
+  "lat": 45.6685,
+  "lng": 9.1045,
+  "text": "Nell'oratorio di San Francesco Saverio a Copreno è sepolto il cavaliere Giorgio Clerici di Cavenago, membro del comitato di guerra delle Cinque giornate di Milano e amico di Carlo Cattaneo."
+ },
+ {
+  "town": "Lentate sul Seveso",
+  "title": "Il cugino di Manzoni",
+  "hint": "Questo palazzo era del cugino di Alessandro Manzoni.",
+  "osm": "Palazzo Beccaria, Copreno",
+  "lat": 45.6675,
+  "lng": 9.1035,
+  "text": "Palazzo Beccaria Bonesana a Copreno apparteneva a Giacomo Beccaria, cugino di Alessandro Manzoni. Fu ricostruito tra Sette e Ottocento inglobando le case dei nobili Porro."
+ },
+ {
+  "town": "Agrate Brianza",
+  "title": "Il testamento del 745",
+  "hint": "Il nome di Agrate compare in un testamento longobardo.",
+  "osm": "Chiesa di Sant'Eusebio, Agrate Brianza",
+  "lat": 45.576,
+  "lng": 9.351,
+  "text": "Nell'aprile 745 il testamento di Rottoperto nomina «de vico Agrate» e fonda qui un ospedale per poveri e pellegrini. La parrocchia nacque con una bolla papale del 22 marzo 1493."
+ },
+ {
+  "town": "Agrate Brianza",
+  "title": "La lapide di Primula",
+  "hint": "Demolendo un muro trovarono la tomba di una donna di 1500 anni fa.",
+  "osm": "Chiesa di Sant'Eusebio, Agrate Brianza",
+  "lat": 45.5761,
+  "lng": 9.3511,
+  "text": "A metà Ottocento, demolendo un muro della casa parrocchiale, fu trovata una lapide paleocristiana che inizia con «Hic requiescit in pace Primula». Cita il console Boezio, e quindi è della fine del V o dell'inizio del VI secolo."
+ },
+ {
+  "town": "Agrate Brianza",
+  "title": "La villa dalle sette arcate",
+  "hint": "Un portico trasparente unisce i due corpi di questa villa.",
+  "osm": "Villa Trivulzio, Omate, Agrate Brianza",
+  "lat": 45.585,
+  "lng": 9.365,
+  "text": "Villa Trivulzio a Omate è formata da due corpi paralleli uniti da un portico trasparente di sette arcate. I Trivulzio possedevano già la proprietà nel Cinquecento; il parco fu trasformato in giardino paesaggistico e la villa è stata restaurata nel 2000."
+ },
+ {
+  "town": "Agrate Brianza",
+  "title": "La vasca gigante",
+  "hint": "Una vasca grande come cinque campi da calcio.",
+  "osm": "Agrate Brianza",
+  "lat": 45.57,
+  "lng": 9.35,
+  "text": "Nella zona industriale a sud c'è la vasca volano, di 40.000 metri quadrati e profonda fino a 6 metri, costruita per raccogliere l'acqua in eccesso delle fognature. Da alcuni anni non serve più."
+ },
+ {
+  "town": "Besana in Brianza",
+  "title": "Il ciliegio gigante",
+  "hint": "Qui c'è il ciliegio selvatico più grande d'Italia.",
+  "osm": "Vergo Zoccorino, Besana in Brianza",
+  "lat": 45.705,
+  "lng": 9.27,
+  "text": "A Vergo Zoccorino c'è il «Magico Ciliegio», un ciliegio selvatico alto circa 24 metri, descritto come il più grande d'Italia. Dal 2018 è nell'elenco nazionale degli alberi monumentali."
+ },
+ {
+  "town": "Besana in Brianza",
+  "title": "Il masso dei ghiacciai",
+  "hint": "Questo masso segna dove arrivarono i ghiacciai.",
+  "osm": "Valle Guidino, Besana in Brianza",
+  "lat": 45.69,
+  "lng": 9.3,
+  "text": "Il Sasso del Guidino è un grande masso erratico portato dai ghiacciai. Segna il punto più a sud raggiunto dall'ultima grande glaciazione, quella di Würm."
+ },
+ {
+  "town": "Besana in Brianza",
+  "title": "La moglie di Manzoni",
+  "hint": "In questa cappella riposa la seconda moglie di Alessandro Manzoni.",
+  "osm": "Villa Fossati, Rigola, Besana in Brianza",
+  "lat": 45.7,
+  "lng": 9.29,
+  "text": "Villa Fossati a Rigola fu costruita nel 1618 dalla famiglia Riva. Nella cappella della Madonna della Neve riposa Teresa Borri, seconda moglie di Alessandro Manzoni."
+ },
+ {
+  "town": "Besana in Brianza",
+  "title": "La campana del 1513",
+  "hint": "Questa chiesa è fatta con le pietre di un castello.",
+  "osm": "Chiesa di Santa Caterina, Besana in Brianza",
+  "lat": 45.701,
+  "lng": 9.288,
+  "text": "La chiesa di Santa Caterina d'Alessandria fu costruita all'inizio del Quattrocento per Lucrezia Bonacossa con i materiali del castello medievale, sopra un antico altare pagano. L'unica campana originale rimasta è del 1513."
+ },
+ {
+  "town": "Besana in Brianza",
+  "title": "Basilica per volere del papa",
+  "hint": "Giovanni Paolo II la fece basilica nel 1998.",
+  "osm": "Basilica dei Santi Marcellino ed Erasmo, Besana in Brianza",
+  "lat": 45.702,
+  "lng": 9.287,
+  "text": "Nel gennaio 1998 Giovanni Paolo II elevò a basilica minore la chiesa dei Santi Marcellino ed Erasmo, ricostruita in stile barocco nel 1569 e poi rifatta in stile neoclassico da Giacomo Moraglia."
+ },
+ {
+  "town": "Villasanta",
+  "title": "La fontana delle sei acque",
+  "hint": "In questa fontana arrivano sei corsi d'acqua diversi.",
+  "osm": "Piazza Ammiraglio Camperio, Villasanta",
+  "lat": 45.606,
+  "lng": 9.304,
+  "text": "La fontana delle sei acque, in piazza Ammiraglio Camperio, riceve acqua da quattro rogge, dal torrente Molgorana e dal fiume Lambro."
+ },
+ {
+  "town": "Villasanta",
+  "title": "La póra dòna",
+  "hint": "Questa statua i villasantesi la chiamano «la povera donna».",
+  "osm": "Municipio, Villasanta",
+  "lat": 45.6055,
+  "lng": 9.3045,
+  "text": "Il monumento ai caduti davanti al municipio è un bronzo che rappresenta la madre di un soldato. I villasantesi la chiamano «la póra dòna», la povera donna."
+ },
+ {
+  "town": "Villasanta",
+  "title": "Il patriota confinato",
+  "hint": "Gli austriaci confinarono qui un patriota nel 1815.",
+  "osm": "Villa Camperio, Villasanta",
+  "lat": 45.6065,
+  "lng": 9.3035,
+  "text": "Villa Camperio, del Seicento, nel 1815 fu il luogo dove il governo austriaco confinò il patriota Federico Confalonieri. Oggi ospita la biblioteca civica."
+ },
+ {
+  "town": "Villasanta",
+  "title": "Il soldato di cera",
+  "hint": "In questa chiesa le ossa di un santo sono dentro una statua di cera.",
+  "osm": "Chiesa di Sant'Anastasia, Villasanta",
+  "lat": 45.607,
+  "lng": 9.305,
+  "text": "Nella navata destra della parrocchiale ci sono le ossa di San Marco soldato, ricoperte da una statua di cera, donate nel 1933 dal cardinale Schuster. La vecchia chiesa di Sant'Anastasia, larga circa 7 metri, fu demolita nel 1808."
+ },
+ {
+  "town": "Varedo",
+  "title": "Le pentole con i serpenti",
+  "hint": "Lo stemma del comune ha pentole, serpenti, un crivello e un bue.",
+  "osm": "Municipio, Varedo",
+  "lat": 45.6,
+  "lng": 9.16,
+  "text": "Lo stemma di Varedo racconta i suoi signori: le pentole con i serpenti vengono dai marchesi Manriquez, feudatari di Desio dal 1580; il crivello d'oro dai Crivelli, feudatari dal 1676; il bue e i gigli dai Bagatti Valsecchi, presenti dal 1523."
+ },
+ {
+  "town": "Varedo",
+  "title": "La fontana dell'ONU",
+  "hint": "A Valera c'è una piazza dedicata alle Nazioni Unite.",
+  "osm": "Piazza Nazioni Unite, Valera, Varedo",
+  "lat": 45.595,
+  "lng": 9.165,
+  "text": "In piazza Nazioni Unite, nella frazione Valera, c'è la fontana dell'ONU dello scultore Alberto Ceppi."
+ },
+ {
+  "town": "Biassono",
+  "title": "La curva Biassono",
+  "hint": "Una curva di Monza porta il nome di questo paese.",
+  "osm": "Santa Maria delle Selve, Biassono",
+  "lat": 45.63,
+  "lng": 9.28,
+  "text": "All'Autodromo di Monza la vecchia Curva Grande è stata intitolata a Biassono, da dove passano tanti tifosi diretti alla pista, anche grazie all'ingresso di Santa Maria alle Selve. Nel 1928 parte del territorio di Biassono fu annessa a Monza per unire il Parco."
+ },
+ {
+  "town": "Biassono",
+  "title": "La ghiacciaia dei Verri",
+  "hint": "Nel giardino del municipio c'è un frigorifero di secoli fa.",
+  "osm": "Villa Verri, Biassono",
+  "lat": 45.6295,
+  "lng": 9.274,
+  "text": "Nei giardini di Villa Verri, oggi municipio e museo civico, si vede un'antica ghiacciaia, dove d'inverno si conservava il ghiaccio per l'estate."
+ },
+ {
+  "town": "Biassono",
+  "title": "La torre neogotica",
+  "hint": "Sembra un castello, ma serviva per l'acqua.",
+  "osm": "Piazza Italia, Biassono",
+  "lat": 45.6305,
+  "lng": 9.275,
+  "text": "La torre dell'acquedotto in piazza Italia, in stile neogotico dei primi del Novecento, è il simbolo di Biassono."
+ },
+ {
+  "town": "Biassono",
+  "title": "La necropoli di tremila anni",
+  "hint": "Qui c'erano tombe del X secolo avanti Cristo.",
+  "osm": "Biassono",
+  "lat": 45.631,
+  "lng": 9.276,
+  "text": "La necropoli della «Brughiera dei morti» è la testimonianza più antica di Biassono: risale alla fine dell'età del Bronzo, intorno al X secolo avanti Cristo. Biassono è anche il paese natale di Ansperto Confalonieri, arcivescovo di Milano nel IX secolo."
+ },
+ {
+  "town": "Bernareggio",
+  "title": "L'accampamento d'inverno del re",
+  "hint": "Il nome del paese forse viene dai soldati romani.",
+  "osm": "Bernareggio",
+  "lat": 45.65,
+  "lng": 9.405,
+  "text": "Il nome Bernareggio potrebbe venire da «Hiberna Regis», gli accampamenti invernali del re, forse un antico campo romano. Nel X secolo qui sorse un castello, e la famiglia che lo ebbe prese il nome Bernareggi."
+ },
+ {
+  "town": "Bernareggio",
+  "title": "L'arco degli Umiliati",
+  "hint": "Questo arco è tutto quello che resta di un convento.",
+  "osm": "Bernareggio",
+  "lat": 45.6502,
+  "lng": 9.4052,
+  "text": "Un arco del Quattrocento è l'unica parte rimasta del convento degli Umiliati, l'ordine religioso che lavorava la lana. La chiesa parrocchiale, del 1865, conserva un dipinto di Bernardino Campi."
+ },
+ {
+  "town": "Cornate d'Adda",
+  "title": "La dedica alle Matrone",
+  "hint": "Sul campanile c'è una pietra romana dedicata a dee celtiche.",
+  "osm": "Chiesa di San Giorgio, Cornate d'Adda",
+  "lat": 45.646,
+  "lng": 9.463,
+  "text": "Sul campanile del Quattrocento della chiesa di San Giorgio è stata riusata un'iscrizione romana dedicata «Matronis et Vicanis», alle Matrone, divinità femminili di origine celtica. Il campanile ha 8 campane."
+ },
+ {
+  "town": "Cornate d'Adda",
+  "title": "La battaglia dei Longobardi",
+  "hint": "Qui intorno al 690 un re longobardo salvò il suo trono.",
+  "osm": "Cornate d'Adda",
+  "lat": 45.6465,
+  "lng": 9.4635,
+  "text": "Intorno al 690, vicino a Cornate, il re longobardo Cuniberto sconfisse Alachis, duca di Trento e Brescia, che voleva prendergli il trono. Per la vittoria fece costruire una chiesa a San Giorgio, protettore dei soldati."
+ },
+ {
+  "town": "Cornate d'Adda",
+  "title": "Le tombe dei nobili longobardi",
+  "hint": "Qui negli anni Settanta trovarono cinque tombe con croci d'oro.",
+  "osm": "San Martino, Cornate d'Adda",
+  "lat": 45.64,
+  "lng": 9.46,
+  "text": "Tra il 1976 e il 1978 in località San Martino furono scoperte cinque tombe longobarde con crocette dorate e anelli con sigillo: appartenevano a persone di alto rango."
+ },
+ {
+  "town": "Cornate d'Adda",
+  "title": "Le centrali sull'Adda",
+  "hint": "Due centrali idroelettriche cambiarono la vita del paese.",
+  "osm": "Centrale idroelettrica Bertini, Cornate d'Adda",
+  "lat": 45.615,
+  "lng": 9.49,
+  "text": "All'inizio del Novecento sull'Adda furono costruite le centrali idroelettriche Bertini ed Esterle, che trasformarono l'economia del paese, fino ad allora agricola."
+ },
+ {
+  "town": "Usmate Velate",
+  "title": "La Madonna del Drighet",
+  "hint": "Durante la peste qui si pregava che il contagio non entrasse.",
+  "osm": "Usmate Velate",
+  "lat": 45.648,
+  "lng": 9.36,
+  "text": "Secondo la tradizione, durante un'epidemia di peste Usmate era ancora senza contagi e chi viaggiava verso i paesi vicini non poteva entrare. Gli abitanti si affidavano alla Madonna del Drighet, un affresco sul muro di un filatoio rimasto in funzione fino al 1900."
+ },
+ {
+  "town": "Usmate Velate",
+  "title": "La prima pietra di Schuster",
+  "hint": "Una chiesa costruita in poco più di due anni.",
+  "osm": "Chiesa di Santa Margherita, Usmate Velate",
+  "lat": 45.6485,
+  "lng": 9.3605,
+  "text": "La chiesa di Santa Margherita, in via Cavour, in stile romanico lombardo, fu iniziata il 5 luglio 1930 con la prima pietra posata dal cardinale Schuster, finita a Natale 1932 e consacrata il 22 ottobre 1933. All'ingresso c'è un crocifisso di legno del 1938 dello scultore locale Silvio Monfrini."
+ },
+ {
+  "town": "Usmate Velate",
+  "title": "La villa di delizie del conte",
+  "hint": "A Velate un conte trasformò la sua casa in una villa con parco.",
+  "osm": "Velate, Usmate Velate",
+  "lat": 45.655,
+  "lng": 9.355,
+  "text": "All'inizio dell'Ottocento il conte Rinaldo di Barbiano trasformò la sua casa di Velate in una villa di delizie, con oratorio privato e un grande parco. La figlia Maria Beatrice fece costruire la cappella di San Felice come tomba di famiglia."
  }
 ]
