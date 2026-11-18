@@ -1,8 +1,10 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180832';
+import { CONFIG } from './config.js?v=202611181630';
+import { LOC, startI18n } from './i18n.js?v=202611181630';
+startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.47';
+const APP_VERSION = 'v.48';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -937,7 +939,7 @@ async function viewHome(user, prof) {
   try { items = await B.listMine(); } catch (err) { msg($('#list'), errText(err)); return; }
   if (!items.length) { $('#list').innerHTML = '<div class="card center muted">Non hai ancora lasciato nulla.<br>Inizia da un luogo che conta per te.</div>'; return; }
   // cerca nei miei contenuti: testo (titolo, indizio, tag) + categoria
-  const CATS = [['all', 'Tutti'], ...Object.entries(TYPES).map(([k, x]) => [k, x.n]), ['monu', 'Monumenti'], ['lit', 'Scrittori'], ['dating', 'Dating']];
+  const CATS = [['all', 'Tutto'], ...Object.entries(TYPES).map(([k, x]) => [k, x.n]), ['monu', 'Monumenti'], ['lit', 'Scrittori'], ['dating', 'Dating']];
   const cnt = { all: items.length }; items.forEach((c) => { const k = pinCat(c); cnt[k] = (cnt[k] || 0) + 1; });
   let cat = 'all';
   $('#list').innerHTML = `<input id="mysearch" type="search" placeholder="🔍 Cerca nei miei contenuti (titolo, indizio, #tag)" autocomplete="off">
@@ -952,7 +954,7 @@ async function viewHome(user, prof) {
     <div class="card" data-i="${i}">
       <div class="item"><div class="ico">${c.is_dating ? datingBadge(prof.dating_gender) : pinBadge(c)}</div>
         <div><div class="t">${esc(c.title)}</div>
-        <div class="meta">${c.is_dating ? '💗 Dating · ' : ''}${VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString('it-IT')}</div></div></div>
+        <div class="meta">${c.is_dating ? '💗 Dating · ' : ''}${VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString(LOC)}</div></div></div>
       ${tagChips(c.tags)}
       <div class="actions">
         <button class="ghost" data-a="share">Condividi</button>
@@ -1441,7 +1443,7 @@ function viewCreated(title, slug, info = null) {
   history.replaceState(null, '', location.pathname + '#/fatto');  // così '＋' e 'Torna alla mappa' funzionano
   app.innerHTML = `
     <div class="hero"><span class="pin"></span><h1>Fissato!</h1>
-      <p class="muted">«${esc(title)}» ora vive in quel luogo. Manda il link: si aprirà solo sul posto.</p></div>
+      <p class="muted">«<span translate="no">${esc(title)}</span>» ora vive in quel luogo. Manda il link: si aprirà solo sul posto.</p></div>
     ${info && info.recipients.length ? emailCard(info) : ''}
     <div class="card" id="sh"></div>
     <a class="btn ghost full" href="#/">Torna alla mappa</a>`;
@@ -1478,7 +1480,7 @@ async function viewContent(slug, user) {
   }
   setDatingTheme(t.is_dating);
   if (t.hunt_locked && !t.is_owner) {
-    app.innerHTML = `<h1>🗺️ ${esc(t.title)}</h1><div class="card center"><p style="font-size:42px;margin:0">🔒</p>
+    app.innerHTML = `<h1>🗺️ <span translate="no">${esc(t.title)}</span></h1><div class="card center"><p style="font-size:42px;margin:0">🔒</p>
       <p>Questa è la <b>tappa ${t.hunt_step}</b> della caccia al tesoro «${esc(t.hunt_title || '')}».</p>
       <p class="muted">Trova e sblocca prima la tappa ${t.hunt_step - 1}: dopo, questa comparirà sulla mappa.</p>
       <a class="btn" href="#/">Vai alla mappa</a></div>`;
@@ -1488,10 +1490,10 @@ async function viewContent(slug, user) {
   const opensAt = t.unlock_at ? new Date(t.unlock_at) : null;
   const early = opensAt && Date.now() < opensAt.getTime() && !t.is_owner;
   const anywhereNow = opensAt && t.open_anywhere && Date.now() >= opensAt.getTime();
-  const capLine = opensAt ? `<div class="msg info small">⏳ Capsula del tempo · si apre dal <b>${opensAt.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })}</b> alle <b>${opensAt.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</b>${t.open_anywhere ? ', anche da lontano' : ', sul posto'}</div>` : '';
+  const capLine = opensAt ? `<div class="msg info small">⏳ Capsula del tempo · si apre dal <b>${opensAt.toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</b> alle <b>${opensAt.toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' })}</b>${t.open_anywhere ? ', anche da lontano' : ', sul posto'}</div>` : '';
   const header0 = t.is_dating
-    ? `<h1>${datingBadge(t.gender)} ${esc(t.title)}</h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
-    : `<h1>${badge(t.media_type)} ${esc(t.title)}</h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
+    ? `<h1>${datingBadge(t.gender)} <span translate="no">${esc(t.title)}</span></h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
+    : `<h1>${badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const header = header0 + huntLine + capLine;
   const showUnlocked = (r, d) => {
     stopWatch();
@@ -1704,7 +1706,7 @@ async function viewDatingPhotos(userId) {
 }
 
 // ======================= CAPSULA DEL TEMPO =======================
-const fmtWhen = (d) => new Date(d).toLocaleString('it-IT', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const fmtWhen = (d) => new Date(d).toLocaleString(LOC, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 async function viewCapsules() {
   app.innerHTML = `<h1>⏳ Capsula del tempo</h1>
     <div class="card datingtips" style="background:#fbf6ec;border-color:#eadcc0"><b>Un messaggio per il futuro.</b>
@@ -1733,12 +1735,12 @@ async function huntPrizeBox(t, slug, box) {
   if (!p || !document.body.contains(box)) return;
   if (!p.is_last) { box.innerHTML = `<div class="msg ok">🗺️ Tappa ${t.hunt_step} di ${p.steps} trovata! La tappa ${t.hunt_step + 1} ora compare sulla mappa: segui l'indizio qui sopra.</div>`; return; }
   if (p.code) {
-    box.innerHTML = `<div class="card prize center"><div style="font-size:46px">🏆</div><h2>Hai completato «${esc(p.hunt_title)}»!</h2>
+    box.innerHTML = `<div class="card prize center"><div style="font-size:46px">🏆</div><h2>Hai completato «<span translate="no">${esc(p.hunt_title)}</span>»!</h2>
       <p>Hai vinto: <b>${esc(p.prize)}</b></p><div class="prizecode">${esc(p.code)}</div>
       ${p.redeemed_at ? `<p class="muted">Premio già ritirato il ${fmtWhen(p.redeemed_at)}.</p>` : '<p><b>Mostra questo codice</b> a chi ha organizzato la caccia per ritirare il premio. Il codice è solo tuo e vale una volta.</p>'}</div>`;
     return;
   }
-  box.innerHTML = `<div class="card center"><h2>🏁 Hai completato «${esc(p.hunt_title)}»!</h2><p class="muted">${p.sold_out ? 'Peccato: i premi sono già stati vinti tutti. Grazie per aver giocato!' : 'Complimenti!'}</p></div>`;
+  box.innerHTML = `<div class="card center"><h2>🏁 Hai completato «<span translate="no">${esc(p.hunt_title)}</span>»!</h2><p class="muted">${p.sold_out ? 'Peccato: i premi sono già stati vinti tutti. Grazie per aver giocato!' : 'Complimenti!'}</p></div>`;
 }
 async function viewHunts() {
   app.innerHTML = `<h1>🗺️ Caccia al tesoro</h1>
@@ -1773,7 +1775,7 @@ async function viewHunt(id) {
   if (!h) { app.innerHTML = '<div class="card center">Caccia non trovata. <a href="#/cacce">Le mie cacce</a></div>'; return; }
   const [steps, winners] = await Promise.all([B.huntSteps(id), B.huntWinners(id)]);
   const next = steps.length ? Math.max(...steps.map((x) => x.hunt_step)) + 1 : 1;
-  app.innerHTML = `<h1>🗺️ ${esc(h.title)}</h1>
+  app.innerHTML = `<h1>🗺️ <span translate="no">${esc(h.title)}</span></h1>
     <p class="muted">🏆 ${esc(h.prize)} · vincitori: <b>${winners.length}/${h.max_winners}</b></p>
     <div class="card"><h2>Tappe</h2>
       ${steps.length ? steps.map((x) => `<div class="item"><div class="ico">${iconBadge(String(x.hunt_step), '#c0392b', '')}</div><div style="flex:1"><div class="t">${esc(x.title)}</div></div>
@@ -2050,7 +2052,7 @@ async function adminSeedTab(box) {
 }
 async function adminUsersTab(box) {
   const rows = await B.adminUsers();
-  const d = (x) => (x ? new Date(x).toLocaleDateString('it-IT') : '');
+  const d = (x) => (x ? new Date(x).toLocaleDateString(LOC) : '');
   box.innerHTML = `<div class="card"><p><b>${rows.length}</b> iscritti · <b>${rows.filter((r) => r.ubi_dating).length}</b> in Ubi Dating</p>
     <button class="accent full" id="xls">📥 Scarica per Excel</button><p class="muted small">Il file si apre con Excel, Numbers o Fogli Google.</p></div>
     <p class="muted small">Piano gratuito: 500 pin, 100 file, 10 video. Tocca «Gratis» per passare un utente a <b>Pro</b> (senza limiti), e viceversa.</p>
@@ -2240,7 +2242,7 @@ const replyMedia = (r) => !r.url ? '' : r.media_type === 'photo' ? `<img src="${
   : r.media_type === 'video' ? `<video src="${esc(r.url)}" controls playsinline preload="metadata"></video>`
   : r.media_type === 'audio' ? `<audio src="${esc(r.url)}" controls preload="metadata"></audio>` : '';
 const anonName = (g) => (g === 'f' ? 'Anonima' : g === 'm' ? 'Anonimo' : 'Anonimo/a');
-const fmtDate = (d) => new Date(d).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+const fmtDate = (d) => new Date(d).toLocaleDateString(LOC, { day: 'numeric', month: 'short' });
 
 // Sotto un pin sbloccato: risposte ricevute (creatore) oppure modulo/stato della mia risposta (chi ha sbloccato).
 async function replySection(t, slug, box) {
@@ -2464,7 +2466,7 @@ function avatarHtml(path, name, size = 40) {
 function authorLine(t, user) {
   const prof = user && t.author_id ? `href="#/u/${esc(t.author_id)}"` : '';
   return `<div class="authorline">${prof ? `<a ${prof}>` : ''}${avatarHtml(t.author_avatar, t.author, 36)}${prof ? '</a>' : ''}
-    <span>da ${prof ? `<a ${prof}><b>${esc(t.author)}</b></a>` : `<b>${esc(t.author)}</b>`}</span>
+    <span>da ${prof ? `<a ${prof}><b translate="no">${esc(t.author)}</b></a>` : `<b translate="no">${esc(t.author)}</b>`}</span>
     ${user && !t.is_owner && t.author_id ? `<a class="btn ghost small-btn" href="#/messaggi/${esc(t.author_id)}/${esc(location.hash.split('/')[2] || '')}">✉️ Scrivi</a>` : ''}</div>`;
 }
 async function refreshInbox() {
@@ -2668,11 +2670,11 @@ async function viewThread(other, slug) {
   if (!a) { app.innerHTML = '<div class="card center"><h2>Conversazione non disponibile</h2><a class="btn" href="#/messaggi">Messaggi</a></div>'; return; }
   const me = (await B.user()).id;
   const bubbles = () => msgs.map((m) => `<div class="bubble ${m.sender_id === me ? 'mine' : ''}">${linkify(m.body)}
-      <span class="when">${new Date(m.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span></div>`).join('');
+      <span class="when">${new Date(m.created_at).toLocaleString(LOC, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span></div>`).join('');
   app.innerHTML = `
     <div class="authorline"><a href="#/u/${esc(other)}">${avatarHtml(a.avatar_path, a.display_name, 40)}</a>
       <h1 style="margin:0"><a href="#/u/${esc(other)}" style="color:inherit;text-decoration:none">${esc(a.display_name || 'Utente')}</a></h1></div>
-    ${t ? `<div class="msg info">A proposito di: <a href="#/c/${esc(slug)}"><b>${esc(t.title)}</b></a></div>` : ''}
+    ${t ? `<div class="msg info">A proposito di: <a href="#/c/${esc(slug)}"><b translate="no">${esc(t.title)}</b></a></div>` : ''}
     <div class="thread" id="thread">${msgs.length ? bubbles() : '<p class="muted center">Scrivi il primo messaggio.</p>'}</div>
     ${a.can_message ? `<form id="f" class="card"><textarea id="body" maxlength="1000" rows="3" placeholder="Scrivi un messaggio…" required></textarea>
       <div id="m"></div><button class="full" type="submit">Invia</button></form>` : '<p class="muted">Non puoi più scrivere a questo utente.</p>'}

@@ -75,3 +75,11 @@ Per aggiungere altri paesi basta aggiungere voci al file (title, hint, text, wik
 - Fase 2: catene "stesso luogo, altro tempo" (`parent_id` già nel database).
 - Fase 3: replica dello scatto (dati EXIF).
 - **Ubi Night** (clone): contenuti con scadenza, conferma maggiore età, consenso reciproco prima di rivelare l'identità, accesso legato a un locale e a una serata.
+
+## Versione inglese
+
+- L'app sceglie la lingua dal telefono: italiano se il telefono è in italiano, altrimenti inglese. In fondo alla pagina c'è il pulsante **🇬🇧 English / 🇮🇹 Italiano** per cambiarla (la scelta resta salvata).
+- I testi dell'interfaccia sono tradotti da `i18n.js`, un dizionario italiano → inglese. Se compare una frase non tradotta, aggiungila lì: `['testo italiano esatto', 'English text']`.
+- Non si traducono i contenuti degli utenti (titoli, indizi, testi, messaggi, nomi), le curiosità e i tag.
+- In inglese il link Privacy apre `privacy-en.html`. Se cambi `privacy.html`, aggiorna anche la versione inglese.
+- Restano in italiano: le pagine dell'amministratore e le email automatiche inviate dal server.
