@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180700';
+import { CONFIG } from './config.js?v=202611180702';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.34';
+const APP_VERSION = 'v.35';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -19,7 +19,11 @@ const badge = (t, extra = '') => { const x = TYPES[t] || TYPES.photo; return `<s
 const GENDER = { f: { c: '#ff5fa2', n: 'lei' }, m: { c: '#4fb3ff', n: 'lui' } };
 const datingBadge = (g, extra = '') => { const x = GENDER[g] || { c: '#b06ad9', n: '' }; return `<span class="tico ${extra}" style="background:${x.c}" title="Dating${x.n ? ` · ${x.n}` : ''}">♥</span>`; };
 const iconBadge = (ch, color, title, extra = '') => `<span class="tico ${extra}" style="background:${color}" title="${title}">${ch}</span>`;
-const pinBadge = (c, extra = '') => (c.is_dating ? datingBadge(c.gender, extra)
+// Monumenti e curiosità (tag #curiosità): pallino «M»
+const MONU = { l: 'M', c: '#9a6b2f', n: 'Monumenti' };
+const isMonu = (c) => (c.tags || []).includes('curiosità');
+const monuBadge = (extra = '') => `<span class="tico ${extra}" style="background:${MONU.c}" title="Monumento o curiosità">M</span>`;
+const pinBadge = (c, extra = '') => (isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
   : c.hunt_step ? iconBadge(String(c.hunt_step), '#c0392b', `Caccia al tesoro · tappa ${c.hunt_step}`, extra)
   : c.unlock_at && Date.parse(c.unlock_at) > Date.now() ? iconBadge('⏳', '#8a6d3b', 'Capsula del tempo', extra)
   : badge(c.media_type, extra));
@@ -772,6 +776,7 @@ function viewNewPassword() {
 let lastView = null;   // ricorda centro e zoom tra una visita e l'altra
 const tagFilter = new Set();   // tag selezionati nella nuvola della mappa
 const typeFilter = new Set();  // tipi selezionati (photo, video, …) e/o 'mine'
+let monuHidden = store.get('ubi_monu_off') === '1';   // «M» spento: niente monumenti sulla mappa
 async function homeMap(opts = {}) {
   const el = $('#hmap');
   await waitLeaflet();
@@ -793,8 +798,9 @@ async function homeMap(opts = {}) {
       (!opts.dating || c.is_dating) &&
       (opts.dating || !types.length || types.includes(c.media_type) || (types.includes('dating') && c.is_dating)) &&
       (opts.dating || !typeFilter.has('mine') || c.is_owner) &&
+      (opts.dating || !monuHidden || !isMonu(c)) &&
       (!tagFilter.size || (c.tags || []).some((t) => tagFilter.has(t))));
-    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', typeFilter.has(b.dataset.k)));
+    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'monu' ? !monuHidden : typeFilter.has(b.dataset.k)));
     shown.forEach((c) => {
       L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
         .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
@@ -819,7 +825,8 @@ async function homeMap(opts = {}) {
   $('#typebar').onclick = (e) => {
     const b = e.target.closest('button'); if (!b) return;
     const k = b.dataset.k;
-    if (typeFilter.has(k)) typeFilter.delete(k); else typeFilter.add(k);
+    if (k === 'monu') { monuHidden = !monuHidden; store.set('ubi_monu_off', monuHidden ? '1' : null); }
+    else if (typeFilter.has(k)) typeFilter.delete(k); else typeFilter.add(k);
     const n = draw();
     msg($('#mm'), rows.length && !n ? 'Nessun contenuto con questi filtri in questa zona.' : '', 'info');
   };
@@ -860,6 +867,7 @@ async function viewHome(user, prof) {
       <button class="ghost" id="nearme" type="button" aria-label="Centra sulla mia posizione">📍</button></span></div>
     <div id="hmap" class="map home"></div>
     <div class="chips types" id="typebar">${Object.entries(TYPES).map(([k, x]) => `<button class="chip" data-k="${k}"><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}</button>`).join('')}
+      <button class="chip" data-k="monu" title="Tocca per nascondere o mostrare monumenti e curiosità">${monuBadge('sm')}Monumenti</button>
       <button class="chip" data-k="dating">${datingBadge('f', 'sm')}Dating</button>
       <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei</button></div>
     <div id="tagcloud" class="chips cloud"></div>
