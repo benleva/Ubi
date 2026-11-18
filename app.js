@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180736';
+import { CONFIG } from './config.js?v=202611180739';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.39';
+const APP_VERSION = 'v.40';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -779,8 +779,8 @@ function viewNewPassword() {
 let lastView = null;   // ricorda centro e zoom tra una visita e l'altra
 const tagFilter = new Set();   // tag selezionati nella nuvola della mappa
 // Filtri della mappa: ogni pin appartiene a una sola categoria (Monumenti, Scrittori, Dating o il suo tipo).
-// Tutte accese all'inizio: tocchi un bottone per nascondere quella categoria, lo ritocchi per rimostrarla.
-const hiddenCats = new Set((() => { try { return JSON.parse(store.get('ubi_hidden_cats') || '[]'); } catch { return []; } })());
+// Nessun bottone acceso = si vede tutto. Accendi uno o più bottoni per vedere solo quelle categorie.
+const showCats = new Set();
 let onlyMine = false;   // «Miei»: acceso mostra solo i miei
 const pinCat = (c) => (c.is_dating ? 'dating' : isLit(c) ? 'lit' : isMonu(c) ? 'monu' : c.media_type);
 async function homeMap(opts = {}) {
@@ -798,13 +798,13 @@ async function homeMap(opts = {}) {
   let rows = [];
   const draw = () => {
     layer.clearLayers();
-    // filtri: categoria non nascosta E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
+    // filtri: categoria scelta (nessuna = tutte) E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
     const shown = rows.filter((c) =>
       (!opts.dating || c.is_dating) &&
-      (opts.dating || !hiddenCats.has(pinCat(c))) &&
+      (opts.dating || !showCats.size || showCats.has(pinCat(c))) &&
       (opts.dating || !onlyMine || c.is_owner) &&
       (!tagFilter.size || (c.tags || []).some((t) => tagFilter.has(t))));
-    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'mine' ? onlyMine : !hiddenCats.has(b.dataset.k)));
+    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'mine' ? onlyMine : showCats.has(b.dataset.k)));
     shown.forEach((c) => {
       L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
         .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
@@ -830,7 +830,7 @@ async function homeMap(opts = {}) {
     const b = e.target.closest('button'); if (!b) return;
     const k = b.dataset.k;
     if (k === 'mine') onlyMine = !onlyMine;
-    else { if (hiddenCats.has(k)) hiddenCats.delete(k); else hiddenCats.add(k); store.set('ubi_hidden_cats', hiddenCats.size ? JSON.stringify([...hiddenCats]) : null); }
+    else if (showCats.has(k)) showCats.delete(k); else showCats.add(k);
     const n = draw();
     msg($('#mm'), rows.length && !n ? 'Nessun contenuto con questi filtri in questa zona.' : '', 'info');
   };
@@ -875,6 +875,7 @@ async function viewHome(user, prof) {
       <button class="chip" data-k="lit" title="Tocca per nascondere o mostrare i luoghi degli scrittori">${litBadge('sm')}Scrittori</button>
       <button class="chip" data-k="dating">${datingBadge('f', 'sm')}Dating</button>
       <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei</button></div>
+    <p class="muted small" style="margin:2px 0 6px">Tocca un bottone per vedere solo quella categoria (puoi accenderne più di uno). Tutti spenti = vedi tutto.</p>
     <div id="tagcloud" class="chips cloud"></div>
     <div id="mm"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
