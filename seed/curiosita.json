@@ -145,13 +145,13 @@
  },
  {
   "town": "Iseo",
-  "title": "Il primo Garibaldi in piedi",
-  "hint": "Questa statua ha un primato mondiale.",
+  "title": "Garibaldi in piazza",
+  "hint": "Questa statua di Garibaldi è tra le più antiche.",
   "wiki": "Monumento a Giuseppe Garibaldi (Iseo)",
   "search": "Monumento Garibaldi Iseo",
   "lat": 45.6588,
   "lng": 10.0508,
-  "text": "La statua di Giuseppe Garibaldi in piazza fu inaugurata nel 1883, un anno dopo la morte dell'eroe, ed è opera dello scultore Pietro Bordini. È considerata la prima statua non equestre dedicata a Garibaldi al mondo.\n\nA presentarla fu Gabriele Rosa, storico di Iseo: il suo monumento è sul lungolago.",
+  "text": "La statua di Giuseppe Garibaldi in piazza fu inaugurata nel 1883, un anno dopo la morte dell'eroe, ed è opera dello scultore Pietro Bordini. Secondo Wikipedia è la prima statua non equestre dedicata a Garibaldi al mondo, anche se Luino ne ha una ancora più antica, del 1867.\n\nA presentarla fu Gabriele Rosa, storico di Iseo: il suo monumento è sul lungolago.",
   "osm": "Piazza Garibaldi, Iseo"
  },
  {
@@ -190,7 +190,7 @@
   "wiki": "Gabriele Rosa",
   "lat": 45.6585,
   "lng": 10.05,
-  "text": "Sul lungolago c'è il monumento a Gabriele Rosa, opera dello scultore Ettore Ferrari, con figure allegoriche. Rosa, storico e patriota di Iseo, nel 1846 fu il primo a studiare gli affreschi dell'Oratorio dei Disciplini di Clusone.\n\nNel 1883 fu lui a presentare la statua di Garibaldi in piazza, la prima statua non equestre di Garibaldi al mondo.",
+  "text": "Sul lungolago c'è il monumento a Gabriele Rosa, opera dello scultore Ettore Ferrari, con figure allegoriche. Rosa, storico e patriota di Iseo, nel 1846 fu il primo a studiare gli affreschi dell'Oratorio dei Disciplini di Clusone.\n\nNel 1883 fu lui a presentare la statua di Garibaldi in piazza.",
   "osm": "Monumento a Gabriele Rosa, Iseo"
  },
  {
@@ -3793,5 +3793,906 @@
   "lat": 46.137,
   "lng": 9.571,
   "text": "Sul vecchio ponte sul torrente Bitto c'è la statua di San Giovanni Nepomuceno, che protegge il paese dalle alluvioni: è invocato contro le piene perché morì annegato. Dal Bitto prende il nome anche il celebre formaggio d'alpeggio."
+ },
+ {
+  "town": "Cantù",
+  "title": "Il campanile che era un castello",
+  "hint": "Questo campanile prima era la torre di un castello.",
+  "osm": "Basilica di San Paolo, Cantù",
+  "lat": 45.738,
+  "lng": 9.13,
+  "text": "Il campanile della Basilica di San Paolo era la torre in pietra del castello dei Pietrasanta: quando il castello fu distrutto, nel 1527, la torre fu trasformata nel campanile della chiesa."
+ },
+ {
+  "town": "Cantù",
+  "title": "Gli affreschi dell'anno Mille",
+  "hint": "Questa basilica fu riconsacrata il 2 luglio 1007.",
+  "wiki": "Basilica di San Vincenzo (Galliano)",
+  "search": "Basilica di Galliano Cantù",
+  "osm": "Basilica di San Vincenzo, Galliano, Cantù",
+  "lat": 45.733,
+  "lng": 9.121,
+  "text": "Nel 1004-1005 Ariberto da Intimiano, futuro arcivescovo di Milano, restaurò la basilica di Galliano e il 2 luglio 1007 la riconsacrò a San Vincenzo. È uno dei monumenti romanici più importanti della Lombardia."
+ },
+ {
+  "town": "Cantù",
+  "title": "Il salone dell'Appiani",
+  "hint": "Dentro questo castello c'è un salone neoclassico dimenticato.",
+  "osm": "Castello Pietrasanta, Cantù",
+  "lat": 45.7382,
+  "lng": 9.1305,
+  "text": "Il Castello di Pietrasanta fu costruito dopo che la famiglia ebbe Cantù in feudo nel 1475, distrutto nel 1527 e poi ricostruito come residenza. Dentro c'è un salone neoclassico decorato da Andrea Appiani e Giocondo Albertolli, ma l'edificio è in stato di abbandono."
+ },
+ {
+  "town": "Cantù",
+  "title": "Santa Maria Bella",
+  "hint": "Qui nel 1543 una bambina raccontò di aver visto la Madonna.",
+  "osm": "Santuario della Madonna dei Miracoli, Cantù",
+  "lat": 45.735,
+  "lng": 9.125,
+  "text": "Il Santuario della Madonna dei Miracoli fu costruito nel 1554-1555 dove, secondo la tradizione, nel 1543 una bambina di nome Angiolina vide la Madonna. L'immagine «Santa Maria Bella» è al centro del dossale dell'altare maggiore."
+ },
+ {
+  "town": "Cantù",
+  "title": "La priora del pizzo",
+  "hint": "In questo convento nacque, si dice, il famoso pizzo di Cantù.",
+  "osm": "Chiesa di Santa Maria, Cantù",
+  "lat": 45.739,
+  "lng": 9.1295,
+  "text": "La chiesa di Santa Maria fu costruita tra il 1665 e gli anni Ottanta del Seicento in un convento benedettino. La tradizione dice che la prima priora, Agnese «de Burgundi», portò a Cantù l'arte del merletto che oggi tutti conoscono come pizzo di Cantù."
+ },
+ {
+  "town": "Mariano Comense",
+  "title": "La porta spostata dal cardinale",
+  "hint": "Questo battistero ha l'ingresso dal lato sbagliato. Colpa di un Borromeo.",
+  "osm": "Battistero di San Giovanni Battista, Mariano Comense",
+  "lat": 45.695,
+  "lng": 9.181,
+  "text": "Il Battistero di San Giovanni Battista, accanto alla chiesa di Santo Stefano, aveva l'ingresso a ovest: il cardinale Federico Borromeo lo fece spostare a est e aggiungere un piccolo portico con un'iscrizione in latino."
+ },
+ {
+  "town": "Mariano Comense",
+  "title": "Il lazzaretto diventato scuola",
+  "hint": "Qui si curavano peste e colera. Poi arrivarono gli scolari.",
+  "osm": "Santuario di San Rocco, Mariano Comense",
+  "lat": 45.696,
+  "lng": 9.18,
+  "text": "Il Santuario di San Rocco fu usato come lazzaretto durante la peste e il colera. Nel 1788 diventò una scuola per ragazzi. Sul lato verso via San Rocco c'è l'ossario di due uomini giustiziati il 24 settembre 1778."
+ },
+ {
+  "town": "Mariano Comense",
+  "title": "Il municipio nella villa",
+  "hint": "Dal 1895 il Comune lavora in una villa dell'Ottocento.",
+  "osm": "Villa Passalacqua Trotti, Mariano Comense",
+  "lat": 45.6945,
+  "lng": 9.1815,
+  "text": "Villa Passalacqua Trotti fu costruita nel 1857, rimaneggiata nel 1892, e dal 1895 ospita gli uffici comunali."
+ },
+ {
+  "town": "Mariano Comense",
+  "title": "La necropoli sotto la casa",
+  "hint": "Scavando sotto una casa nel 1977 trovarono 220 tombe.",
+  "osm": "Via Tommaso Grossi, Mariano Comense",
+  "lat": 45.697,
+  "lng": 9.183,
+  "text": "Nel maggio 1977, scavando in via Tommaso Grossi sotto la casa della famiglia Secchi, fu trovata una tomba con una cassetta di terracotta, uno specchio d'argento e boccette di vetro. Alla fine le sepolture trovate furono 220, e nel 1998 venne alla luce anche un tratto di strada lastricata a circa due metri di profondità."
+ },
+ {
+  "town": "Mariano Comense",
+  "title": "Garibaldi dal balcone",
+  "hint": "Da un balcone di questa piazza parlò Garibaldi.",
+  "osm": "Piazza Roma, Mariano Comense",
+  "lat": 45.6952,
+  "lng": 9.1812,
+  "text": "Nel 1859, dopo la vittoria di San Fermo contro gli austriaci, Giuseppe Garibaldi parlò alla folla dal balcone dell'ex caserma di piazza Roma."
+ },
+ {
+  "town": "Erba",
+  "title": "La grotta dell'orso delle caverne",
+  "hint": "In questa grotta vivevano uomini 30.000 anni fa.",
+  "wiki": "Buco del Piombo",
+  "search": "Buco del Piombo Erba",
+  "osm": "Buco del Piombo, Erba",
+  "lat": 45.83,
+  "lng": 9.23,
+  "text": "Il Buco del Piombo è uno dei siti paleolitici più importanti della Lombardia: strumenti di selce mostrano che qui vivevano persone intorno al 30.000 avanti Cristo. Ci sono anche resti dell'orso delle caverne."
+ },
+ {
+  "town": "Erba",
+  "title": "Il teatro all'aperto",
+  "hint": "Un teatro all'aperto degli anni Venti, con due palcoscenici.",
+  "osm": "Teatro Licinium, Erba",
+  "lat": 45.81,
+  "lng": 9.225,
+  "text": "Il Teatro Licinium è un teatro all'aperto costruito tra il 1926 e il 1928, con due palcoscenici, progettato da Alberto Airoldi insieme al fratello."
+ },
+ {
+  "town": "Erba",
+  "title": "Foscolo, Parini e Monti a Villa Amalia",
+  "hint": "In questa villa sono passati tre grandi poeti.",
+  "osm": "Villa Amalia, Erba",
+  "lat": 45.813,
+  "lng": 9.22,
+  "text": "Villa Amalia fu progettata da Leopoldo Pollack nel 1801 dove c'era un convento francescano. Prende il nome da Amalia, moglie di Rocco Marliani, che la comprò nel 1798. Ci soggiornarono Ugo Foscolo, Giuseppe Parini e Vincenzo Monti. Il Salone dell'Aurora ha un affresco di Giuseppe Bossi del 1805."
+ },
+ {
+  "town": "Erba",
+  "title": "La festa del Masigott",
+  "hint": "Questa chiesa si allagava, e la parrocchia traslocò. Ancora oggi si festeggia.",
+  "osm": "Chiesa di Sant'Eufemia, Erba",
+  "lat": 45.809,
+  "lng": 9.229,
+  "text": "La chiesa romanica di Sant'Eufemia ha un campanile della fine dell'XI secolo. La sede della parrocchia fu poi spostata a Santa Maria Nascente, si dice per volere di San Carlo Borromeo, perché la chiesa si allagava con le piene del Lambrone. La Sagra del Masigott ricorda questo trasloco."
+ },
+ {
+  "town": "Erba",
+  "title": "Il tempietto regalato dal re",
+  "hint": "Nel parco del municipio c'è un tempietto arrivato dalla Villa Reale di Monza.",
+  "osm": "Villa Majnoni, Erba",
+  "lat": 45.8115,
+  "lng": 9.2275,
+  "text": "Achille Majnoni ricevette in dono dal re Umberto I un piccolo tempietto barocco che si trovava alla Villa Reale di Monza, e lo sistemò nel parco della sua villa. Oggi Villa Majnoni è il municipio di Erba."
+ },
+ {
+  "town": "Olgiate Comasco",
+  "title": "Il municipio di Volta",
+  "hint": "Il Comune ha sede nel palazzo che fu di un grande scienziato.",
+  "osm": "Palazzo Volta, Olgiate Comasco",
+  "lat": 45.785,
+  "lng": 8.969,
+  "text": "Palazzo Volta, del Cinquecento, oggi municipio, apparteneva allo scienziato comasco Alessandro Volta, l'inventore della pila."
+ },
+ {
+  "town": "Olgiate Comasco",
+  "title": "Il campanile del fico",
+  "hint": "Su questo campanile per anni crebbe un albero.",
+  "osm": "Chiesa dei Santi Ippolito e Cassiano, Olgiate Comasco",
+  "lat": 45.7855,
+  "lng": 8.9685,
+  "text": "Il campanile della chiesa dei Santi Ippolito e Cassiano è detto «del fico» perché ci crebbe un albero di fico fino al 1929. L'organo è del 1846, di Francesco Carnisi."
+ },
+ {
+  "town": "Olgiate Comasco",
+  "title": "Il pellegrinaggio del 25 aprile",
+  "hint": "Da qui ogni anno si parte per Monza, per un voto del 1207.",
+  "osm": "Chiesa di San Gerardo, Olgiate Comasco",
+  "lat": 45.784,
+  "lng": 8.97,
+  "text": "La chiesa di San Gerardo è del Duecento e ricorda la devozione per San Gerardo dei Tintori, nata da un voto del 1207. Ogni 25 aprile gli olgiatesi vanno in pellegrinaggio alla tomba del santo a Monza."
+ },
+ {
+  "town": "Olgiate Comasco",
+  "title": "La villa del cardinale",
+  "hint": "In questa villa fu ospitato un arcivescovo di Milano.",
+  "osm": "Villa Camilla, Olgiate Comasco",
+  "lat": 45.786,
+  "lng": 8.9675,
+  "text": "Villa Camilla fu commissionata dalla famiglia Lucini-Passalacqua a Gioacchino Crivelli. Ristrutturata all'inizio del Novecento, ospitò il cardinale Andrea Carlo Ferrari, arcivescovo di Milano."
+ },
+ {
+  "town": "Fino Mornasco",
+  "title": "Il matrimonio durato un'ora",
+  "hint": "In questo parco Garibaldi si sposò. E se ne andò poco dopo.",
+  "osm": "Villa Raimondi, Fino Mornasco",
+  "lat": 45.743,
+  "lng": 9.045,
+  "text": "Nella chiesetta del parco di Villa Raimondi, il 24 gennaio 1860, Giuseppe Garibaldi sposò Giuseppina Raimondi. Secondo il racconto, il matrimonio finì dopo circa un'ora: durante il pranzo di nozze Garibaldi venne a sapere che la sposa aveva un amante e se ne andò. Nel parco c'è anche una torre medievale merlata."
+ },
+ {
+  "town": "Fino Mornasco",
+  "title": "Il nome dei mugnai",
+  "hint": "Il nome del paese viene da un mestiere legato all'acqua.",
+  "osm": "Valle Mulini, Fino Mornasco",
+  "lat": 45.74,
+  "lng": 9.05,
+  "text": "Nella Valle dei Mulini, attraversata dal Seveso, ci sono tracce di presenza umana dell'età del Bronzo e c'erano tanti mulini. Il nome «Mornasco» viene da una parola del dialetto comasco che vuol dire mugnaio."
+ },
+ {
+  "town": "Fino Mornasco",
+  "title": "La chiesa con l'altare del 1832",
+  "hint": "Qui ci sono sculture di Pompeo Marchesi.",
+  "osm": "Chiesa di Santo Stefano, Fino Mornasco",
+  "lat": 45.7435,
+  "lng": 9.0455,
+  "text": "La chiesa di Santo Stefano ha un coro di legno barocco, l'altare maggiore in marmo e due confessionali dell'epoca. L'altare di San Giuseppe, del 1832, ha sculture di Pompeo Marchesi, e resta un affresco di fine Quattrocento della chiesa più antica."
+ },
+ {
+  "town": "Fino Mornasco",
+  "title": "La tomba romana di Socco",
+  "hint": "Qui forse c'era un avamposto romano.",
+  "osm": "Socco, Fino Mornasco",
+  "lat": 45.75,
+  "lng": 9.04,
+  "text": "A Socco, nel 1879, fu trovata una tomba romana, segno che qui poteva esserci un avamposto fortificato. La chiesa di Santa Maria Immacolata, del Cinquecento, fu molto rinnovata nel 1750."
+ },
+ {
+  "town": "Lomazzo",
+  "title": "Il rinascimento lombardo",
+  "hint": "Le sale di questa villa sono tra i migliori esempi del Rinascimento lombardo.",
+  "osm": "Villa Carcano Raimondi, Lomazzo",
+  "lat": 45.698,
+  "lng": 9.037,
+  "text": "Le sale di Villa Carcano-Raimondi sono considerate tra i migliori esempi di architettura del Rinascimento lombardo in Italia. Nel 1939 lo Stato ha vincolato la villa e il suo parco secolare."
+ },
+ {
+  "town": "Lomazzo",
+  "title": "La pace tra Como e Milano",
+  "hint": "Davanti a questa chiesa una pietra ricorda una pace medievale.",
+  "osm": "Chiesa dei Santi Vito e Modesto, Lomazzo",
+  "lat": 45.6985,
+  "lng": 9.0375,
+  "text": "La chiesa dei Santi Vito e Modesto è attribuita all'architetto ticinese Simone Cantoni e fu costruita tra fine Settecento e 1812; l'altare è dello scultore Francesco Somaini. Davanti, sul Brolo San Vito, una pietra ricorda una pace medievale tra Como e Milano."
+ },
+ {
+  "town": "Lomazzo",
+  "title": "La torre dell'acqua",
+  "hint": "Sembra una torre medievale, ma è del 1904.",
+  "osm": "Torre dell'acquedotto, Lomazzo",
+  "lat": 45.6975,
+  "lng": 9.0365,
+  "text": "La torre in mattoni, in stile lombardo-medievale, fu costruita nel 1904 su progetto dell'ingegnere Giuseppe Sanguettola: conteneva la cisterna dell'acquedotto del paese."
+ },
+ {
+  "town": "Lomazzo",
+  "title": "San Siro barocco",
+  "hint": "Una chiesa del 1732 con un dipinto della scuola del Morazzone.",
+  "osm": "Chiesa di San Siro, Lomazzo",
+  "lat": 45.699,
+  "lng": 9.038,
+  "text": "La chiesa di San Siro, barocca, è del 1732 e sorge dove c'era una cappella più antica. Ha affreschi di Luigi Morgari e un dipinto della scuola del Morazzone; la cappella di San Giuseppe è del 1629."
+ },
+ {
+  "town": "Busto Arsizio",
+  "title": "La «Manchester d'Italia»",
+  "hint": "Questa città era così piena di fabbriche tessili da essere paragonata all'Inghilterra.",
+  "osm": "Museo del Tessile, Busto Arsizio",
+  "lat": 45.608,
+  "lng": 8.848,
+  "text": "Busto Arsizio era chiamata la «Manchester d'Italia» per le sue industrie tessili. Il Museo del Tessile e della Tradizione Industriale, aperto nel 1997 dopo anni di restauro, racconta questa storia."
+ },
+ {
+  "town": "Busto Arsizio",
+  "title": "Lo stemma nel libro di canto",
+  "hint": "Lo stemma della città compare per la prima volta in un libro di musica sacra.",
+  "osm": "Basilica di San Giovanni Battista, Busto Arsizio",
+  "lat": 45.611,
+  "lng": 8.851,
+  "text": "Lo stemma di Busto Arsizio compare per la prima volta ufficialmente in una miniatura di Francesco Crespi de Roberti, in un antifonario custodito nella Basilica di San Giovanni Battista, del Seicento, che ospita anche la Biblioteca capitolare."
+ },
+ {
+  "town": "Busto Arsizio",
+  "title": "Il palazzo con la prigione",
+  "hint": "A questo palazzo nobiliare nel 1850 fu aggiunto un carcere.",
+  "osm": "Palazzo Marliani Cicogna, Busto Arsizio",
+  "lat": 45.6115,
+  "lng": 8.8505,
+  "text": "Palazzo Marliani-Cicogna, di origine cinquecentesca, fu ricostruito tra il 1624 e il 1653 ed era la residenza dei conti Marliani, signori di Busto nel Sei-Settecento. Nel 1850 gli fu aggiunto un edificio carcerario. Nel 1990 vi aprì il primo museo civico della città."
+ },
+ {
+  "town": "Busto Arsizio",
+  "title": "La chiesa nella villa del conte",
+  "hint": "A Borsano c'è una chiesa nata dentro una villa.",
+  "osm": "Chiesa di Sant'Antonio da Padova, Borsano, Busto Arsizio",
+  "lat": 45.6,
+  "lng": 8.86,
+  "text": "A Borsano la chiesa di Sant'Antonio da Padova, del 1717–1719, sorge accanto a Villa Rasini, nella residenza del conte Carlo Rasini. Ha affreschi di Giovanni Stefano Danedi del 1717."
+ },
+ {
+  "town": "Gallarate",
+  "title": "La farmacia del romanzo",
+  "hint": "In questa farmacia, si dice, è ambientato un romanzo.",
+  "osm": "Farmacia Dahò, Gallarate",
+  "lat": 45.66,
+  "lng": 8.791,
+  "text": "La tradizione vuole che Gerolamo Rovetta abbia ambientato il suo romanzo «Romanticismo» nell'antica Farmacia Castelli, gestita da Giuseppe e Pompeo Castelli. La farmacia esiste ancora, con il nome Dahò."
+ },
+ {
+  "town": "Gallarate",
+  "title": "La loggetta che si è spostata",
+  "hint": "Questo edificio medievale nel 1955 è stato smontato e rimontato poco più in là.",
+  "osm": "Chiesa di San Pietro, Gallarate",
+  "lat": 45.6605,
+  "lng": 8.7915,
+  "text": "La Loggetta di San Pietro, di epoca medievale, nel 1955 fu demolita e ricostruita a pochi metri di distanza con i materiali originali. Il suo posto originale è diventato il sagrato della chiesa di San Pietro."
+ },
+ {
+  "town": "Gallarate",
+  "title": "La piazza sul villaggio degli Insubri",
+  "hint": "Sotto questa piazza forse c'erano un villaggio antico e un castello.",
+  "osm": "Piazza della Libertà, Gallarate",
+  "lat": 45.6598,
+  "lng": 8.7905,
+  "text": "Piazza della Libertà, il centro di Gallarate, sorgerebbe dove c'erano un villaggio degli Insubri e poi il castello medievale."
+ },
+ {
+  "town": "Gallarate",
+  "title": "Il museo d'arte",
+  "hint": "Dal 1966 Gallarate ha un museo d'arte moderna.",
+  "osm": "MA*GA, Gallarate",
+  "lat": 45.655,
+  "lng": 8.788,
+  "text": "Il MAGA, Museo Arte Gallarate, è stato fondato nel 1966 ed è dedicato all'arte moderna e contemporanea."
+ },
+ {
+  "town": "Saronno",
+  "title": "La cupola degli angeli",
+  "hint": "Alza gli occhi: centinaia di angeli suonano strumenti.",
+  "wiki": "Santuario della Beata Vergine dei Miracoli (Saronno)",
+  "search": "Santuario Beata Vergine dei Miracoli Saronno",
+  "osm": "Santuario della Beata Vergine dei Miracoli, Saronno",
+  "lat": 45.627,
+  "lng": 9.041,
+  "text": "Il Santuario della Beata Vergine dei Miracoli ha il tiburio progettato da Giovanni Antonio Amadeo (contratto del 10 marzo 1505) e un campanile di 47 metri costruito tra il 1511 e il 1516. Gaudenzio Ferrari dipinse la cupola con il concerto degli angeli, e Bernardino Luini lavorò qui nel 1525 e nel 1531."
+ },
+ {
+  "town": "Saronno",
+  "title": "La festa della birra al municipio",
+  "hint": "Nel parco del municipio si fa la sagra della birra.",
+  "osm": "Villa Gianetti, Saronno",
+  "lat": 45.625,
+  "lng": 9.037,
+  "text": "Villa Gianetti fu costruita nel 1919–1920 dall'architetto Domenico Verga in stile rinascimentale lombardo. Il Comune la comprò nel 1926 come municipio, e ogni anno ospita la sagra della birra."
+ },
+ {
+  "town": "Saronno",
+  "title": "L'amaretto e i biscotti",
+  "hint": "Da qui vengono un liquore e dei biscotti famosi nel mondo.",
+  "osm": "Saronno",
+  "lat": 45.6255,
+  "lng": 9.0375,
+  "text": "Saronno è la città dell'Amaretto di Saronno, oggi DiSaronno, prodotto dall'ILLVA, che fa anche il Rabarbaro Zucca. Qui c'erano anche gli stabilimenti storici dei biscotti Lazzaroni."
+ },
+ {
+  "town": "Saronno",
+  "title": "Il palazzo bruciato",
+  "hint": "Questo palazzo dei Visconti è stato municipio e tribunale.",
+  "osm": "Palazzo Visconti, Saronno",
+  "lat": 45.6245,
+  "lng": 9.0365,
+  "text": "Palazzo Visconti, del Cinquecento, fu municipio dal 1882 e pretura dal 1926 al 1985. Nel 2007 un incendio lo danneggiò gravemente."
+ },
+ {
+  "town": "Cassano Magnago",
+  "title": "La torre romana di segnalazione",
+  "hint": "Questa torre forse serviva ai romani per mandare segnali.",
+  "osm": "Torre di San Maurizio, Cassano Magnago",
+  "lat": 45.674,
+  "lng": 8.822,
+  "text": "La Torre di San Maurizio potrebbe essere stata costruita in tarda epoca romana come torre di segnalazione. Poi diventò il campanile della chiesa di San Maurizio, demolita all'inizio del Novecento. La torre è stata restaurata negli anni Settanta per evitarne il crollo."
+ },
+ {
+  "town": "Cassano Magnago",
+  "title": "Lo scultore e il trombettiere",
+  "hint": "In questa chiesa si ricordano uno scultore e un garibaldino.",
+  "osm": "Chiesa di San Giulio, Cassano Magnago",
+  "lat": 45.675,
+  "lng": 8.823,
+  "text": "Lo scultore Giovan Battista Maini nacque qui il 7 febbraio 1690. Nella chiesa di San Giulio c'è un San Giovanni Battista di marmo scolpito dal cognato su suo modello in gesso. Una lapide ricorda Daniele Carabelli, trombettiere dei Mille a Calatafimi."
+ },
+ {
+  "town": "Cassano Magnago",
+  "title": "Il castello dell'arcivescovo",
+  "hint": "Questo castello nacque dopo la distruzione di Castelseprio.",
+  "osm": "Castello, Cassano Magnago",
+  "lat": 45.673,
+  "lng": 8.821,
+  "text": "Il castello fu fatto costruire nel 1287 dall'arcivescovo Ottone Visconti dopo la distruzione della fortezza di Castelseprio. Della costruzione viscontea resta solo l'ingresso nord; nel 1808 fu ricostruito per i marchesi Del Pozzo."
+ },
+ {
+  "town": "Cassano Magnago",
+  "title": "L'oasi nella cava",
+  "hint": "Una cava di argilla è diventata un rifugio per gli uccelli.",
+  "osm": "Oasi Boza, Cassano Magnago",
+  "lat": 45.68,
+  "lng": 8.81,
+  "text": "L'Oasi Boza era una cava di argilla. Oggi è un lago e un rifugio LIPU per gli uccelli. Due terzi del centro sportivo di Milanello, dove si allena il Milan, sono nel territorio di Cassano Magnago."
+ },
+ {
+  "town": "Tradate",
+  "title": "Il record delle pompe di benzina",
+  "hint": "Qui c'è una collezione da Guinness.",
+  "osm": "Museo Fisogni, Tradate",
+  "lat": 45.709,
+  "lng": 8.907,
+  "text": "Il Museo Fisogni raccoglie quella che è considerata la collezione più completa al mondo di pompe di benzina e oggetti delle stazioni di servizio, citata nel Guinness dei primati."
+ },
+ {
+  "town": "Tradate",
+  "title": "Il Morazzone del santuario",
+  "hint": "In questo santuario c'è una tela attribuita a un grande pittore lombardo.",
+  "osm": "Santuario del Santissimo Crocifisso, Tradate",
+  "lat": 45.71,
+  "lng": 8.908,
+  "text": "Nel Santuario del Santissimo Crocifisso ci sono un pulpito di legno, un organo e una tela attribuita al Morazzone."
+ },
+ {
+  "town": "Tradate",
+  "title": "San Bernardo sul confine",
+  "hint": "Questa chiesa sta proprio sul confine tra due comuni.",
+  "osm": "Chiesa di San Bernardo, Tradate",
+  "lat": 45.72,
+  "lng": 8.9,
+  "text": "La chiesa di San Bernardo, di fondazione incerta, è al confine tra Tradate e Lonate Ceppino. Conserva un affresco del 1522 con il santo."
+ },
+ {
+  "town": "Tradate",
+  "title": "Il parco con la fattoria",
+  "hint": "Un parco nuovo con una piccola fattoria per i bambini.",
+  "osm": "Villa Inzoli, Tradate",
+  "lat": 45.708,
+  "lng": 8.906,
+  "text": "Il Parco di Villa Inzoli, di 16.000 metri quadrati, è stato inaugurato il 22 aprile 2012 e ospita una piccola fattoria didattica. Tradate fa parte anche del Parco Pineta di Appiano Gentile e Tradate, che si estende su 48 km² e 15 comuni."
+ },
+ {
+  "town": "Caronno Pertusella",
+  "title": "120 ore di softball",
+  "hint": "Su questo campo si è giocata la partita di softball più lunga.",
+  "osm": "Stadio del softball Francesco Nespoli, Caronno Pertusella",
+  "lat": 45.598,
+  "lng": 9.045,
+  "text": "Lo stadio del softball «Francesco Nespoli» ha ospitato il 13° Campionato Europeo di softball nel 2003 e, nel 2010, il record della partita di softball più lunga: 120 ore consecutive."
+ },
+ {
+  "town": "Caronno Pertusella",
+  "title": "Callaonum",
+  "hint": "I romani chiamavano questo posto in un altro modo.",
+  "osm": "Caronno Pertusella",
+  "lat": 45.5975,
+  "lng": 9.0455,
+  "text": "Il nome romano di Caronno era Callaonum. Da qui passava la strada Mediolanum–Bilitio, che univa Milano a Lugano passando per Varese."
+ },
+ {
+  "town": "Caronno Pertusella",
+  "title": "Il paese di Pertusella",
+  "hint": "Fino al 1869 questo borgo era un comune a sé.",
+  "osm": "Cassina Pertusella, Caronno Pertusella",
+  "lat": 45.595,
+  "lng": 9.05,
+  "text": "Il borgo di Cassina Pertusella fu un comune autonomo fino al 1869, quando si unì a Caronno: da qui il doppio nome Caronno Pertusella."
+ },
+ {
+  "town": "Somma Lombardo",
+  "title": "Il castello delle bacinelle da barba",
+  "hint": "In questo castello c'è la collezione più grande di un oggetto insolito.",
+  "wiki": "Castello Visconti di San Vito",
+  "search": "Castello Visconti di San Vito Somma Lombardo",
+  "osm": "Castello Visconti di San Vito, Somma Lombardo",
+  "lat": 45.683,
+  "lng": 8.706,
+  "text": "Il Castello Visconti di San Vito custodisce la più grande collezione conosciuta di bacinelle da barba, oltre 500 pezzi. Qui nacque l'11 febbraio 1535 papa Gregorio XIV, Niccolò Sfondrati, e qui furono girati gli interni del castello dell'Innominato nello sceneggiato Rai «I promessi sposi» del 1989."
+ },
+ {
+  "town": "Somma Lombardo",
+  "title": "Dove volò il primo Caproni",
+  "hint": "Qui nel 1910 nacque il primo aereo di Gianni Caproni.",
+  "wiki": "Volandia",
+  "search": "Volandia museo",
+  "osm": "Volandia, Somma Lombardo",
+  "lat": 45.645,
+  "lng": 8.715,
+  "text": "Volandia è il più grande museo aeronautico italiano e tra i più grandi d'Europa, con oltre 100 aerei, nelle storiche officine Caproni del 1910. Proprio qui, alla Malpensa, Gianni Caproni costruì nel 1910 il suo primo aereo, il Ca.1."
+ },
+ {
+  "town": "Somma Lombardo",
+  "title": "La ferrovia delle barche",
+  "hint": "Qui le barche risalivano il Ticino... in treno.",
+  "osm": "Tornavento",
+  "lat": 45.6,
+  "lng": 8.71,
+  "text": "Nel 1858, su idea di Carlo Cattaneo, fu costruita l'Ipposidra, una ferrovia che riportava le barche controcorrente lungo il Ticino, da Tornavento a Sesto Calende, per evitare le rapide. Restano ancora i cippi con la scritta «S. F.», Strada Ferrata."
+ },
+ {
+  "town": "Somma Lombardo",
+  "title": "La piramide dei geometri",
+  "hint": "Questa piramide di granito segna la fine di una linea di 10 chilometri.",
+  "osm": "Piramide geodetica, San Giorgio, Somma Lombardo",
+  "lat": 45.69,
+  "lng": 8.7,
+  "text": "Nel 1833 il governo austriaco fece alzare questa piramide di granito per segnare l'estremità nord di una base geodetica di 10.000 metri. Una misurazione del dopoguerra scoprì che gli astronomi di Brera del Settecento avevano sbagliato di soli 34 centimetri."
+ },
+ {
+  "town": "Malnate",
+  "title": "Il Ponte di Ferro",
+  "hint": "Questo ponte è nello stemma del comune.",
+  "osm": "Ponte di Ferro, Malnate",
+  "lat": 45.795,
+  "lng": 8.89,
+  "text": "Il ponte ferroviario sulla valle dell'Olona, detto Ponte di Ferro, fu ricostruito in cemento armato nel 1927-28 al posto di un ponte di metallo del 1884, dove due treni si erano scontrati frontalmente. Il ponte compare nello stemma di Malnate."
+ },
+ {
+  "town": "Malnate",
+  "title": "La spada celtica",
+  "hint": "Nel 1889 dei contadini trovarono qui una spada di oltre duemila anni.",
+  "osm": "Museo civico Mario Realini, Malnate",
+  "lat": 45.793,
+  "lng": 8.884,
+  "text": "Nel 1889, a Rogoredo, dei contadini trovarono una rara spada di ferro con l'elsa di bronzo a forma umana, del III-II secolo avanti Cristo. L'originale è al Castello Sforzesco di Milano; una copia è al Museo civico «Mario Realini» di Malnate."
+ },
+ {
+  "town": "Malnate",
+  "title": "La Madonna della Cintola",
+  "hint": "Sotto una vernice più recente è riapparsa la statua originale.",
+  "osm": "Santuario di Monte Morone, Malnate",
+  "lat": 45.8,
+  "lng": 8.88,
+  "text": "Nel santuario di Monte Morone c'è una statua della Madonna con la cintura, legata al culto della Madonna della Cintola. Una leggenda parla di una Madonna Nera portata via dagli spagnoli. Negli anni Ottanta, togliendo uno strato di vernice più recente, è riapparsa la statua di legno originale."
+ },
+ {
+  "town": "Malnate",
+  "title": "La Folla dei mulini",
+  "hint": "Il nome di questa frazione viene dalla lavorazione della carta.",
+  "osm": "Folla, Malnate",
+  "lat": 45.79,
+  "lng": 8.89,
+  "text": "Il nome della frazione Folla viene dalle «folle», i mulini che battevano gli stracci per fare la carta. Qui l'acqua dell'Olona faceva funzionare filande e cartiere."
+ },
+ {
+  "town": "Samarate",
+  "title": "La villa di Maccio Capatonda",
+  "hint": "In questa villa si è girata una serie comica.",
+  "osm": "Villa Montevecchio, Samarate",
+  "lat": 45.626,
+  "lng": 8.784,
+  "text": "Villa Montevecchio fu costruita nel 1897-1898 per il cappellaio Carlo Ricci, in stile eclettico neomedievale, e decorata da Ernesto Rusca, che lavorò anche al Castello Sforzesco. Nel 2009 fu il set della serie «La villa di Lato» di Maccio Capatonda."
+ },
+ {
+  "town": "Samarate",
+  "title": "Il santo che rinominò la cascina",
+  "hint": "Una cascina cambiò nome quando arrivarono delle reliquie.",
+  "osm": "San Macario, Samarate",
+  "lat": 45.615,
+  "lng": 8.795,
+  "text": "Nel 1673 arrivarono dalle catacombe di Roma le reliquie del martire San Macario. Furono messe nella Cascina del Manzo, che da allora si chiama San Macario."
+ },
+ {
+  "town": "Samarate",
+  "title": "Gli elicotteri di Cascina Costa",
+  "hint": "In questa frazione si costruiscono elicotteri.",
+  "osm": "Cascina Costa, Samarate",
+  "lat": 45.63,
+  "lng": 8.77,
+  "text": "A Cascina Costa ha sede Leonardo Elicotteri, l'ex AgustaWestland. Già nel dicembre 1917 qui c'era un campo per l'addestramento dei piloti da caccia con aerei Nieuport."
+ },
+ {
+  "town": "Samarate",
+  "title": "L'affresco salvato dal conte",
+  "hint": "Nella ricostruzione di questa chiesa un conte volle salvare un affresco.",
+  "osm": "Chiesa di San Rocco, Samarate",
+  "lat": 45.6255,
+  "lng": 8.7835,
+  "text": "La chiesa di San Rocco è legata alla peste: vicino all'oratorio c'era un lazzaretto. Durante la ricostruzione del 1680–1720 il conte Giovanni Castiglioni volle che fosse conservato un affresco del Cinquecento."
+ },
+ {
+  "town": "Cardano al Campo",
+  "title": "Il paese a pianta romana",
+  "hint": "Le vie principali del paese seguono un accampamento romano.",
+  "osm": "Cardano al Campo",
+  "lat": 45.649,
+  "lng": 8.77,
+  "text": "Le due strade principali di Cardano al Campo seguono il cardine e il decumano dell'antico accampamento romano attorno a cui nacque il paese. Da qui passava anche la via Severiana Augusta, che univa Milano al Lago Maggiore e al Sempione."
+ },
+ {
+  "town": "Luino",
+  "title": "Il mercato di Carlo V",
+  "hint": "Qui il mercoledì è giorno di mercato da quasi cinquecento anni.",
+  "osm": "Piazza Libertà, Luino",
+  "lat": 46.002,
+  "lng": 8.743,
+  "text": "Il mercato del mercoledì di Luino nasce da una concessione dell'imperatore Carlo V: prima nel 1541, a settimane alterne con Maccagno, poi ogni settimana. È considerato il più antico e importante del Lago Maggiore, e Regione Lombardia lo ha riconosciuto come «Mercato a valenza storica». Ne hanno scritto Vittorio Sereni e Piero Chiara."
+ },
+ {
+  "town": "Luino",
+  "title": "La prima battaglia di Garibaldi in Italia",
+  "hint": "Qui, nel 1848, Garibaldi combatté per la prima volta in Italia.",
+  "osm": "Monumento a Garibaldi, Luino",
+  "lat": 46.001,
+  "lng": 8.742,
+  "text": "Nel 1848 Garibaldi combatté a Luino contro gli austriaci: fu il suo primo scontro in Italia. La città nel 1867 gli dedicò un monumento, considerato tra i primi in Italia."
+ },
+ {
+  "town": "Castellanza",
+  "title": "L'università nel cotonificio",
+  "hint": "Un'università dentro una vecchia fabbrica, ridisegnata da un grande architetto.",
+  "osm": "LIUC Università Cattaneo, Castellanza",
+  "lat": 45.61,
+  "lng": 8.896,
+  "text": "L'Università LIUC è nata il 14 ottobre 1991 nell'ex Cotonificio Cantoni, con un progetto di recupero dell'architetto Aldo Rossi. L'area è di 68.000 metri quadrati, con un parco di 26.000 aperto al pubblico."
+ },
+ {
+  "town": "Castellanza",
+  "title": "Il giuramento di Pontida",
+  "hint": "In questa villa c'è un quadro enorme di 6 metri per 4.",
+  "osm": "Villa Brambilla, Castellanza",
+  "lat": 45.611,
+  "lng": 8.895,
+  "text": "Villa Brambilla, neoclassica, fu a lungo attribuita a Leopold Pollack, ma oggi gli studi la assegnano a Pietro Pestagalli. Dentro ci sono affreschi restaurati e un grande dipinto del Giuramento di Pontida di Giuseppe Castellani, di circa 6 metri per 4."
+ },
+ {
+  "town": "Castellanza",
+  "title": "Dopo la peste del 1630",
+  "hint": "Questa cappella fu costruita quando la peste lasciò in vita solo 500 persone.",
+  "osm": "Cappella di Santa Liberata, Castegnate, Castellanza",
+  "lat": 45.605,
+  "lng": 8.89,
+  "text": "La cappella di Santa Liberata a Castegnate fu costruita per la fine della peste del 1630, che a Castellanza lasciò vivi solo circa 500 abitanti. Il terreno era dei marchesi Daverio, che contribuirono alla costruzione."
+ },
+ {
+  "town": "Castellanza",
+  "title": "Il museo nel bosco",
+  "hint": "Qui l'arte moderna sta tra gli alberi.",
+  "osm": "Museo Pagani, Castellanza",
+  "lat": 45.615,
+  "lng": 8.9,
+  "text": "Il parco-museo d'arte moderna e contemporanea, fondato nel 1957 da Enzo Pagani e aperto nel 1965, conserva circa 650 opere in un bosco. Potrebbe essere il primo parco-museo d'Italia."
+ },
+ {
+  "town": "Olgiate Olona",
+  "title": "La ricetta del pancucco",
+  "hint": "Qui si sarebbe trovata la pergamena con la ricetta di un dolce.",
+  "osm": "Chiesa di Sant'Antonio Abate, Olgiate Olona",
+  "lat": 45.633,
+  "lng": 8.889,
+  "text": "Nell'ex convento dei carmelitani «a Moncucco», oggi chiesa di Sant'Antonio Abate, sarebbe stata trovata la pergamena con la ricetta del pancucco, il dolce del paese. Ma l'autenticità è discussa: non fu mai fotografata e si sbriciolò poco dopo il ritrovamento."
+ },
+ {
+  "town": "Olgiate Olona",
+  "title": "La samaritana al pozzo",
+  "hint": "In questa chiesa c'è un dipinto di Paolo Pagani.",
+  "osm": "Chiesa dei Santi Stefano e Lorenzo, Olgiate Olona",
+  "lat": 45.6335,
+  "lng": 8.8895,
+  "text": "Nella parrocchiale dei Santi Stefano e Lorenzo c'è un dipinto di Paolo Pagani con Cristo e la samaritana al pozzo, e affreschi di Biagio Bellotti nella cappella del Rosario."
+ },
+ {
+  "town": "Olgiate Olona",
+  "title": "La cascina dai mille nomi",
+  "hint": "Questa cascina sul Sempione ha cambiato nome tre volte.",
+  "osm": "Cascina del Buon Gesù, Olgiate Olona",
+  "lat": 45.62,
+  "lng": 8.88,
+  "text": "La Cascina del Buon Gesù, sulla strada del Sempione, è divisa tra Olgiate Olona, Castellanza e Busto Arsizio. Nel Seicento si chiamava «Cascina Selva Longa», nell'Ottocento «Cascina delle Corde», poi «Cascina Cagnola»."
+ },
+ {
+  "town": "Olgiate Olona",
+  "title": "La ferrovia scomparsa",
+  "hint": "Qui passava una ferrovia chiusa nel 1977.",
+  "osm": "Stazione di Marnate-Olgiate Olona",
+  "lat": 45.63,
+  "lng": 8.885,
+  "text": "La stazione di Marnate-Olgiate Olona fu aperta nel 1904 sulla ferrovia della Valmorea. Perse i passeggeri nel 1952 e chiuse del tutto nel 1977 insieme alla linea."
+ },
+ {
+  "town": "Fagnano Olona",
+  "title": "Il biscione sul muro",
+  "hint": "Nel cortile di questo castello c'è il simbolo dei Visconti.",
+  "osm": "Castello Visconteo, Fagnano Olona",
+  "lat": 45.668,
+  "lng": 8.873,
+  "text": "Il Castello Visconteo di Fagnano Olona conserva il fossato e due torri originali del Quattrocento. Su un muro del secondo cortile c'è lo stemma visconteo con il biscione."
+ },
+ {
+  "town": "Fagnano Olona",
+  "title": "La Madonna del bosco",
+  "hint": "Questa statua, si dice, fu trovata in un bosco.",
+  "osm": "Santuario della Madonna della Selva, Fagnano Olona",
+  "lat": 45.67,
+  "lng": 8.875,
+  "text": "Secondo la tradizione, la statua di legno della Madonna della Pietà fu trovata in un bosco vicino al paese: da qui il nome di Santuario della Madonna della Selva. La statua è in due parti: quella inferiore è del Tre-Quattrocento, quella superiore della metà del Settecento."
+ },
+ {
+  "town": "Fagnano Olona",
+  "title": "Bergoro",
+  "hint": "Una chiesa del Quattrocento rimaneggiata tre volte.",
+  "osm": "Chiesa di San Giovanni Battista, Bergoro, Fagnano Olona",
+  "lat": 45.66,
+  "lng": 8.87,
+  "text": "La chiesa di San Giovanni Battista a Bergoro esisteva già nel Quattrocento, fu rimaneggiata nel 1647 e di nuovo negli anni Sessanta del Novecento."
+ },
+ {
+  "town": "Lonate Pozzolo",
+  "title": "L'allievo del Bramante",
+  "hint": "Questa chiesa a otto lati l'ha progettata l'architetto del Duomo di Vigevano.",
+  "osm": "Chiesa di Sant'Ambrogio, Lonate Pozzolo",
+  "lat": 45.597,
+  "lng": 8.752,
+  "text": "La chiesa di Sant'Ambrogio fu ricostruita nel 1499 a pianta ottagonale da Antonio Bodio, detto Antonio da Lonate, allievo del Bramante e autore del Duomo di Vigevano. Nel 1997, togliendo un confessionale, sono apparsi degli affreschi."
+ },
+ {
+  "town": "Lonate Pozzolo",
+  "title": "Il campo di D'Annunzio",
+  "hint": "Il nome di questo aeroporto lo inventò un poeta.",
+  "osm": "Campo della Promessa, Lonate Pozzolo",
+  "lat": 45.59,
+  "lng": 8.76,
+  "text": "Il nome «Campo della Promessa» lo inventò Gabriele D'Annunzio, che inaugurò l'aeroporto. Il 1° maggio 1942 qui nacque il 102° Gruppo Tuffatori."
+ },
+ {
+  "town": "Lonate Pozzolo",
+  "title": "La battaglia di Tornavento",
+  "hint": "Ogni anno qui si rievoca una battaglia del Seicento.",
+  "osm": "Tornavento, Lonate Pozzolo",
+  "lat": 45.595,
+  "lng": 8.715,
+  "text": "Il 22 giugno 1636 vicino a Tornavento si combatté la battaglia tra gli spagnoli e un esercito francese alleato dei piemontesi. Fu una delle cause dell'abbandono di Lonate da parte delle famiglie ricche. Ogni anno, la terza domenica di giugno, se ne fa la rievocazione."
+ },
+ {
+  "town": "Lonate Pozzolo",
+  "title": "Il monastero di clausura",
+  "hint": "Qui potevano entrare solo il medico e il prete.",
+  "osm": "Monastero di San Michele, Lonate Pozzolo",
+  "lat": 45.5975,
+  "lng": 8.7525,
+  "text": "Il Monastero di San Michele era un monastero femminile di clausura con la regola di Sant'Agostino: potevano entrare solo un medico e un prete, e solo per malattie gravi. Aveva un cimitero interno, e durante il restauro è stata trovata una sepoltura nell'ala nord."
+ },
+ {
+  "town": "Lonate Pozzolo",
+  "title": "I chiodi dei gioielli",
+  "hint": "Sul dipinto della Madonna ci sono i segni dei chiodi.",
+  "osm": "Cascina Maggia, Lonate Pozzolo",
+  "lat": 45.585,
+  "lng": 8.74,
+  "text": "Nella Cascina Maggia c'è l'oratorio della Consolata, benedetto il 20 agosto 1740. Sul dipinto della Madonna si vedono i segni dei chiodi a cui contadini e cavatori appendevano i gioielli offerti come ex voto."
+ },
+ {
+  "town": "Uboldo",
+  "title": "La torre del prigioniero",
+  "hint": "Di quattro torri ne è rimasta una, con un nome inquietante.",
+  "osm": "Palazzo Crivelli, Uboldo",
+  "lat": 45.615,
+  "lng": 9.005,
+  "text": "I documenti medievali parlano di quattro torri attorno a Palazzo Crivelli-Villani; oggi ne resta una sola, in vicolo Crivelli, chiamata torre «del prigioniero». La sua presenza fa pensare che un tempo il paese fosse circondato da mura."
+ },
+ {
+  "town": "Uboldo",
+  "title": "La chiesa nuova sui resti antichi",
+  "hint": "Questa chiesa del 1955 sorge sul luogo di culto più antico del paese.",
+  "osm": "Chiesa dei Santi Pietro e Paolo, Uboldo",
+  "lat": 45.6155,
+  "lng": 9.0055,
+  "text": "La chiesa dei Santi Pietro e Paolo fu costruita nel 1955 dove c'era il luogo di culto cristiano più antico del paese, del XII secolo. Conserva dipinti della chiesa vecchia, tra cui due Natività del Mazzolino."
+ },
+ {
+  "town": "Uboldo",
+  "title": "I santi contro la peste",
+  "hint": "In questo oratorio c'è un affresco del 1507 con i santi protettori dalla peste.",
+  "osm": "Cascina Soccorso, Uboldo",
+  "lat": 45.61,
+  "lng": 9.01,
+  "text": "Nell'oratorio di Santa Maria del Soccorso, alla Cascina Soccorso, l'abside ha un affresco con la Madonna in trono e quattro santi protettori contro la peste, attribuito a Bernardino de Caravagis e datato 1507."
+ },
+ {
+  "town": "Uboldo",
+  "title": "L'altare di Viggiù",
+  "hint": "Un altare di marmi colorati del 1745.",
+  "osm": "Chiesa dei Santi Cosma e Damiano, Uboldo",
+  "lat": 45.616,
+  "lng": 9.006,
+  "text": "La chiesa dei Santi Cosma e Damiano è citata già alla fine del Duecento. L'altare in marmi policromi di Viggiù è del 1745."
+ },
+ {
+  "town": "Gerenzano",
+  "title": "L'acqua che non cambia mai",
+  "hint": "Questa sorgente ha la stessa temperatura tutto l'anno.",
+  "osm": "Fontanile di San Giacomo, Gerenzano",
+  "lat": 45.635,
+  "lng": 9.0,
+  "text": "Il Fontanile di San Giacomo, a sud del paese, ha acqua tra 9 e 12 gradi in ogni stagione. Un contratto del 1386 nomina già la Roggia della Girola, alimentata da questa sorgente."
+ },
+ {
+  "town": "Gerenzano",
+  "title": "San Giacomo sulla strada",
+  "hint": "Una chiesetta gotica lungo la vecchia strada per Varese.",
+  "osm": "Chiesa di San Giacomo, Gerenzano",
+  "lat": 45.638,
+  "lng": 9.005,
+  "text": "La chiesa di San Giacomo, fuori dal paese vicino alla strada Milano–Varese, è una piccola chiesa gotica a navata unica. Il campanile romanico è più antico della chiesa, e la casetta a due piani attaccata era l'abitazione del cappellano."
+ },
+ {
+  "town": "Gerenzano",
+  "title": "Dalla discarica agli aironi",
+  "hint": "Questo parco con 14.500 alberi era una discarica.",
+  "osm": "Parco degli Aironi, Gerenzano",
+  "lat": 45.645,
+  "lng": 9.01,
+  "text": "Il Parco degli Aironi, di 45 ettari, è nato su una ex discarica: ci sono circa 14.500 alberi e un osservatorio sul lago per guardare gli uccelli."
+ },
+ {
+  "town": "Sesto Calende",
+  "title": "L'abbazia rimasta pavese",
+  "hint": "Questa abbazia ha seguito per secoli un rito diverso da quello di Milano.",
+  "osm": "Abbazia di San Donato, Sesto Calende",
+  "lat": 45.73,
+  "lng": 8.625,
+  "text": "L'Abbazia di San Donato, costruita tra il IX e il X secolo, è il monumento più grande di Sesto Calende. Pur essendo in territorio ambrosiano, per secoli rimase legata al rito romano di Pavia."
+ },
+ {
+  "town": "Sesto Calende",
+  "title": "Le coppelle dell'età del Ferro",
+  "hint": "Su questo masso gli uomini dell'età del Ferro scavarono piccole coppe.",
+  "osm": "Sasso di Preia Buia, Sesto Calende",
+  "lat": 45.74,
+  "lng": 8.63,
+  "text": "Il Sasso di Preia Buia è un masso portato dai ghiacciai, di talcoscisto e serpentino, con incisioni a coppella fatte dalle popolazioni dell'età del Ferro. È a circa 200 metri dall'Oratorio di San Vincenzo ed è monumento naturale regionale."
+ },
+ {
+  "town": "Sesto Calende",
+  "title": "Dove il Ticino lascia il lago",
+  "hint": "Qui il fiume esce dal Lago Maggiore.",
+  "osm": "Ponte sul Ticino, Sesto Calende",
+  "lat": 45.727,
+  "lng": 8.632,
+  "text": "Sesto Calende è all'estremità sud del Lago Maggiore, dove il Ticino esce dal lago per proseguire verso il Po. In città c'è il Museo archeologico della cultura di Golasecca, la civiltà dell'età del Ferro di questa zona."
+ },
+ {
+  "town": "Cislago",
+  "title": "Il castello dei rondoni",
+  "hint": "Da aprile a luglio questo castello si riempie di uccelli.",
+  "osm": "Castello Castelbarco, Cislago",
+  "lat": 45.659,
+  "lng": 8.973,
+  "text": "Il Castello Castelbarco fu ricostruito in stile barocco nel 1620 sulle rovine di un castello medievale distrutto dai Lanzichenecchi. Da aprile a luglio ospita una grande colonia di rondoni, e una coppia di gheppi nidifica nella torre nord. È ancora abitato dalla famiglia Castelbarco e non si visita."
+ },
+ {
+  "town": "Cislago",
+  "title": "La Madonna del Parto",
+  "hint": "In questo santuario c'è una rara immagine della Madonna incinta.",
+  "osm": "Santuario di Santa Maria Iniziata, Cislago",
+  "lat": 45.66,
+  "lng": 8.97,
+  "text": "Il Santuario di Santa Maria Iniziata è ricordato già nel 1256. Le sette nicchie furono dipinte nel 1525, e l'altare barocco di legno ha una rara immagine della Madonna del Parto."
+ },
+ {
+  "town": "Cislago",
+  "title": "Il batuffolo che prevede il raccolto",
+  "hint": "Nel giorno del santo si brucia un batuffolo di cotone. Perché?",
+  "osm": "Chiesa parrocchiale dell'Assunta, Cislago",
+  "lat": 45.6585,
+  "lng": 8.9725,
+  "text": "Il compatrono di Cislago, Sant'Abbondanzio, è un corpo arrivato dalle catacombe romane come reliquia personale dei Visconti. Nel giorno della sua festa, il lunedì dell'Angelo in albis, un antico rito brucia un batuffolo di cotone che un tempo serviva a prevedere il raccolto."
+ },
+ {
+  "town": "Cislago",
+  "title": "La chiesa ottagonale di Massina",
+  "hint": "Una chiesa a otto lati con le donne dell'Antico Testamento.",
+  "osm": "Chiesa di Massina, Cislago",
+  "lat": 45.65,
+  "lng": 8.98,
+  "text": "La chiesa di Massina, neoclassica e ottagonale, fu costruita nel 1883 per volere di una marchesa Visconti. Conserva un quadro del Seicento del beato Bernardino Caimi, fondatore dei Sacri Monti, e quattro statue ottocentesche di donne dell'Antico Testamento."
+ },
+ {
+  "town": "Induno Olona",
+  "title": "La birra Liberty",
+  "hint": "Qui c'è un birrificio storico in stile Liberty, accanto al cioccolato.",
+  "osm": "Birrificio Angelo Poretti, Induno Olona",
+  "lat": 45.845,
+  "lng": 8.835,
+  "text": "Nella frazione Olona c'è il Birrificio Angelo Poretti, uno stabilimento storico in stile Liberty, oggi del gruppo danese Carlsberg. Accanto c'è lo stabilimento italiano del cioccolato svizzero Lindt."
+ },
+ {
+  "town": "Induno Olona",
+  "title": "Il castello contro i comaschi",
+  "hint": "Da questo castello nel 1160 si difese Varese.",
+  "osm": "Castello di Frascarolo, Induno Olona",
+  "lat": 45.852,
+  "lng": 8.84,
+  "text": "Il Castello di Frascarolo era una fortezza poi acquistata dai Medici di Marignano come residenza. Nel 1160 l'arcivescovo Oberto da Pirovano lo usò come base per difendere Varese dai comaschi, che con l'appoggio del Barbarossa avevano occupato Induno."
+ },
+ {
+  "town": "Induno Olona",
+  "title": "Le reliquie dei Re Magi",
+  "hint": "In questa chiesa ci sono reliquie dei Magi arrivate da Milano.",
+  "osm": "Chiesa dei Santi Re Magi, Induno Olona",
+  "lat": 45.844,
+  "lng": 8.834,
+  "text": "La chiesa barocca dei Santi Re Magi, nella frazione Olona, custodisce reliquie dei Magi portate dalla Basilica di Sant'Eustorgio di Milano."
+ },
+ {
+  "town": "Induno Olona",
+  "title": "San Pietro nel bosco",
+  "hint": "La più antica delle undici chiese di Induno.",
+  "osm": "Cappella di San Pietro in Silvis, Induno Olona",
+  "lat": 45.855,
+  "lng": 8.83,
+  "text": "La cappella di San Pietro in Silvis è la più antica delle 11 chiese di Induno: romanica, dell'XI secolo, probabilmente costruita su un edificio precedente."
  }
 ]
