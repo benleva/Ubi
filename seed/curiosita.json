@@ -5920,5 +5920,329 @@
   "lat": 41.9135,
   "lng": 12.512,
   "text": "Nel parco di Villa Torlonia c'è la Casina delle Civette, una casetta da fiaba trasformata a inizio Novecento dal principe Giovanni Torlonia. Prende il nome dalle civette che compaiono nelle decorazioni e nelle vetrate Liberty; oggi è un museo delle vetrate artistiche."
+ },
+ {
+  "town": "Trieste",
+  "title": "La piazza che guarda il mare",
+  "hint": "Le luci blu per terra disegnano qualcosa che non c'è più.",
+  "wiki": "Piazza Unità d'Italia",
+  "osm": "Piazza Unità d'Italia, Trieste",
+  "lat": 45.6503,
+  "lng": 13.7681,
+  "text": "Piazza Unità d'Italia, oltre 12.000 metri quadrati affacciati sul golfo, è considerata la più grande piazza d'Europa sul mare. Si è chiamata piazza San Pietro, piazza Grande, piazza Francesco Giuseppe e prese il nome di oggi nel 1955. Di sera guarda le luci blu sul lato del mare: segnano il contorno del mandracchio, l'antico porticciolo interrato nei secoli."
+ },
+ {
+  "town": "Trieste",
+  "title": "Micheze e Jacheze",
+  "hint": "Sulla torre del municipio due mori di bronzo battono le ore.",
+  "osm": "Municipio, Piazza Unità d'Italia, Trieste",
+  "lat": 45.6497,
+  "lng": 13.7688,
+  "text": "Il Municipio, del 1875, è di Giuseppe Bruni. Sulla torre due figure di bronzo battono le ore: i triestini le chiamano Micheze e Jacheze. Il palazzo ha anche dei soprannomi, come «Cheba» (gabbia) e «Sipario». Da questo balcone, nel settembre 1938, Mussolini annunciò le leggi razziali."
+ },
+ {
+  "town": "Trieste",
+  "title": "La fontana dei quattro continenti",
+  "hint": "Quattro statue per quattro continenti. E l'Oceania?",
+  "osm": "Fontana dei Quattro Continenti, Trieste",
+  "lat": 45.65,
+  "lng": 13.7685,
+  "text": "La Fontana dei Quattro Continenti fu scolpita tra il 1751 e il 1754 da Giovanni Battista Mazzoleni per celebrare la ricchezza di Trieste porto franco. Rappresenta i continenti allora conosciuti: l'Oceania non c'è. È stata spostata più volte e nel restauro del 2001-2005 è tornata davanti al Municipio. Poco più in là c'è la colonna di Carlo VI, del 1728, l'imperatore che fece di Trieste un porto franco."
+ },
+ {
+  "town": "Trieste",
+  "title": "L'omicidio di Winckelmann",
+  "hint": "In una locanda di questa piazza nel 1768 fu ucciso un genio dell'archeologia.",
+  "osm": "Grand Hotel Duchi d'Aosta, Trieste",
+  "lat": 45.6505,
+  "lng": 13.7675,
+  "text": "L'8 giugno 1768, nell'Osteria Grande che sorgeva sulla piazza, dove oggi c'è il Grand Hotel Duchi d'Aosta, fu ucciso Johann Joachim Winckelmann, il padre della storia dell'arte antica. Era a Trieste in incognito, in attesa di una nave per Ancona. Lo accoltellò Francesco Arcangeli, un cuoco conosciuto nella locanda, per derubarlo. Winckelmann ebbe il tempo di dettare il testamento."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il molo nato su un relitto",
+  "hint": "Sotto questo molo c'è una nave affondata.",
+  "wiki": "Molo Audace",
+  "osm": "Molo Audace, Trieste",
+  "lat": 45.6505,
+  "lng": 13.7642,
+  "text": "Il Molo Audace si chiamava molo San Carlo, dal nome di una nave austriaca affondata nel porto nel 1740: invece di rimuovere il relitto lo si usò come base del molo. Il 3 novembre 1918 il cacciatorpediniere Audace fu la prima nave italiana ad attraccare qui, e nel 1922 il molo prese il suo nome. Oggi è lungo 246 metri. In fondo c'è una rosa dei venti di bronzo del 1925 con la scritta «fusa nel bronzo nemico». Gli innamorati si baciano in punta al molo."
+ },
+ {
+  "town": "Trieste",
+  "title": "L'ancora che non è dell'Audace",
+  "hint": "Tutti dicono che quest'ancora è dell'Audace. Sbagliano.",
+  "wiki": "Faro della Vittoria (Trieste)",
+  "osm": "Faro della Vittoria, Trieste",
+  "lat": 45.673,
+  "lng": 13.7584,
+  "text": "Il Faro della Vittoria, inaugurato il 24 maggio 1927, ricorda i caduti del mare della Prima guerra mondiale. In cima c'è la Vittoria alata di bronzo di Giovanni Mayer, alta 7,2 metri, e alla base la statua del marinaio, alta 8,6. L'ancora davanti all'ingresso viene sempre attribuita all'Audace, ma in realtà è della nave gemella Berenice. Il faro sorge sui resti del forte austriaco Kressich del 1854."
+ },
+ {
+  "town": "Trieste",
+  "title": "La Lanterna",
+  "hint": "Il faro più antico di Trieste, oggi spento.",
+  "search": "Lanterna faro Trieste",
+  "osm": "Lanterna, Molo Fratelli Bandiera, Trieste",
+  "lat": 45.6445,
+  "lng": 13.7582,
+  "text": "La Lanterna, sul molo Fratelli Bandiera, è il faro storico di Trieste: fu acceso nella prima metà dell'Ottocento, su progetto di Matteo Pertsch, ed è stato poi sostituito dal Faro della Vittoria. Ha la forma di una piccola fortezza con la torre in cima."
+ },
+ {
+  "town": "Trieste",
+  "title": "La spiaggia con il muro",
+  "hint": "Qui uomini e donne fanno il bagno separati da un muro.",
+  "osm": "Bagno Marino La Lanterna, Trieste",
+  "lat": 45.6443,
+  "lng": 13.7591,
+  "text": "Il bagno comunale «La Lanterna», per i triestini «el Pedocin», è l'ultimo in Europa dove un muro bianco, alto tre metri e lungo circa 74, divide la spiaggia: da una parte gli uomini, dall'altra le donne con i bambini fino a 12 anni. Nato a inizio Novecento con uno steccato per il pudore, oggi è difeso soprattutto dalle donne. Per parlarsi, marito e moglie devono incontrarsi in acqua."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il castello del triste destino",
+  "hint": "Da qui partì un arciduca per diventare imperatore. Non tornò più.",
+  "wiki": "Castello di Miramare",
+  "osm": "Castello di Miramare, Trieste",
+  "lat": 45.7026,
+  "lng": 13.7125,
+  "text": "Il Castello di Miramare fu costruito tra il 1856 e il 1860 per l'arciduca Massimiliano d'Asburgo, appassionato di mare e di botanica. Nel 1864 partì da qui con la moglie Carlotta per diventare imperatore del Messico, dove fu fucilato nel 1867; Carlotta perse la ragione. Lo studio di Massimiliano è arredato come l'interno di una nave. Il parco di 22 ettari ha alberi portati dai suoi viaggi, come sequoie e ginkgo."
+ },
+ {
+  "town": "Trieste",
+  "title": "Due chiese in una",
+  "hint": "Questa cattedrale nasce dall'unione di due chiese.",
+  "wiki": "Cattedrale di San Giusto (Trieste)",
+  "osm": "Cattedrale di San Giusto, Trieste",
+  "lat": 45.6469,
+  "lng": 13.772,
+  "text": "La cattedrale di San Giusto nasce tra il 1302 e il 1320 unendo sotto un solo tetto due chiese vicine, Santa Maria e San Giusto. Il portale è ricavato da un monumento funebre romano e il rosone è scolpito in pietra del Carso. La campana più grande fu fusa nel 1829 con il bronzo dei cannoni lasciati da Napoleone. Qui si conserva l'alabarda di San Sergio, simbolo della città."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il teatro romano sotto le case",
+  "hint": "Per secoli questo teatro è rimasto nascosto sotto un quartiere.",
+  "wiki": "Teatro romano di Trieste",
+  "osm": "Teatro romano, Trieste",
+  "lat": 45.6483,
+  "lng": 13.7712,
+  "text": "Il teatro romano fu costruito alla fine del I secolo a.C. sulla riva del mare, che allora arrivava fin qui. Poteva ospitare migliaia di spettatori. Per secoli rimase sepolto sotto le case della città vecchia e fu riportato alla luce nel 1938, durante le demolizioni. Le statue trovate negli scavi sono nel Lapidario del Castello di San Giusto."
+ },
+ {
+  "town": "Trieste",
+  "title": "L'arco di Riccardo Cuor di Leone?",
+  "hint": "La leggenda dice che qui fu prigioniero un re inglese.",
+  "wiki": "Arco di Riccardo",
+  "osm": "Arco di Riccardo, Trieste",
+  "lat": 45.6473,
+  "lng": 13.769,
+  "text": "L'Arco di Riccardo è un arco romano del I secolo, alto 7,2 metri, forse una porta della città. La leggenda popolare lega il nome a Riccardo Cuor di Leone, che tornando dalla Terra Santa sarebbe stato prigioniero anche a Trieste. Più probabilmente il nome viene da «arco del Cardo», la strada principale romana."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il castello sul colle",
+  "hint": "Dalle mura di questo castello si vede tutta la città.",
+  "wiki": "Castello di San Giusto",
+  "osm": "Castello di San Giusto, Trieste",
+  "lat": 45.6475,
+  "lng": 13.7729,
+  "text": "Il Castello di San Giusto domina la città dal colle dove sorgeva la Tergeste romana. Si può camminare sui bastioni con vista sul golfo. Dentro c'è il Lapidario Tergestino, con le pietre e le statue romane trovate in città."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il canale per le navi",
+  "hint": "Le navi arrivavano fin qui, in mezzo alle case.",
+  "search": "Canal Grande Trieste",
+  "osm": "Canal Grande, Trieste",
+  "lat": 45.6535,
+  "lng": 13.771,
+  "text": "Il Canal Grande fu scavato a metà Settecento perché le navi potessero scaricare le merci direttamente in centro. Il Ponte Rosso prende il nome dal primo ponte di legno, del 1756, dipinto di rosso. In fondo al canale c'è la chiesa neoclassica di Sant'Antonio Nuovo, di Pietro Nobile."
+ },
+ {
+  "town": "Trieste",
+  "title": "Joyce sul Ponte Rosso",
+  "hint": "Sul ponte c'è uno scrittore irlandese che passeggia.",
+  "osm": "Statua di James Joyce, Ponte Rosso, Trieste",
+  "lat": 45.6535,
+  "lng": 13.7712,
+  "text": "La statua di James Joyce sul Ponte Rosso, di Nino Spagnoli, fu messa nel 2004 per i cent'anni dal suo arrivo a Trieste. Joyce visse qui, tra un trasloco e l'altro, dal 1904 al 1920, insegnò inglese alla Berlitz School e scrisse parte dell'«Ulisse». Tra i suoi allievi c'era Italo Svevo, che lui incoraggiò a continuare a scrivere."
+ },
+ {
+  "town": "Trieste",
+  "title": "La chiesa dalle cupole blu",
+  "hint": "Sul canale c'è una chiesa con le cupole azzurre.",
+  "search": "Chiesa di San Spiridione Trieste",
+  "osm": "Chiesa di San Spiridione, Trieste",
+  "lat": 45.6538,
+  "lng": 13.7722,
+  "text": "La chiesa serbo-ortodossa di San Spiridione, sul Canal Grande, ha cupole azzurre e mosaici dorati. Racconta la Trieste multietnica dell'Ottocento, dove convivevano comunità serba, greca, ebraica, slovena, tedesca e italiana."
+ },
+ {
+  "town": "Trieste",
+  "title": "Una delle sinagoghe più grandi d'Europa",
+  "hint": "Questa sinagoga del 1912 è tra le più grandi d'Europa.",
+  "search": "Sinagoga di Trieste",
+  "osm": "Sinagoga, Via San Francesco d'Assisi, Trieste",
+  "lat": 45.6497,
+  "lng": 13.7802,
+  "text": "La sinagoga di Trieste, inaugurata nel 1912, è una delle più grandi d'Europa ed è il segno dell'importanza della comunità ebraica nella città dell'Ottocento. Accanto c'è il Museo della Comunità ebraica «Carlo e Vera Wagner»."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il barone del Canale di Suez",
+  "hint": "Questo palazzo era di un finanziatore del Canale di Suez.",
+  "wiki": "Museo Revoltella",
+  "osm": "Museo Revoltella, Trieste",
+  "lat": 45.6463,
+  "lng": 13.7623,
+  "text": "Il Museo Revoltella è nel palazzo del barone Pasquale Revoltella, ricco commerciante e tra i finanziatori del Canale di Suez. Alla sua morte, nel 1869, lasciò il palazzo e le collezioni alla città. Oggi è il museo d'arte moderna di Trieste, e dalla terrazza c'è una bella vista sul porto."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il caffè più antico",
+  "hint": "Qui si è servito il primo gelato di Trieste.",
+  "wiki": "Caffè Tommaseo",
+  "osm": "Caffè Tommaseo, Trieste",
+  "lat": 45.6511,
+  "lng": 13.768,
+  "text": "Il Caffè Tommaseo, aperto nel 1830, è il caffè più antico ancora in funzione a Trieste. Il fondatore, Tomaso Marcato, lo arredò con specchi belgi e sedie Thonet, e fu il primo a portare il gelato in città. Nel 1882 lo ribattezzarono «Caffè Tomaso» per paura degli austriaci; tornò Tommaseo nel 1918. Qui Claudio Magris ha scritto «Danubio»."
+ },
+ {
+  "town": "Trieste",
+  "title": "I passaporti falsi del San Marco",
+  "hint": "Nel retro di questo caffè si fabbricavano documenti falsi.",
+  "osm": "Antico Caffè San Marco, Trieste",
+  "lat": 45.6527,
+  "lng": 13.7815,
+  "text": "L'Antico Caffè San Marco, in via Battisti, aprì il 3 gennaio 1914 in stile Secessione viennese. Era il ritrovo dei giovani irredentisti, e nel retro si fabbricavano passaporti falsi per far fuggire in Italia i patrioti antiaustriaci. Per questo, nel maggio 1915, fu devastato e chiuso. Riaperto, è diventato il caffè letterario di Saba, Svevo e, oggi, Claudio Magris. Dal 2013 dentro c'è anche una libreria."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il caffè degli specchi",
+  "hint": "Il caffè sulla piazza dove bisogna farsi vedere.",
+  "osm": "Caffè degli Specchi, Trieste",
+  "lat": 45.65,
+  "lng": 13.7677,
+  "text": "Il Caffè degli Specchi è aperto dal 1839 al pianterreno di Palazzo Stratti, in piazza Unità. È il caffè dove «farsi vedere», con i tavolini sulla piazza più grande d'Europa sul mare."
+ },
+ {
+  "town": "Trieste",
+  "title": "La pasticceria dell'Ulisse",
+  "hint": "Si dice che qui Joyce scrivesse pagine dell'«Ulisse».",
+  "osm": "Pasticceria Pirona, Trieste",
+  "lat": 45.647,
+  "lng": 13.779,
+  "text": "La pasticceria-caffè Pirona, in largo Barriera Vecchia, era frequentata da Joyce, Svevo e Saba. Si racconta che Joyce, che abitava qui vicino, vi abbia scritto parte dell'«Ulisse» tra un dolce e l'altro."
+ },
+ {
+  "town": "Trieste",
+  "title": "Saba va al lavoro",
+  "hint": "Un poeta di bronzo cammina verso la sua libreria.",
+  "osm": "Via Dante Alighieri, Trieste",
+  "lat": 45.6517,
+  "lng": 13.7714,
+  "text": "All'incrocio tra via Dante e via San Nicolò c'è dal 2004 la statua di Umberto Saba, di Nino Spagnoli, colto mentre va al lavoro. A pochi passi, in via San Nicolò, c'è la Libreria antiquaria che Saba rilevò nel 1919 e dove lavorò per decenni: ne parla anche nelle sue poesie."
+ },
+ {
+  "town": "Trieste",
+  "title": "Svevo in piazza Hortis",
+  "hint": "Il papà di Zeno Cosini ti aspetta in un giardino.",
+  "osm": "Piazza Hortis, Trieste",
+  "lat": 45.6476,
+  "lng": 13.7663,
+  "text": "In piazza Hortis c'è la statua di bronzo di Italo Svevo, l'autore de «La coscienza di Zeno». Nello stesso palazzo della Biblioteca civica ci sono i musei dedicati a Svevo e a Joyce, i due amici: Joyce fu il suo insegnante d'inglese."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il museo del vento",
+  "hint": "Qui si può comprare la bora in scatola.",
+  "osm": "Museo della Bora, Trieste",
+  "lat": 45.6455,
+  "lng": 13.768,
+  "text": "Trieste è la città della bora, il vento che d'inverno supera i 100 chilometri orari e a volte va oltre i 150. Un tempo lungo i marciapiedi più esposti si mettevano corde per aggrapparsi. Il Museo della Bora, ideato da Rino Lombardi, raccoglie oggetti, foto e storie del vento, e vende per scherzo la «bora in scatola»."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il tram spinto in salita",
+  "hint": "Un tram che sale con l'aiuto di un carro spinto da una fune.",
+  "wiki": "Tranvia di Opicina",
+  "osm": "Piazza Oberdan, Trieste",
+  "lat": 45.656,
+  "lng": 13.778,
+  "text": "Il tram di Opicina, aperto il 9 settembre 1902, sale dal centro all'altipiano del Carso. Nel tratto più ripido, con pendenze fino al 26%, le vetture vengono spinte in salita e trattenute in discesa da un carro collegato a una fune: un sistema unico in Europa. Fermo per anni dopo un incidente del 2016, è ripartito il 1° febbraio 2025."
+ },
+ {
+  "town": "Trieste",
+  "title": "La vista dall'Obelisco",
+  "hint": "Da qui parte la passeggiata più panoramica sul golfo.",
+  "osm": "Obelisco di Opicina, Trieste",
+  "lat": 45.689,
+  "lng": 13.782,
+  "text": "L'Obelisco di Opicina, a 343 metri d'altezza, fu dedicato all'imperatore Francesco I d'Austria ed è la fermata più panoramica del tram. Da qui parte la Strada Napoleonica, una passeggiata a picco sul golfo di Trieste."
+ },
+ {
+  "town": "Trieste",
+  "title": "La sala naturale più grande del mondo",
+  "hint": "Sotto il Carso c'è una caverna dove starebbe una cattedrale.",
+  "wiki": "Grotta Gigante",
+  "osm": "Grotta Gigante",
+  "lat": 45.7095,
+  "lng": 13.7647,
+  "text": "La Grotta Gigante, sul Carso triestino, è nel Guinness dei primati dal 1995 come la più grande caverna turistica del mondo: la sala principale è alta circa 100 metri. Dentro ci sono i pendoli geodetici più lunghi del mondo, che misurano i movimenti della crosta terrestre. La temperatura resta sugli 11 gradi tutto l'anno, e la stalagmite «Colonna Ruggero» ha impiegato circa 200.000 anni per crescere."
+ },
+ {
+  "town": "Trieste",
+  "title": "La Risiera",
+  "hint": "Un luogo di memoria: l'unico lager in Italia con un forno crematorio.",
+  "wiki": "Risiera di San Sabba",
+  "osm": "Risiera di San Sabba, Trieste",
+  "lat": 45.6201,
+  "lng": 13.7898,
+  "text": "La Risiera di San Sabba era uno stabilimento per la lavorazione del riso del 1898. Durante l'occupazione nazista divenne un campo di detenzione e di transito, l'unico in Italia con un forno crematorio, fatto saltare dai nazisti in fuga nell'aprile 1945. Monumento nazionale dal 1965, è museo dal 1975 con il progetto dell'architetto Romano Boico. È un luogo di memoria: va visitato con rispetto."
+ },
+ {
+  "town": "Trieste",
+  "title": "La Foiba di Basovizza",
+  "hint": "Un luogo di memoria sul Carso.",
+  "search": "Foiba di Basovizza",
+  "osm": "Foiba di Basovizza, Trieste",
+  "lat": 45.629,
+  "lng": 13.8603,
+  "text": "La Foiba di Basovizza, un pozzo minerario sul Carso, è il luogo simbolo che ricorda le vittime delle foibe e l'esodo giuliano-dalmata. È monumento nazionale, e accanto c'è un centro di documentazione. È un luogo di memoria: va visitato con rispetto."
+ },
+ {
+  "town": "Trieste",
+  "title": "La scala dei Giganti",
+  "hint": "Una scalinata enorme per salire verso San Giusto.",
+  "osm": "Scala dei Giganti, Trieste",
+  "lat": 45.65,
+  "lng": 13.7745,
+  "text": "La Scala dei Giganti è la scalinata monumentale che sale da piazza Goldoni verso il colle di San Giusto. Fu costruita all'inizio del Novecento per collegare il centro nuovo con la parte alta della città."
+ },
+ {
+  "town": "Trieste",
+  "title": "L'inventore dell'elica",
+  "hint": "Davanti al porto c'è la statua del «Leonardo triestino».",
+  "osm": "Capitaneria di Porto, Trieste",
+  "lat": 45.6515,
+  "lng": 13.7657,
+  "text": "Davanti alla Capitaneria di Porto c'è la statua di Josef Ressel, l'inventore che ottenne il brevetto per l'elica delle navi e che lavorò a Trieste: lo chiamano il «Leonardo triestino». È l'ultimo arrivato tra le statue di bronzo della città, insieme a Joyce, Svevo, Saba e D'Annunzio."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il cenotafio di Winckelmann",
+  "hint": "In un giardino di pietre antiche c'è il monumento a un archeologo ucciso.",
+  "osm": "Orto Lapidario, Trieste",
+  "lat": 45.6466,
+  "lng": 13.7713,
+  "text": "Nell'Orto Lapidario, il giardino di pietre antiche sotto San Giusto, c'è il cenotafio di Johann Joachim Winckelmann, l'archeologo ucciso a Trieste nel 1768. Qui si conserva anche la rosa dei venti di pietra originale del Molo Audace."
+ },
+ {
+  "town": "Trieste",
+  "title": "Il palazzo più antico della piazza",
+  "hint": "Tra i palazzi della piazza, questo è il più vecchio.",
+  "osm": "Palazzo Pitteri, Trieste",
+  "lat": 45.6499,
+  "lng": 13.7692,
+  "text": "Palazzo Pitteri, del 1780, è l'edificio più antico di piazza Unità. Accanto, Palazzo Modello (1871–1873) fu costruito proprio come «modello» per il rifacimento della piazza, e il Palazzo del Governo (1905) ha mosaici dorati in facciata, cambiati negli anni Venti per mettere lo stemma dei Savoia."
  }
 ]
