@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180750';
+import { CONFIG } from './config.js?v=202611180754';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.44';
+const APP_VERSION = 'v.45';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -351,7 +351,16 @@ async function supabaseBackend() {
       if (path) await sb.storage.from('media').remove([path]);
     },
     async mapContents(b) {
-      return must(await sb.rpc('map_contents', { p_min_lat: b.s, p_min_lng: b.w, p_max_lat: b.n, p_max_lng: b.e })) || [];
+      const rows = must(await sb.rpc('map_contents', { p_min_lat: b.s, p_min_lng: b.w, p_max_lat: b.n, p_max_lng: b.e })) || [];
+      // i miei pin li prendo sempre anche direttamente: la funzione del database ne restituisce al massimo 500 per zona
+      try {
+        const u = await B.user();
+        const mine = must(await sb.from('contents').select('share_slug,title,media_type,lat,lng,tags,is_dating,unlock_at,hunt_step')
+          .eq('owner_id', u.id).gte('lat', b.s).lte('lat', b.n).gte('lng', b.w).lte('lng', b.e).limit(2000)) || [];
+        const have = new Set(rows.map((r) => r.share_slug));
+        mine.forEach((m) => { if (!have.has(m.share_slug)) rows.push({ ...m, is_owner: true, unlocked: true }); });
+      } catch { /* restano quelli della funzione */ }
+      return rows;
     },
     async unlock(slug, pos, password) {
       const r = (must(await sb.rpc('unlock', {
