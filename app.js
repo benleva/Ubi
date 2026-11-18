@@ -1,8 +1,8 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611180709';
+import { CONFIG } from './config.js?v=202611180729';
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.37';
+const APP_VERSION = 'v.38';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -23,7 +23,10 @@ const iconBadge = (ch, color, title, extra = '') => `<span class="tico ${extra}"
 const MONU = { l: 'M', c: '#9a6b2f', n: 'Monumenti' };
 const isMonu = (c) => (c.tags || []).includes('curiosità');
 const monuBadge = (extra = '') => `<span class="tico ${extra}" style="background:${MONU.c}" title="Monumento o curiosità">M</span>`;
-const pinBadge = (c, extra = '') => (isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
+// Luoghi degli scrittori (tag #letteratura): pallino con il libro
+const isLit = (c) => (c.tags || []).includes('letteratura');
+const litBadge = (extra = '') => `<span class="tico ${extra}" style="background:#1f6f5c;font-size:.8em" title="Luogo di uno scrittore">📖</span>`;
+const pinBadge = (c, extra = '') => (isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
   : c.hunt_step ? iconBadge(String(c.hunt_step), '#c0392b', `Caccia al tesoro · tappa ${c.hunt_step}`, extra)
   : c.unlock_at && Date.parse(c.unlock_at) > Date.now() ? iconBadge('⏳', '#8a6d3b', 'Capsula del tempo', extra)
   : badge(c.media_type, extra));
@@ -777,6 +780,7 @@ let lastView = null;   // ricorda centro e zoom tra una visita e l'altra
 const tagFilter = new Set();   // tag selezionati nella nuvola della mappa
 const typeFilter = new Set();  // tipi selezionati (photo, video, …) e/o 'mine'
 let monuHidden = store.get('ubi_monu_off') === '1';   // «M» spento: niente monumenti sulla mappa
+let litHidden = store.get('ubi_lit_off') === '1';     // «📖» spento: niente luoghi degli scrittori
 async function homeMap(opts = {}) {
   const el = $('#hmap');
   await waitLeaflet();
@@ -798,9 +802,10 @@ async function homeMap(opts = {}) {
       (!opts.dating || c.is_dating) &&
       (opts.dating || !types.length || types.includes(c.media_type) || (types.includes('dating') && c.is_dating)) &&
       (opts.dating || !typeFilter.has('mine') || c.is_owner) &&
-      (opts.dating || !monuHidden || !isMonu(c)) &&
+      (opts.dating || !monuHidden || !isMonu(c) || isLit(c)) &&
+      (opts.dating || !litHidden || !isLit(c)) &&
       (!tagFilter.size || (c.tags || []).some((t) => tagFilter.has(t))));
-    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'monu' ? !monuHidden : typeFilter.has(b.dataset.k)));
+    document.querySelectorAll('#typebar .chip').forEach((b) => b.classList.toggle('on', b.dataset.k === 'monu' ? !monuHidden : b.dataset.k === 'lit' ? !litHidden : typeFilter.has(b.dataset.k)));
     shown.forEach((c) => {
       L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
         .on('click', () => { location.hash = `#/c/${c.share_slug}`; })
@@ -826,6 +831,7 @@ async function homeMap(opts = {}) {
     const b = e.target.closest('button'); if (!b) return;
     const k = b.dataset.k;
     if (k === 'monu') { monuHidden = !monuHidden; store.set('ubi_monu_off', monuHidden ? '1' : null); }
+    else if (k === 'lit') { litHidden = !litHidden; store.set('ubi_lit_off', litHidden ? '1' : null); }
     else if (typeFilter.has(k)) typeFilter.delete(k); else typeFilter.add(k);
     const n = draw();
     msg($('#mm'), rows.length && !n ? 'Nessun contenuto con questi filtri in questa zona.' : '', 'info');
@@ -868,6 +874,7 @@ async function viewHome(user, prof) {
     <div id="hmap" class="map home"></div>
     <div class="chips types" id="typebar">${Object.entries(TYPES).map(([k, x]) => `<button class="chip" data-k="${k}"><span class="tico sm" style="background:${x.c}">${x.l}</span>${x.n}</button>`).join('')}
       <button class="chip" data-k="monu" title="Tocca per nascondere o mostrare monumenti e curiosità">${monuBadge('sm')}Monumenti</button>
+      <button class="chip" data-k="lit" title="Tocca per nascondere o mostrare i luoghi degli scrittori">${litBadge('sm')}Scrittori</button>
       <button class="chip" data-k="dating">${datingBadge('f', 'sm')}Dating</button>
       <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei</button></div>
     <div id="tagcloud" class="chips cloud"></div>
@@ -1793,7 +1800,7 @@ async function seedSave(r) {
   await B.create({
     title: r.title, hint: r.hint, media_type: file ? 'photo' : 'text', file, text_body: text,
     lat: r.lat, lng: r.lng, radius: 80, source: 'coordinates', visibility: 'public', recipients: [],
-    tags: ['curiosità', (r.tag || r.town).toLowerCase().replace(/[^a-zà-ù0-9' ]/g, '').slice(0, 24)], replies_enabled: true,
+    tags: [r.kind === 'lit' ? 'letteratura' : 'curiosità', (r.tag || r.town).toLowerCase().replace(/[^a-zà-ù0-9' ]/g, '').slice(0, 24)], replies_enabled: true,
   });
   return !!file;
 }
@@ -1804,7 +1811,7 @@ async function adminSeedTab(box) {
   const towns = [...new Set(items.map((i) => i.town))];
   const stat = (t) => { const its = items.filter((i) => i.town === t); const d = its.filter((i) => mine.has(i.title)); const txt = d.filter((i) => mine.get(i.title).media_type === 'text').length;
     return `${t} · ${d.length}/${its.length} creati${txt ? ` · ${txt} senza foto` : ''}`; };
-  const noPhoto = mineList.filter((c) => c.media_type === 'text' && (c.tags || []).includes('curiosità')).length;
+  const noPhoto = mineList.filter((c) => c.media_type === 'text' && ((c.tags || []).includes('curiosità') || (c.tags || []).includes('letteratura'))).length;
   box.innerHTML = `<div class="card"><p><b>${items.length}</b> curiosità in ${towns.length} comuni. Scegli un comune: cerco le foto libere su Wikimedia Commons e tu scegli quella giusta.</p>
     ${noPhoto ? `<p class="small">📷 Hai <b>${noPhoto}</b> curiosità già create senza foto: apri il loro comune, scegli una foto e premi «Aggiungi foto».</p>` : ''}
     <button class="accent full" id="seedauto">⚡ Fai tutto in automatico</button>
@@ -1885,7 +1892,7 @@ async function adminSeedTab(box) {
             await B.create({
               title: r.title, hint: r.hint, media_type: file ? 'photo' : 'text', file, text_body: text,
               lat: r.lat, lng: r.lng, radius: 80, source: 'coordinates', visibility: 'public', recipients: [],
-              tags: ['curiosità', (r.tag || r.town).toLowerCase().replace(/[^a-zà-ù0-9' ]/g, '').slice(0, 24)], replies_enabled: true,
+              tags: [r.kind === 'lit' ? 'letteratura' : 'curiosità', (r.tag || r.town).toLowerCase().replace(/[^a-zà-ù0-9' ]/g, '').slice(0, 24)], replies_enabled: true,
             });
             r.done = true; r.old = { media_type: file ? 'photo' : 'new' }; mine.set(r.title, r.old); made.push(r);
           }
