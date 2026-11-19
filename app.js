@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611190612';
+import { CONFIG } from './config.js?v=202611190627';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190612';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190627';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.56';
+const APP_VERSION = 'v.57';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2859,8 +2859,11 @@ const FAQ_GUIDE = [
     <li><b>Chi può aprirlo</b>: <i>Persone scelte</i> (tocca i nomi della tua <b>rubrica</b> o scrivi le email), <i>Tutti</i> o <i>Solo io</i>. Puoi aggiungere una <b>password</b>.</li>
     <li>Tocca <b>Fissa nel luogo</b>.</li></ol>`],
   ['4 · Condividi', `<ol>
-    <li>Dopo il salvataggio, o dalla lista con <b>Condividi</b>, hai il <b>link</b> del contenuto.</li>
-    <li>Mandalo con <b>WhatsApp</b>, <b>Copia link</b> o <b>Altro…</b> (SMS, email, social).</li>
+    <li>Dopo il salvataggio trovi in cima il pulsante <b>📤 Condividi questo pin</b>. Lo stesso pulsante c'è nella pagina di ogni pin e nella lista <b>I miei contenuti</b>.</li>
+    <li>Sul telefono si apre il menu Condividi con il <b>messaggio già scritto</b>, il link e un'<b>immagine del pin</b> con titolo, indizio e QR: perfetta per una storia su Instagram o TikTok.</li>
+    <li>Il messaggio con il link viene anche <b>copiato</b>: puoi incollarlo dove vuoi. Oppure usa le icone WhatsApp, Facebook, TikTok, Telegram, Instagram.</li>
+    <li>Anche chi riceve o trova un pin può condividerlo: così più persone scoprono il luogo e Ubi.</li>
+    <li>Se il pin è riservato, chi non è tra i destinatari non vede nulla del contenuto: trova solo un invito a scoprire Ubi.</li>
     <li>Se hai scelto <i>Persone scelte</i>, chi riceve il link deve accedere a Ubi <b>con la stessa email</b> che hai indicato.</li>
     <li>Se c'è una password, comunicala a parte (o lasciala come indovinello!).</li></ol>`],
   ['5 · Sblocca un contenuto', `<ol>
@@ -2870,7 +2873,9 @@ const FAQ_GUIDE = [
     <li>Una volta sbloccato, puoi <b>rivederlo ovunque</b>, anche da casa.</li>
     <li>Se dice <i>GPS impreciso</i>: spostati all'aperto, lontano da edifici alti, e riprova.</li></ol>`],
   ['6 · Gestisci i tuoi contenuti', `<ul>
-    <li>Sotto la mappa trovi <b>I miei contenuti</b>: <b>Condividi</b>, <b>Apri</b> (tu li vedi sempre) o <b>Elimina</b> (tocca due volte per confermare: il file viene cancellato).</li></ul>`],
+    <li>Sotto la mappa trovi <b>I miei contenuti</b>, raggruppati per tipo: un pulsante per <b>Immagine</b>, <b>Video</b>, <b>Testo</b>, <b>Link</b>, <b>Audio</b> (e Monumenti, Scrittori, Dating se ne hai), con il numero di pin.</li>
+    <li>Tocca un pulsante per aprire quei contenuti, toccalo di nuovo per chiuderli. Con la ricerca trovi un pin in tutte le categorie.</li>
+    <li>Per ogni pin: <b>Condividi</b>, <b>Apri</b> (tu li vedi sempre), <b>Modifica</b> o <b>Elimina</b> (tocca due volte per confermare: il file viene cancellato).</li></ul>`],
   ['6b · Il tuo profilo e i messaggi', `<ol>
     <li>Tocca <b>👤 Profilo</b> in alto (o la tua foto in home): aggiungi una <b>foto</b>, una breve <b>presentazione</b> e, se vuoi, i <b>contatti pubblici</b> (sito, Instagram, WhatsApp, email). Sono tutti facoltativi.</li>
     <li>Chi apre un tuo pin vede la tua foto e il tuo nome: toccandoli apre il tuo <b>profilo</b>, con i contatti e l'elenco dei tuoi pin pubblici.</li>
@@ -2899,10 +2904,18 @@ const FAQ_GUIDE = [
     <li>Chi sblocca l'ultima riceve un <b>codice unico</b>. Il gestore lo scrive in <i>Verifica un codice premio</i>: se è valido viene segnato come ritirato e non si può riusare.</li>
     <li>Pubblicizza il link della tappa 1 sui social o con un QR nel locale.</li></ol>`],
   ['📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram', `<ol>
-    <li>Sotto ogni pin creato, e nel riquadro <b>Invita un amico</b>, trovi le icone dei social: un tocco apre l'app con il link già pronto.</li>
-    <li><b>Instagram</b> non permette di condividere un link con un tocco: Ubi lo <b>copia</b> e apre Instagram. Crea una <b>storia</b>, tocca l'icona degli sticker → <b>Link</b> e incolla. Nei messaggi diretti basta incollarlo.</li>
-    <li>Anche <b>TikTok</b> funziona così: Ubi copia il link e apre TikTok; incollalo in un messaggio, nella descrizione del video o nella bio.</li>
+    <li>Sotto ogni pin e nel riquadro <b>Invita un amico</b> trovi le icone dei social.</li>
+    <li><b>WhatsApp, Facebook e Telegram</b> si aprono con il messaggio e il link già pronti.</li>
+    <li><b>TikTok e Instagram</b> non permettono di precompilare un post: sul telefono si apre il menu Condividi con il messaggio, il link e l'immagine (la card di Ubi o l'immagine del pin con il QR). Scegli TikTok o Instagram e pubblicala.</li>
+    <li>In ogni caso il <b>messaggio intero con il link</b> viene copiato: incollalo nella descrizione, in un messaggio o nella bio. Su Instagram puoi anche usare lo sticker <b>Link</b> nelle storie.</li>
     <li><b>Altro</b> apre il menu di condivisione del telefono (Messaggi, email, Signal…).</li></ol>`],
+  ['📣 Pubblicità su Ubi: fai conoscere la tua attività', `<ol>
+    <li>Hai un'<b>attività</b>, un <b>negozio</b>, un <b>ristorante</b>, un <b>evento</b> o un <b>prodotto</b> da far conoscere? Su Ubi puoi comparire con un <b>banner</b> nella pagina principale, quella che tutti vedono quando aprono l'app.</li>
+    <li>Il banner mostra il tuo <b>logo o una foto</b>, un titolo, una breve descrizione e porta al tuo sito, alla tua pagina social o al tuo negozio online. È segnato come <b>Sponsor</b>.</li>
+    <li>I banner girano uno alla volta e si alternano tra i diversi inserzionisti, così ognuno ha il suo spazio.</li>
+    <li>Puoi anche usare Ubi per portare gente da te: un <b>pin pubblico</b> davanti al locale, una <b>caccia al tesoro</b> con premio ritirabile in negozio, una <b>capsula del tempo</b> per un evento.</li>
+    <li>Per informazioni e condizioni scrivi a <a href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">info@ubipin.it</a>: indica il nome dell'attività, la città, cosa vuoi promuovere e per quanto tempo. Ti risponderemo con le proposte.</li></ol>
+    <a class="btn full accent" href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">✉️ Contattaci per la pubblicità</a>`],
   ['📸 Mettere un post o un reel di Instagram in un pin', `<ol>
     <li>Su Instagram apri il post o il reel e tocca l'icona <b>Condividi</b> (l'aeroplanino ✈️) → <b>Copia link</b>. Per un profilo: ⋯ in alto → <b>Copia URL del profilo</b>.</li>
     <li>In Ubi crea un nuovo pin, scegli il tipo <b>Link</b> e <b>incolla</b> (va bene anche tutto il testo copiato: il link lo troviamo noi).</li>
@@ -2916,7 +2929,8 @@ const FAQ_GUIDE = [
     <li>In <b>Le mie foto</b> puoi caricare fino a <b>6 foto</b>: le vede solo chi ha fatto con te il doppio sì («📷 Le sue foto»).</li>
     <li>Incontratevi solo in luoghi pubblici e segnalate abusi a info@ubipin.it.</li></ol>`],
   ['7 · Account e accesso', `<ul>
-    <li>Resti collegato finché non tocchi <b>Esci</b> in fondo alla pagina.</li>
+    <li>Resti collegato finché non tocchi <b>Esci</b>: lo trovi in alto nella home, accanto alla lingua, e nella pagina del profilo.</li>
+    <li><b>Lingua</b>: in alto nella home tocca <b>🌐 Lingua / Language</b> per passare dall'italiano all'inglese. Per mandare Ubi a chi parla inglese usa il link <b>ubipin.it/?lang=en</b>.</li>
     <li><b>Password dimenticata?</b> In <i>Accedi</i> scrivi l'email e tocca il pulsante: ti arriva un link per sceglierne una nuova. Aprilo con lo <b>stesso browser</b> in cui usi Ubi.</li>
     <li>Se usi Ubi dalla schermata Home su iPhone, la prima volta dovrai accedere anche lì.</li></ul>`],
   ['8 · Privacy e sicurezza', `<ul>
@@ -2997,8 +3011,8 @@ function viewOptout(esito) {
 function viewFaq(arg) {
   stopWatch();
   const det = ([q, a], open = false) => {
-    const isGeo = q.startsWith('📍 La posizione');
-    return `<details class="faq"${isGeo ? ' id="faq-posizione"' : ''}${open || (isGeo && arg === 'posizione') ? ' open' : ''}><summary>${q}</summary><div>${a}</div></details>`;
+    const id = q.startsWith('📍 La posizione') ? 'posizione' : q.startsWith('📣 Pubblicità') ? 'pubblicita' : '';
+    return `<details class="faq"${id ? ` id="faq-${id}"` : ''}${open || (id && arg === id) ? ' open' : ''}><summary>${q}</summary><div>${a}</div></details>`;
   };
   app.innerHTML = `
     <h1>Guida e idee</h1>
@@ -3013,7 +3027,7 @@ function viewFaq(arg) {
     [...$('#faqtabs').children].forEach((x) => x.classList.toggle('on', x === b));
     $('#faq-g').hidden = b.dataset.t !== 'g'; $('#faq-i').hidden = b.dataset.t !== 'i';
   };
-  if (arg === 'posizione') $('#faq-posizione').scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0);
+  if (arg && $(`#faq-${arg}`)) $(`#faq-${arg}`).scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0);
 }
 
 // ======================= AVVIO =======================
