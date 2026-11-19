@@ -14,6 +14,12 @@ export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch { /* */ } location.reload(); }
 
 const D = [
+  ['Offerta sbloccata!', 'Offer unlocked!'], ['Mostra questo codice alla cassa.', 'Show this code at the checkout.'],
+  ["È solo tuo, vale una volta: sei tra i primi che hanno sbloccato l'offerta.", "It's yours only and works once: you're among the first to unlock the offer."],
+  ['🎁 Offerta esaurita', '🎁 Offer sold out'], ['I codici sconto di questa offerta sono già stati presi tutti. Il contenuto resta tuo: guardalo quando vuoi.', 'All the discount codes for this offer have been taken. The content is still yours: watch it whenever you like.'],
+  ['^Codice già usato il', 'Code already used on'], ['Offerta in negozio', 'In-store offer'],
+  ['(es. «−20% ai primi 30»): crea una caccia con', '(e.g. "−20% for the first 30"): create a hunt with'], ['una sola tappa', 'a single stage'],
+  ['davanti al prodotto. I primi che la sbloccano ricevono ognuno un codice diverso; finiti i codici, gli altri vedono «Offerta esaurita».', 'in front of the product. The first people to unlock it each get a different code; once the codes run out, the others see "Offer sold out".'],
   ["Dopo il salvataggio trovi in cima il pulsante", "After saving, at the top you find the button"],
   [". Lo stesso pulsante c'è nella pagina di ogni pin e nella lista", ". The same button is on every pin's page and in the list"],
   ["Sul telefono si apre il menu Condividi con il", "On your phone the Share menu opens with the"],

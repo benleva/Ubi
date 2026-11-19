@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611190627';
+import { CONFIG } from './config.js?v=202611190842';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190627';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190842';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.57';
+const APP_VERSION = 'v.58';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1791,6 +1791,15 @@ async function huntPrizeBox(t, slug, box) {
   const p = await B.myHuntPrize(slug);
   if (!p || !document.body.contains(box)) return;
   if (!p.is_last) { box.innerHTML = `<div class="msg ok">🗺️ Tappa ${t.hunt_step} di ${p.steps} trovata! La tappa ${t.hunt_step + 1} ora compare sulla mappa: segui l'indizio qui sopra.</div>`; return; }
+  // Caccia di una sola tappa = offerta in negozio: stessi codici unici, testi da promozione
+  if (p.steps === 1) {
+    box.innerHTML = p.code
+      ? `<div class="card prize center"><div style="font-size:46px">🎁</div><h2>Offerta sbloccata!</h2>
+        <p><b>${esc(p.prize)}</b></p><div class="prizecode">${esc(p.code)}</div>
+        ${p.redeemed_at ? `<p class="muted">Codice già usato il ${fmtWhen(p.redeemed_at)}.</p>` : '<p><b>Mostra questo codice alla cassa.</b> È solo tuo, vale una volta: sei tra i primi che hanno sbloccato l\'offerta.</p>'}</div>`
+      : `<div class="card center"><h2>🎁 Offerta esaurita</h2><p class="muted">I codici sconto di questa offerta sono già stati presi tutti. Il contenuto resta tuo: guardalo quando vuoi.</p></div>`;
+    return;
+  }
   if (p.code) {
     box.innerHTML = `<div class="card prize center"><div style="font-size:46px">🏆</div><h2>Hai completato «<span translate="no">${esc(p.hunt_title)}</span>»!</h2>
       <p>Hai vinto: <b>${esc(p.prize)}</b></p><div class="prizecode">${esc(p.code)}</div>
@@ -1804,7 +1813,8 @@ async function viewHunts() {
     <div class="card datingtips" style="background:#fff8ee;border-color:#f3d9b8"><b>Una promo da giocare in città.</b>
       <ul class="small"><li>Crei la caccia e scegli il <b>premio</b> (es. «una birra media o una maglietta») e quanti vincitori al massimo.</li>
       <li>Aggiungi le <b>tappe</b> (es. 3): ognuna è un pin con un indizio. La tappa successiva compare solo dopo aver trovato la precedente.</li>
-      <li>Chi sblocca l'ultima riceve un <b>codice unico</b>: lo verifichi qui e lo segni come ritirato.</li></ul></div>
+      <li>Chi sblocca l'ultima riceve un <b>codice unico</b>: lo verifichi qui e lo segni come ritirato.</li>
+      <li><b>Offerta in negozio</b> (es. «−20% ai primi 30»): crea una caccia con <b>una sola tappa</b> davanti al prodotto. I primi che la sbloccano ricevono ognuno un codice diverso; finiti i codici, gli altri vedono «Offerta esaurita».</li></ul></div>
     <div class="card"><form id="hf"><h2>Nuova caccia</h2>
       <label for="ht">Nome</label><input id="ht" maxlength="80" required placeholder="Es. La caccia del Kymera">
       <label for="hp">Premio</label><input id="hp" maxlength="200" required placeholder="Es. Una birra media o una maglietta">
