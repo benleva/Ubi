@@ -194,3 +194,11 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .clus { display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #1f3a5f; color: #fff;
   font-weight: 700; font-size: 14px; border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
 .marker-cluster-anim .leaflet-marker-icon, .marker-cluster-anim .leaflet-marker-shadow { transition: transform .3s ease-out, opacity .3s ease-in; }
+
+/* I miei contenuti: un pulsante per categoria, la lista si apre al tocco */
+.mycats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0}
+.mycat{display:flex;align-items:center;gap:8px;min-height:48px;padding:8px 12px;border:1px solid #d9d3c8;border-radius:12px;background:#fff;color:#1f3a5f;font:inherit;font-weight:600;text-align:left;cursor:pointer}
+.mycat .lbl{flex:1}
+.mycat .n{font-weight:700;background:#f0ebe2;border-radius:999px;padding:2px 9px;font-size:.85em}
+.mycat.on{background:#1f3a5f;color:#fff;border-color:#1f3a5f}
+.mycat.on .n{background:#e8743b;color:#fff}

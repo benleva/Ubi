@@ -14,6 +14,7 @@ export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch { /* */ } location.reload(); }
 
 const D = [
+  ['Tocca una categoria per aprire i tuoi contenuti, oppure cerca qui sopra.', 'Tap a category to open your content, or search above.'],
   // ——— generali, tipi, visibilità
   ['Immagine', 'Image'], ['Testo', 'Text'], ['Video', 'Video'], ['Link', 'Link'], ['Audio', 'Audio'],
   ['Monumento o curiosità', 'Monument or curiosity'], ['Luogo di uno scrittore', 'A writer\'s place'],

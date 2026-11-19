@@ -1,10 +1,10 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611181944';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611181944';
+import { CONFIG } from './config.js?v=202611190424';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190424';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.51';
+const APP_VERSION = 'v.52';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -952,13 +952,15 @@ async function viewHome(user, prof) {
   // cerca nei miei contenuti: testo (titolo, indizio, tag) + categoria
   const CATS = [['all', 'Tutto'], ...Object.entries(TYPES).map(([k, x]) => [k, x.n]), ['monu', 'Monumenti'], ['lit', 'Scrittori'], ['dating', 'Dating']];
   const cnt = { all: items.length }; items.forEach((c) => { const k = pinCat(c); cnt[k] = (cnt[k] || 0) + 1; });
-  let cat = 'all';
+  let cat = '';
+  const catIcon = (k) => k === 'all' ? '<span class="tico sm" style="background:#888">★</span>' : k === 'monu' ? monuBadge('sm') : k === 'lit' ? litBadge('sm') : k === 'dating' ? datingBadge('f', 'sm') : `<span class="tico sm" style="background:${TYPES[k].c}">${TYPES[k].l}</span>`;
   $('#list').innerHTML = `<input id="mysearch" type="search" placeholder="🔍 Cerca nei miei contenuti (titolo, indizio, #tag)" autocomplete="off">
-    <div class="chips" id="mycats" style="margin:8px 0">${CATS.filter(([k]) => k === 'all' || cnt[k]).map(([k, n]) => `<button class="chip${k === 'all' ? ' on' : ''}" data-c="${k}">${esc(n)}<span class="n">${cnt[k] || 0}</span></button>`).join('')}</div>
+    <div class="mycats" id="mycats">${CATS.filter(([k]) => k === 'all' || cnt[k]).map(([k, n]) => `<button type="button" class="mycat" data-c="${k}" aria-expanded="false">${catIcon(k)}<span class="lbl">${esc(n)}</span><span class="n">${cnt[k] || 0}</span></button>`).join('')}</div>
     <p class="muted small" id="mycount"></p><div id="myitems"></div>`;
   const drawMine = () => {
     const q = $('#mysearch').value.trim().toLowerCase().replace(/^#/, '');
-    const vis = items.map((c, i) => [c, i]).filter(([c]) => (cat === 'all' || pinCat(c) === cat) &&
+    if (!cat && !q) { $('#mycount').textContent = 'Tocca una categoria per aprire i tuoi contenuti, oppure cerca qui sopra.'; $('#myitems').innerHTML = ''; return; }
+    const vis = items.map((c, i) => [c, i]).filter(([c]) => (!cat || cat === 'all' || pinCat(c) === cat) &&
       (!q || `${c.title} ${c.hint || ''} ${(c.tags || []).join(' ')}`.toLowerCase().includes(q)));
     $('#mycount').textContent = `${vis.length} di ${items.length} contenuti`;
     $('#myitems').innerHTML = vis.slice(0, 200).map(([c, i]) => `
@@ -975,7 +977,7 @@ async function viewHome(user, prof) {
       </div></div>`).join('') + (vis.length > 200 ? '<p class="muted small center">Ne mostro 200: scrivi qualcosa nella ricerca per trovare gli altri.</p>' : '');
   };
   $('#mysearch').oninput = drawMine;
-  $('#mycats').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; cat = b.dataset.c; $('#mycats').querySelectorAll('.chip').forEach((x) => x.classList.toggle('on', x === b)); drawMine(); };
+  $('#mycats').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; cat = cat === b.dataset.c ? '' : b.dataset.c; $('#mycats').querySelectorAll('.mycat').forEach((x) => { const on = x.dataset.c === cat; x.classList.toggle('on', on); x.setAttribute('aria-expanded', on ? 'true' : 'false'); }); drawMine(); if (cat) $('#mycount').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   drawMine();
   $('#list').onclick = async (e) => {
     const b = e.target.closest('button'); if (!b || !b.closest('.card[data-i]')) return;
