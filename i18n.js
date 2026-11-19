@@ -14,6 +14,12 @@ export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch { /* */ } location.reload(); }
 
 const D = [
+  ["🧩 La tua risposta all'indovinello", '🧩 Your answer to the riddle'], ['Scrivi qui la risposta', 'Type your answer here'],
+  ["Scrivi la risposta all'indovinello.", 'Type the answer to the riddle.'], ["Risposta sbagliata: rileggi l'indovinello e riprova.", 'Wrong answer: read the riddle again and retry.'],
+  ["^🧩 Risposta all'indovinello", "🧩 Answer to the riddle"], ['🔒 risposta attuale mantenuta', '🔒 current answer kept'], ['Es. campanile', 'E.g. bell tower'],
+  ['Chi gioca deve', 'Players must'], ['scriverla giusta', 'type it correctly'],
+  [", oltre a essere sul posto, per sbloccare questa tappa. Maiuscole, accenti e spazi non contano. Scrivi l'indovinello nell'", ', as well as being on the spot, to unlock this stage. Capitals, accents and spaces don\'t matter. Write the riddle in the'],
+  ['di questa tappa o nel contenuto della tappa prima.', "of this stage or in the content of the previous stage."], ['indizio', 'clue'],
   ['✓ Ritirato', '✓ Redeemed'], ['Conferma ritiro?', 'Confirm redemption?'],
   ['Il cliente ti mostra il codice sul telefono: se è uguale a quello sulla sua riga, tocca', 'The customer shows you the code on their phone: if it matches the one on their row, tap'],
   ['(due tocchi per confermare). Così nessuno ritira due volte.', '(two taps to confirm). That way nobody collects twice.'],

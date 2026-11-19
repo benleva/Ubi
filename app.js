@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611191022';
+import { CONFIG } from './config.js?v=202611191310';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191022';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191310';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.60';
+const APP_VERSION = 'v.61';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -62,6 +62,8 @@ const store = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
   set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch { /* storage non disponibile */ } },
 };
+// Risposte delle cacce: maiuscole, accenti, apostrofi e spazi non contano («la Chiesa» = «LA CHIESA» = «chiesa»? no: le parole devono esserci tutte)
+const normAnswer = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 const setPending = (h) => store.set('ubi_after_login', h);
 const popPending = () => { const h = store.get('ubi_after_login'); store.set('ubi_after_login', null); return h; };
 
@@ -570,7 +572,7 @@ function demoBackend() {
         already_unlocked: !!u && db.unlocks.some((x) => x.c === c.id && x.u === u.id),
         author: db.profiles[c.owner_id]?.display_name || null, tags: c.tags || [],
         author_id: c.owner_id, author_avatar: db.profiles[c.owner_id]?.avatar_path || null,
-        unlock_at: c.unlock_at || null, open_anywhere: !!c.open_anywhere,
+        unlock_at: c.unlock_at || null, open_anywhere: !!c.open_anywhere, hunt_id: c.hunt_id || null,
       };
     },
     async unlock(slug, pos, password) {
@@ -1053,6 +1055,7 @@ function bindPinShare(root = document) {
 async function viewNew(ed = null, opts = {}) {
   const dating = !!opts.dating;
   const hunt = opts.hunt || null;                      // { id, title, step }: tappa di una caccia al tesoro
+  const isStage = !!(hunt || (ed && ed.hunt_id));
   const capsuleOn = !!opts.capsule || !!(ed && ed.unlock_at);
   const maxTags = dating ? MAX_TAGS_DATING : MAX_TAGS;
   const s = { sel: new Set(), book: [], tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: dating || hunt ? 'public' : 'restricted' };
@@ -1142,8 +1145,11 @@ async function viewNew(ed = null, opts = {}) {
         <textarea id="emails" placeholder="maria@esempio.it, luca@esempio.it"></textarea>
         <p class="muted small">Solo chi accede con queste email potrà vederlo.</p>
         <div class="msg info small">📧 ${CONFIG.EMAIL_AUTO ? 'Quando premi <b>Fissa nel luogo</b>, le persone scelte ricevono <b>in automatico un\'email</b> con il link al pin.' : 'Dopo il salvataggio potrai avvisare le persone scelte con un\'email già scritta.'} Puoi anche mandare il link con WhatsApp.</div></div>
-      <label for="pwd">${ed && ed.has_password ? 'Nuova password (lascia vuoto per mantenere quella attuale)' : 'Password (facoltativa)'}</label>
-      <input id="pwd" type="text" autocomplete="off" maxlength="64" placeholder="${ed && ed.has_password ? '🔒 password attuale mantenuta' : 'Lascia vuoto per nessuna password'}">
+      ${isStage ? `<label for="pwd">🧩 Risposta all'indovinello ${ed && ed.has_password ? '(lascia vuoto per tenere quella attuale)' : '(facoltativa)'}</label>
+      <input id="pwd" type="text" autocomplete="off" maxlength="64" placeholder="${ed && ed.has_password ? '🔒 risposta attuale mantenuta' : 'Es. campanile'}">
+      <p class="muted small">Chi gioca deve <b>scriverla giusta</b>, oltre a essere sul posto, per sbloccare questa tappa. Maiuscole, accenti e spazi non contano. Scrivi l'indovinello nell'<b>indizio</b> di questa tappa o nel contenuto della tappa prima.</p>`
+      : `<label for="pwd">${ed && ed.has_password ? 'Nuova password (lascia vuoto per mantenere quella attuale)' : 'Password (facoltativa)'}</label>
+      <input id="pwd" type="text" autocomplete="off" maxlength="64" placeholder="${ed && ed.has_password ? '🔒 password attuale mantenuta' : 'Lascia vuoto per nessuna password'}">`}
       ${ed && ed.has_password ? '<label class="inline"><input type="checkbox" id="nopwd"><span>Togli la password</span></label>' : ''}
       <label class="inline" style="margin-top:12px"><input type="checkbox" id="replies" ${!ed || ed.replies_enabled !== false ? 'checked' : ''}>
         <span>Chi sblocca il pin può <b>lasciarmi una risposta</b> (testo, foto, video o audio): mi arriva un'email.</span></label>
@@ -1431,7 +1437,7 @@ async function viewNew(ed = null, opts = {}) {
       file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'file' ? s.media_type : s.kind, duration: s.kind === 'file' ? s.duration : null,
       text_body: s.kind === 'text' ? $('#txt').value.trim() : null, tags: [...s.tags],
       external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
-      visibility: dating ? 'public' : s.vis, recipients: dating ? [] : recipients, password: $('#pwd').value,
+      visibility: dating ? 'public' : s.vis, recipients: dating ? [] : recipients, password: isStage ? normAnswer($('#pwd').value) : $('#pwd').value,
       is_dating: dating, replies_enabled: dating ? true : $('#replies').checked,
       unlock_at, open_anywhere: !!unlock_at && $('#anywhere').checked,
       hunt_id: hunt ? hunt.id : null, hunt_step: hunt ? hunt.step : null,
@@ -1609,7 +1615,7 @@ async function viewContent(slug, user) {
          href="https://www.google.com/maps/dir/?api=1&destination=${t.lat},${t.lng}&travelmode=walking">Indicazioni per arrivarci ↗</a>
     </div>
     <div class="card">
-      ${t.requires_password ? '<label for="pwd">Password</label><input id="pwd" type="text" autocomplete="off">' : ''}
+      ${t.requires_password ? (t.hunt_id ? '<label for="pwd">🧩 La tua risposta all\'indovinello</label><input id="pwd" type="text" autocomplete="off" autocapitalize="off" placeholder="Scrivi qui la risposta">' : '<label for="pwd">Password</label><input id="pwd" type="text" autocomplete="off">') : ''}
       <div id="um"></div>
       ${!user ? '<button class="full" id="login">Accedi per sbloccare</button>'
         : (t.is_dating && !t.is_owner && !t.i_am_dating) ? '<div class="msg info small">I biglietti dating si aprono solo se sei iscritto a Ubi Dating (riservato ai maggiorenni).</div><a class="btn full accent" href="#/dating">💗 Iscriviti a Ubi Dating</a>'
@@ -1664,11 +1670,12 @@ async function viewContent(slug, user) {
     btn.disabled = true; msg($('#um'), '');
     try {
       const pos = anywhereNow ? (me || null) : (me || await getPos());
-      const r = await B.unlock(slug, pos, $('#pwd')?.value || null);
+      const typed = $('#pwd')?.value || '';
+      const r = await B.unlock(slug, pos, (t.hunt_id ? normAnswer(typed) : typed) || null);
       const M = {
         too_far: `Sei a ${fmtDist(r.distance_m ?? 0)}: avvicinati ancora.`,
         gps_inaccurate: 'Segnale GPS troppo impreciso: spostati all\'aperto e riprova.',
-        password_required: 'Serve la password.', wrong_password: 'Password errata.',
+        password_required: t.hunt_id ? 'Scrivi la risposta all\'indovinello.' : 'Serve la password.', wrong_password: t.hunt_id ? 'Risposta sbagliata: rileggi l\'indovinello e riprova.' : 'Password errata.',
         rate_limited: 'Troppi tentativi: riprova tra 15 minuti.', not_found: 'Contenuto non disponibile.',
         login_required: 'Accedi per sbloccare.',
         dating_required: 'Questo biglietto si apre solo se sei iscritto a Ubi Dating (18+). <a href="#/dating">Iscriviti</a>',
