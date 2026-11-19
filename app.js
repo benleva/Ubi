@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611191016';
+import { CONFIG } from './config.js?v=202611191022';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191016';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191022';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.59';
+const APP_VERSION = 'v.60';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1865,7 +1865,8 @@ async function viewHunt(id) {
       <div class="row"><input id="code" maxlength="6" placeholder="Es. A1B2C3" style="text-transform:uppercase;font-size:20px;letter-spacing:3px"><button class="accent" id="chk" style="flex:0 0 auto">Verifica</button></div>
       <div id="cm"></div></div>
     <div class="card"><h2>Vincitori</h2>
-      ${winners.length ? `<table class="tbl"><tr><th>Codice</th><th>Nome</th><th>Vinto</th><th>Ritirato</th></tr>${winners.map((w) => `<tr><td><b>${esc(w.code)}</b></td><td>${esc(w.name || '—')}</td><td>${fmtWhen(w.won_at)}</td><td>${w.redeemed_at ? '✅' : '—'}</td></tr>`).join('')}</table>`
+      ${winners.length ? `<table class="tbl"><tr><th>Codice</th><th>Nome</th><th>Vinto</th><th>Ritirato</th></tr>${winners.map((w) => `<tr><td><b>${esc(w.code)}</b></td><td>${esc(w.name || '—')}</td><td>${fmtWhen(w.won_at)}</td><td>${w.redeemed_at ? `✅ <span class="small muted">${fmtWhen(w.redeemed_at)}</span>` : `<button type="button" class="accent small" data-redeem="${esc(w.code)}">✓ Ritirato</button>`}</td></tr>`).join('')}</table>
+        <p class="muted small">Il cliente ti mostra il codice sul telefono: se è uguale a quello sulla sua riga, tocca <b>✓ Ritirato</b> (due tocchi per confermare). Così nessuno ritira due volte.</p>`
         : '<p class="muted">Ancora nessun vincitore.</p>'}</div>
     <p class="center small"><a href="#/cacce">Le mie cacce</a> · <a href="#" id="hdel">Elimina la caccia</a></p>`;
   B.huntStats(id).then((st) => {
@@ -1877,6 +1878,15 @@ async function viewHunt(id) {
       <p class="muted small">Solo numeri: Ubi non comunica nomi né email di chi ha sbloccato.</p>`;
     $('#hstats').hidden = false;
   });
+  app.querySelectorAll('[data-redeem]').forEach((b) => { b.onclick = async () => {
+    if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma ritiro?'; setTimeout(() => { if (document.body.contains(b) && !b.disabled) { b.dataset.confirm = ''; b.textContent = '✓ Ritirato'; } }, 4000); return; }
+    b.disabled = true; b.textContent = '…';
+    try {
+      const r = await B.huntRedeem(id, b.dataset.redeem);
+      if (r.status === 'already') alert(`Questo premio era già stato ritirato${r.redeemed_at ? ' il ' + fmtWhen(r.redeemed_at) : ''}.`);
+      viewHunt(id);
+    } catch (err) { b.disabled = false; b.textContent = '✓ Ritirato'; alert(errText(err)); }
+  }; });
   $('#chk').onclick = async () => {
     const code = $('#code').value.trim(); if (!code) return;
     try {
