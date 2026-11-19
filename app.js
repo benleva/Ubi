@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611191310';
+import { CONFIG } from './config.js?v=202611191540';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191310';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191540';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.61';
+const APP_VERSION = 'v.62';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -64,6 +64,41 @@ const store = {
 };
 // Risposte delle cacce: maiuscole, accenti, apostrofi e spazi non contano («la Chiesa» = «LA CHIESA» = «chiesa»? no: le parole devono esserci tutte)
 const normAnswer = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+// ---------- Caccia al tesoro: schermate «Esatto!/Sbagliato» e modalità caccia sulla mappa ----------
+const T2 = (it, en) => (LANG === 'en' ? en : it);   // testi con numeri dentro: li scrivo già nelle due lingue
+const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch { /* niente vibrazione */ } };
+// Tappe fatte da me, per caccia (solo su questo telefono): servono a colorarle di verde sulla mappa
+const huntTrail = (id) => { try { return JSON.parse(store.get(`ubi_hunt_${id}`)) || { done: {} }; } catch { return { done: {} }; } };
+function huntRecord(t, slug) {
+  const h = huntTrail(t.hunt_id);
+  h.title = t.hunt_title || h.title || ''; h.steps = t.hunt_steps || h.steps || 0;
+  h.done[t.hunt_step] = { slug, lat: t.lat, lng: t.lng };
+  store.set(`ubi_hunt_${t.hunt_id}`, JSON.stringify(h));
+}
+const huntFocus = () => { try { return JSON.parse(store.get('ubi_hunt_focus')); } catch { return null; } };
+// done = la tappa «step» è già sbloccata (verde con ✓)
+const stepBar = (step, steps, done = false) => { const lbl = done ? T2(`Tappa ${step} di ${steps} ✓`, `Stage ${step} of ${steps} ✓`) : T2(`Tappa ${step} di ${steps}`, `Stage ${step} of ${steps}`);
+  return `<div class="hsteps" aria-label="${lbl}">${Array.from({ length: steps }, (_, i) => { const ok = i + 1 < step || (done && i + 1 === step);
+    return `<span class="${ok ? 'ok' : i + 1 === step ? 'now' : ''}">${ok ? '✓' : i + 1}</span>`; }).join('<i></i>')}</div><p class="hsteplbl">${lbl}</p>`; };
+// Schermata intera: kind = 'ok' (verde) o 'bad' (rosso). Si chiude col pulsante; onClose dopo.
+function huntOverlay({ kind, icon, title, sub = '', step, steps, button, onClose }) {
+  document.querySelectorAll('.hov').forEach((e) => e.remove());
+  const o = document.createElement('div');
+  o.className = `hov ${kind}`; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
+  o.innerHTML = `<div class="hovin">${kind === 'ok' ? '<div class="confetti" aria-hidden="true">' + '<i></i>'.repeat(18) + '</div>' : ''}
+    <div class="hovico">${icon}</div><h1>${title}</h1>${sub ? `<p class="hovsub">${sub}</p>` : ''}
+    ${step && steps > 1 ? stepBar(step, steps, kind === 'ok') : ''}
+    <button class="full hovbtn" type="button">${button}</button></div>`;
+  document.body.appendChild(o);
+  buzz(kind === 'ok' ? [60, 40, 60, 40, 160] : [220]);
+  const b = o.querySelector('.hovbtn'); setTimeout(() => b.focus(), 50);
+  b.onclick = () => { o.classList.add('out'); setTimeout(() => o.remove(), 220); onClose && onClose(); };
+}
+function huntToast(text) {
+  const d = document.createElement('div'); d.className = 'htoast'; d.textContent = text;
+  document.body.appendChild(d); buzz([40, 30, 40]);
+  setTimeout(() => d.classList.add('out'), 3200); setTimeout(() => d.remove(), 3700);
+}
 const setPending = (h) => store.set('ubi_after_login', h);
 const popPending = () => { const h = store.get('ubi_after_login'); store.set('ubi_after_login', null); return h; };
 
@@ -561,7 +596,7 @@ function demoBackend() {
       const u = db.user;
       return db.contents.filter((c) => canAccess(c, u) && c.lat >= b.s && c.lat <= b.n && c.lng >= b.w && c.lng <= b.e)
         .map((c) => ({ share_slug: c.share_slug, title: c.title, media_type: c.media_type, lat: c.lat, lng: c.lng,
-          is_owner: c.owner_id === u.id, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u.id), tags: c.tags || [] }));
+          is_owner: c.owner_id === u.id, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u.id), tags: c.tags || [], hunt_step: c.hunt_step || null }));
     },
     async teaser(slug) {
       const u = db.user; const c = db.contents.find((x) => x.share_slug === slug);
@@ -573,6 +608,8 @@ function demoBackend() {
         author: db.profiles[c.owner_id]?.display_name || null, tags: c.tags || [],
         author_id: c.owner_id, author_avatar: db.profiles[c.owner_id]?.avatar_path || null,
         unlock_at: c.unlock_at || null, open_anywhere: !!c.open_anywhere, hunt_id: c.hunt_id || null,
+        hunt_step: c.hunt_step || null, hunt_steps: c.hunt_id ? db.contents.filter((x) => x.hunt_id === c.hunt_id).length : null,
+        hunt_title: c.hunt_title || null, hunt_locked: false,
       };
     },
     async unlock(slug, pos, password) {
@@ -629,6 +666,7 @@ async function route() {
 }
 async function routeInner() {
   stopWatch();
+  document.querySelectorAll('.hov,.htoast').forEach((e) => e.remove());
   refreshInbox();
   window.scrollTo(0, 0);   // ogni nuova schermata si apre dall'inizio
   if (B.recovery) return viewNewPassword();
@@ -848,6 +886,8 @@ async function homeMap(opts = {}) {
     html: pinBadge(c, `pin${c.is_owner ? ' mine' : ''}${c.is_owner || c.unlocked ? '' : ' locked'}`),
   });
   let rows = [];
+  const hunt = opts.dating ? null : huntFocus();   // modalità caccia: la prossima tappa in primo piano
+  const huntSlugs = new Set();                     // pin disegnati dalla caccia (fuori dai gruppi)
   const draw = () => {
     layer.clearLayers();
     // filtri: categoria scelta (nessuna = tutte) E tag (uno qualsiasi dei selezionati) E, se scelto, solo i miei
@@ -862,7 +902,7 @@ async function homeMap(opts = {}) {
       b.classList.toggle('on', k === 'all' ? !showCats.size && !onlyMine : k === 'mine' ? onlyMine : showCats.has(k));
       const n = b.querySelector('.n'); if (n) n.textContent = k === 'all' ? rows.length : cnt[k] || 0;
     });
-    const mks = shown.map((c) => L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
+    const mks = shown.filter((c) => !huntSlugs.has(c.share_slug)).map((c) => L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
       .on('click', () => { location.hash = `#/c/${c.share_slug}`; }));
     if (layer.addLayers) layer.addLayers(mks); else mks.forEach((m) => m.addTo(layer));
     // nuvola: tag presenti nella zona, i più usati prima; i selezionati restano sempre visibili
@@ -916,8 +956,68 @@ async function homeMap(opts = {}) {
     } catch (err) { msg($('#mm'), errText(err)); }
   };
   $('#nearme').onclick = () => centerOnMe(16);
+  if (hunt) { first = false; return huntMode(); }
   if (lastView) map.setView(lastView.c, lastView.z); else load();
   if (!lastView) getPos().then((p) => { if (document.body.contains(el) && first !== null) { me = p; L.circleMarker([p.lat, p.lng], { radius: 7, color: '#1f3a5f', fillOpacity: 0.9 }).addTo(map); map.setView([p.lat, p.lng], 15); } }).catch(() => {});
+
+  // ---- Modalità caccia ----
+  async function huntMode() {
+    el.classList.add('huntmode');
+    el.insertAdjacentHTML('beforebegin', `<div class="huntbar" id="huntbar">
+      <div class="hbtop"><b>🗺️ <span translate="no">${esc(hunt.title)}</span></b><button class="ghost hexit" id="huntexit" type="button">✕ ${T2('Esci dalla caccia', 'Leave the hunt')}</button></div>
+      ${hunt.steps > 1 ? stepBar(hunt.next, hunt.steps) : ''}
+      <p class="hdist" id="hdist">${T2('Cerco la prossima tappa…', 'Looking for the next stage…')}</p></div>`);
+    $('#huntexit').onclick = () => { store.set('ubi_hunt_focus', null); lastView = null; route(); };
+    const trail = huntTrail(hunt.hunt_id);
+    const ico = (html, cls, size = 34) => L.divIcon({ className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2], html: `<span class="tico pin ${cls}">${html}</span>` });
+    Object.entries(trail.done || {}).forEach(([step, x]) => {
+      if (!x || x.lat == null) return;
+      huntSlugs.add(x.slug);
+      L.marker([x.lat, x.lng], { icon: ico('✓', 'hdone'), title: T2(`Tappa ${step} ✓`, `Stage ${step} ✓`), zIndexOffset: 500 })
+        .on('click', () => { location.hash = `#/c/${x.slug}`; }).addTo(map);
+    });
+    // la prossima tappa: tra i pin visibili, quella col numero giusto più vicina alla tappa appena fatta
+    let target = null;
+    for (const d of [0.05, 0.3, 1.5]) {
+      try {
+        const rs = await B.mapContents({ s: hunt.lat - d, w: hunt.lng - d * 1.4, n: hunt.lat + d, e: hunt.lng + d * 1.4 });
+        const c = rs.filter((x) => x.hunt_step === hunt.next && !x.is_owner && !huntSlugs.has(x.share_slug))
+          .sort((a, b) => (a.unlocked - b.unlocked) || distanceM(hunt.lat, hunt.lng, a.lat, a.lng) - distanceM(hunt.lat, hunt.lng, b.lat, b.lng));
+        if (c.length) { target = c[0]; break; }
+      } catch { /* riprovo più largo */ }
+    }
+    if (!document.body.contains(el)) return;
+    if (!target) {
+      $('#hdist').textContent = T2(`La tappa ${hunt.next} non è ancora sulla mappa: segui l'indizio e riprova tra poco.`, `Stage ${hunt.next} isn't on the map yet: follow the clue and try again shortly.`);
+      map.setView([hunt.lat, hunt.lng], 16); load(); return;
+    }
+    huntSlugs.add(target.share_slug);
+    const tm = L.marker([target.lat, target.lng], { icon: ico(String(hunt.next), 'hnext', 40), title: T2(`Tappa ${hunt.next}`, `Stage ${hunt.next}`), zIndexOffset: 1000 })
+      .on('click', () => { location.hash = `#/c/${target.share_slug}`; }).addTo(map);
+    map.fitBounds([[hunt.lat, hunt.lng], [target.lat, target.lng]], { padding: [60, 60], maxZoom: 17 });
+    load();
+    if (hunt.fresh) {
+      setTimeout(() => huntToast(T2('Nuova tappa sbloccata! 🎉', 'New stage unlocked! 🎉')), 500);
+      store.set('ubi_hunt_focus', JSON.stringify({ ...hunt, fresh: 0 }));
+    }
+    let meM = null, line = null, fitted = false;
+    const upd = (p) => {
+      if (!document.body.contains(el)) { stopWatch(); return; }
+      const ll = [p.lat, p.lng];
+      if (!meM) meM = L.circleMarker(ll, { radius: 8, color: '#1f3a5f', fillOpacity: 0.9 }).addTo(map); else meM.setLatLng(ll);
+      if (!line) line = L.polyline([ll, [target.lat, target.lng]], { color: '#c0392b', weight: 3, dashArray: '8 10', opacity: 0.85 }).addTo(map);
+      else line.setLatLngs([ll, [target.lat, target.lng]]);
+      const dm = distanceM(p.lat, p.lng, target.lat, target.lng);
+      $('#hdist').innerHTML = `📍 <b>${fmtDist(dm)}</b> ${T2('in linea d\'aria dalla tappa', 'as the crow flies to stage')} ${hunt.next} · <a href="#/c/${esc(target.share_slug)}">${T2('apri la tappa', 'open the stage')}</a>`;
+      if (!fitted) { fitted = true; map.fitBounds([ll, [target.lat, target.lng]], { padding: [60, 60], maxZoom: 17 }); }
+    };
+    $('#hdist').innerHTML = `<a href="#/c/${esc(target.share_slug)}">${T2('Tocca il pin rosso per aprire la tappa', 'Tap the red pin to open the stage')}</a>`;
+    if (navigator.geolocation) {
+      stopWatch();
+      watchId = navigator.geolocation.watchPosition((p) => upd({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {}, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
+    }
+    void tm;
+  }
 }
 
 function topTools() {
@@ -1556,7 +1656,7 @@ async function viewContent(slug, user) {
       <a class="btn" href="#/">Vai alla mappa</a></div>`;
     return;
   }
-  const huntLine = t.hunt_id ? `<div class="msg info small">🗺️ Caccia al tesoro «${esc(t.hunt_title || '')}» · tappa <b>${t.hunt_step}</b> di ${t.hunt_steps}</div>` : '';
+  const huntLine = t.hunt_id ? `<div class="msg info small">🗺️ Caccia al tesoro «${esc(t.hunt_title || '')}» · tappa <b>${t.hunt_step}</b> di ${t.hunt_steps}</div>${t.hunt_steps > 1 ? `<div class="hprog">${stepBar(t.hunt_step, t.hunt_steps)}</div>` : ''}` : '';
   const opensAt = t.unlock_at ? new Date(t.unlock_at) : null;
   const early = opensAt && Date.now() < opensAt.getTime() && !t.is_owner;
   const anywhereNow = opensAt && t.open_anywhere && Date.now() >= opensAt.getTime();
@@ -1565,18 +1665,28 @@ async function viewContent(slug, user) {
     ? `<h1>${datingBadge(t.gender)} <span translate="no">${esc(t.title)}</span></h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
     : `<h1>${badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const header = header0 + huntLine + capLine;
+  const player = t.hunt_id && !t.is_owner;
+  const isLast = player && t.hunt_step >= t.hunt_steps;
+  const huntNext = !player ? '' : isLast ? ''
+    : `<button class="full huntgo" id="huntgo" type="button">🗺️ ${t.hunt_step + 1 === t.hunt_steps ? T2("Scopri l'ultima tappa", 'Reveal the last stage') : T2('Scopri la prossima tappa', 'Reveal the next stage')}</button>`;
   const showUnlocked = (r, d) => {
     stopWatch();
-    app.innerHTML = `${header}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
+    if (player) { huntRecord(t, slug); if (isLast && huntFocus()?.hunt_id === t.hunt_id) store.set('ubi_hunt_focus', null); }
+    const hdr = player && t.hunt_steps > 1 ? header0 + huntLine.replace(/<div class="hprog">[\s\S]*$/, `<div class="hprog">${stepBar(t.hunt_step, t.hunt_steps, true)}</div>`) + capLine : header;
+    app.innerHTML = `${hdr}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
       <div class="card media">${renderMedia(t.media_type, r)}</div>
+      ${huntNext}<div id="prizebox"></div>
       ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica o sostituisci il contenuto</a>
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
       ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint)}
-      <div id="prizebox"></div>
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     bindPinShare(app);
+    if ($('#huntgo')) $('#huntgo').onclick = () => {
+      store.set('ubi_hunt_focus', JSON.stringify({ hunt_id: t.hunt_id, title: t.hunt_title || '', next: t.hunt_step + 1, steps: t.hunt_steps, lat: t.lat, lng: t.lng, fresh: 1 }));
+      lastView = null; location.hash = '#/';
+    };
     if (user) replySection(t, slug, $('#replybox')).catch((err) => msg($('#replybox'), errText(err)));
     if (user && t.hunt_id) huntPrizeBox(t, slug, $('#prizebox')).catch(() => {});
     if ($('#delpin')) $('#delpin').onclick = async () => {
@@ -1673,7 +1783,7 @@ async function viewContent(slug, user) {
       const typed = $('#pwd')?.value || '';
       const r = await B.unlock(slug, pos, (t.hunt_id ? normAnswer(typed) : typed) || null);
       const M = {
-        too_far: `Sei a ${fmtDist(r.distance_m ?? 0)}: avvicinati ancora.`,
+        too_far: T2(`📍 Ti mancano ${fmtDist(Math.max(1, (r.distance_m ?? 0) - (t.unlock_radius_m || 0)))}: avvicinati ancora.`, `📍 ${fmtDist(Math.max(1, (r.distance_m ?? 0) - (t.unlock_radius_m || 0)))} to go: get closer.`),
         gps_inaccurate: 'Segnale GPS troppo impreciso: spostati all\'aperto e riprova.',
         password_required: t.hunt_id ? 'Scrivi la risposta all\'indovinello.' : 'Serve la password.', wrong_password: t.hunt_id ? 'Risposta sbagliata: rileggi l\'indovinello e riprova.' : 'Password errata.',
         rate_limited: 'Troppi tentativi: riprova tra 15 minuti.', not_found: 'Contenuto non disponibile.',
@@ -1682,8 +1792,32 @@ async function viewContent(slug, user) {
         too_early: 'È una capsula del tempo: non si può ancora aprire.',
         hunt_locked: 'Trova prima la tappa precedente della caccia al tesoro.',
       };
-      if (r.status === 'ok') return showUnlocked(r, r.distance_m);
-      msg($('#um'), M[r.status] || r.status);
+      if (r.status === 'ok') {
+        showUnlocked(r, r.distance_m);
+        if (player) {
+          const first = t.hunt_step === 1 && t.hunt_steps > 1;
+          huntOverlay({
+            kind: 'ok', icon: isLast ? '🏆' : first ? '🚀' : '✅',
+            title: isLast ? T2('Hai vinto! 🎉', 'You won! 🎉') : first ? T2('Si parte!', "Let's go!") : T2('Esatto!', 'Correct!'),
+            sub: isLast ? T2(`Hai completato «${esc(t.hunt_title || '')}»`, `You completed «${esc(t.hunt_title || '')}»`)
+              : first ? T2('Prima tappa trovata. Leggi il primo indizio!', 'First stage found. Read the first clue!')
+              : T2(`Tappa ${t.hunt_step} superata. Ecco il prossimo indizio.`, `Stage ${t.hunt_step} cleared. Here is the next clue.`),
+            step: t.hunt_step, steps: t.hunt_steps,
+            button: isLast ? T2('🎁 Guarda cosa hai vinto', '🎁 See what you won') : T2("📜 Leggi l'indizio", '📜 Read the clue'),
+            onClose: () => {
+              const el = isLast ? $('#prizebox') : $('.card.media');
+              if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); }
+            },
+          });
+        }
+        return;
+      }
+      if (player && r.status === 'wrong_password') {
+        huntOverlay({ kind: 'bad', icon: '❌', title: T2('Sbagliato', 'Wrong'), sub: T2("Rileggi bene l'indovinello e riprova: maiuscole e accenti non contano.", "Read the riddle again and retry: capitals and accents don't matter."),
+          button: T2('↻ Riprova', '↻ Try again'), onClose: () => { const i = $('#pwd'); if (i) { i.focus(); i.select(); } } });
+        btn.disabled = false; return;
+      }
+      msg($('#um'), M[r.status] || r.status, r.status === 'too_far' ? 'warn' : 'err');
     } catch (err) { msg($('#um'), errText(err)); }
     btn.disabled = false;
   };
@@ -1808,7 +1942,7 @@ async function huntPrizeBox(t, slug, box) {
   if (t.is_owner) { box.innerHTML = `<a class="btn ghost full" href="#/caccia/${esc(t.hunt_id)}" style="margin-bottom:10px">🗺️ Gestisci la caccia e i premi</a>`; return; }
   const p = await B.myHuntPrize(slug);
   if (!p || !document.body.contains(box)) return;
-  if (!p.is_last) { box.innerHTML = `<div class="msg ok">🗺️ Tappa ${t.hunt_step} di ${p.steps} trovata! La tappa ${t.hunt_step + 1} ora compare sulla mappa: segui l'indizio qui sopra.</div>`; return; }
+  if (!p.is_last) { if ($('#huntgo')) return; box.innerHTML = `<div class="msg ok">🗺️ Tappa ${t.hunt_step} di ${p.steps} trovata! La tappa ${t.hunt_step + 1} ora compare sulla mappa: segui l'indizio qui sopra.</div>`; return; }
   // Caccia di una sola tappa = offerta in negozio: stessi codici unici, testi da promozione
   if (p.steps === 1) {
     box.innerHTML = p.code

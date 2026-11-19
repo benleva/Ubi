@@ -73,7 +73,7 @@ form button[type=submit] { margin-top: 16px; }
 .tico { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%;
   color: #fff; font-weight: 800; font-size: 15px; line-height: 1; vertical-align: middle; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
 .tico.sm { width: 20px; height: 20px; font-size: 11px; margin-right: 5px; box-shadow: none; }
-.tico.pin { width: 34px; height: 34px; font-size: 16px; border: 2px solid #fff; cursor: pointer; }
+.tico.pin { width: 34px; height: 34px; font-size: 16px; border: 2px solid #fff; cursor: pointer; transform: none; }   /* niente rotazione del logo .pin: lettere dritte */
 .tico.mine { outline: 3px solid var(--ink); outline-offset: 0; }
 .tico.locked { opacity: .9; }
 h1 .tico { width: 34px; height: 34px; font-size: 17px; margin-right: 4px; position: relative; top: -2px; }
@@ -211,3 +211,66 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .adbanner .adtag { top: 7px; right: 12px; font-size: 10px; }
 .adbanner { padding-top: 22px; }
 .adbanner .adtxt b { padding-right: 0; }
+
+/* ---- Caccia al tesoro: schermate intere, avanzamento, modalità caccia ---- */
+.msg.warn { background: #fff1e0; color: #a85a00; }
+.hov { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 24px;
+  color: #fff; text-align: center; animation: hovin .25s ease-out; overflow: hidden; }
+.hov.ok { background: radial-gradient(circle at 50% 35%, #3bb36a, #1e7d45); }
+.hov.bad { background: radial-gradient(circle at 50% 35%, #e0564b, #a8231a); }
+.hov.out { animation: hovout .22s ease-in forwards; }
+.hovin { max-width: 380px; width: 100%; position: relative; }
+.hov h1 { color: #fff; font-size: 42px; margin: 6px 0 8px; line-height: 1.1; }
+.hovico { font-size: 84px; line-height: 1; animation: pop .5s cubic-bezier(.2,1.6,.4,1) both; }
+.hov.bad .hovico { animation: shake .45s ease both; }
+.hovsub { font-size: 18px; opacity: .95; margin: 0 0 18px; }
+.hovbtn { background: #fff !important; color: #1e3b2a !important; font-size: 19px; font-weight: 700; padding: 15px; border-radius: 14px; margin-top: 18px; }
+.hov.bad .hovbtn { color: #a8231a !important; }
+.hov .hsteps span { border-color: #fff; color: #fff; }
+.hov .hsteps span.ok { background: #fff; color: #1e7d45; }
+.hov .hsteps span.now { background: #ffd54a; color: #5a3b00; border-color: #ffd54a; }
+.hov .hsteps i { background: rgba(255,255,255,.6); }
+.hov .hsteplbl { color: #fff; }
+.confetti { position: absolute; inset: -40px 0 auto; height: 0; pointer-events: none; }
+.confetti i { position: absolute; top: 0; width: 9px; height: 14px; border-radius: 2px; opacity: 0; animation: conf 1.6s ease-out forwards; }
+.confetti i:nth-child(3n) { background: #ffd54a; } .confetti i:nth-child(3n+1) { background: #fff; } .confetti i:nth-child(3n+2) { background: #ff8a65; }
+.confetti i:nth-child(1){left:5%;animation-delay:.05s} .confetti i:nth-child(2){left:11%;animation-delay:.3s} .confetti i:nth-child(3){left:17%;animation-delay:.15s}
+.confetti i:nth-child(4){left:23%;animation-delay:.4s} .confetti i:nth-child(5){left:29%} .confetti i:nth-child(6){left:35%;animation-delay:.25s}
+.confetti i:nth-child(7){left:41%;animation-delay:.1s} .confetti i:nth-child(8){left:47%;animation-delay:.35s} .confetti i:nth-child(9){left:53%;animation-delay:.2s}
+.confetti i:nth-child(10){left:59%} .confetti i:nth-child(11){left:65%;animation-delay:.45s} .confetti i:nth-child(12){left:71%;animation-delay:.12s}
+.confetti i:nth-child(13){left:77%;animation-delay:.3s} .confetti i:nth-child(14){left:83%;animation-delay:.05s} .confetti i:nth-child(15){left:89%;animation-delay:.38s}
+.confetti i:nth-child(16){left:95%;animation-delay:.22s} .confetti i:nth-child(17){left:2%;animation-delay:.5s} .confetti i:nth-child(18){left:98%;animation-delay:.1s}
+@keyframes conf { 0% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(70vh) rotate(540deg); } }
+@keyframes hovin { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+@keyframes hovout { to { opacity: 0; transform: scale(.97); } }
+@keyframes pop { 0% { transform: scale(.2); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes shake { 0%,100% { transform: none; } 20% { transform: translateX(-14px); } 40% { transform: translateX(12px); } 60% { transform: translateX(-8px); } 80% { transform: translateX(5px); } }
+
+.hsteps { display: flex; align-items: center; justify-content: center; margin: 6px 0 2px; }
+.hsteps span { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #c0392b; color: #c0392b; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex: 0 0 auto; background: #fff; }
+.hsteps span.ok { background: #2e9e5b; border-color: #2e9e5b; color: #fff; }
+.hsteps span.now { background: #c0392b; color: #fff; box-shadow: 0 0 0 4px rgba(192,57,43,.2); }
+.hsteps i { height: 3px; flex: 1 1 auto; max-width: 46px; background: #e3c2bd; }
+.hsteplbl { text-align: center; font-size: 13px; font-weight: 700; margin: 4px 0 0; color: #7a2a22; }
+.hprog { margin: -4px 0 10px; }
+.huntgo { background: #2e9e5b !important; color: #fff !important; font-size: 18px; font-weight: 700; padding: 15px; margin-bottom: 12px; animation: pulsebtn 1.8s ease-in-out infinite; }
+@keyframes pulsebtn { 0%,100% { box-shadow: 0 0 0 0 rgba(46,158,91,.45); } 50% { box-shadow: 0 0 0 10px rgba(46,158,91,0); } }
+.flash { animation: flash 1.6s ease; }
+@keyframes flash { 0%,100% { box-shadow: none; } 30% { box-shadow: 0 0 0 5px #ffd54a; } }
+
+.huntbar { background: #fff8ee; border: 1px solid #f3d9b8; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
+.huntbar .hbtop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.huntbar .hexit { padding: 6px 10px; font-size: 13px; flex: 0 0 auto; }
+.huntbar .hdist { margin: 8px 0 0; text-align: center; font-size: 15px; }
+.map.huntmode .tico.pin:not(.hnext):not(.hdone) { opacity: .3; filter: grayscale(.7); }
+.map.huntmode .clus { opacity: .35; }
+.tico.hdone { background: #2e9e5b !important; color: #fff; }
+.tico.hnext { background: #c0392b; color: #fff; width: 40px; height: 40px; font-size: 18px; border: 3px solid #fff;
+  animation: hdrop .7s cubic-bezier(.3,1.5,.5,1) both, hpulse 1.6s ease-out .8s infinite; }
+@keyframes hdrop { 0% { transform: translateY(-160px) scale(.6); opacity: 0; } 60% { transform: translateY(8px); opacity: 1; } 80% { transform: translateY(-6px); } 100% { transform: none; } }
+@keyframes hpulse { 0% { box-shadow: 0 0 0 0 rgba(192,57,43,.6); } 100% { box-shadow: 0 0 0 22px rgba(192,57,43,0); } }
+.htoast { position: fixed; left: 50%; top: 80px; white-space: nowrap; max-width: 92vw; transform: translateX(-50%); z-index: 4000; background: #2e9e5b; color: #fff; font-weight: 700;
+  padding: 12px 18px; border-radius: 30px; box-shadow: 0 6px 20px rgba(0,0,0,.25); animation: tin .4s ease-out; transition: opacity .4s, transform .4s; font-size: 16px; }
+.htoast.out { opacity: 0; transform: translate(-50%, -20px); }
+@keyframes tin { from { opacity: 0; transform: translate(-50%, -30px); } to { opacity: 1; transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .hov, .hovico, .tico.hnext, .huntgo, .confetti i, .htoast { animation: none !important; } }
