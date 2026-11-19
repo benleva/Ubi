@@ -14,6 +14,8 @@ export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch { /* */ } location.reload(); }
 
 const D = [
+  ['Link copiato ✓ Su TikTok incollalo in un', 'Link copied ✓ On TikTok paste it into a'], ['messaggio', 'message'], [', nella', ', the'], ['descrizione', 'description'], ['del video o nella', 'of the video or your'],
+  ['Anche', 'Also'], ['funziona così: Ubi copia il link e apre TikTok; incollalo in un messaggio, nella descrizione del video o nella bio.', 'works this way: Ubi copies the link and opens TikTok; paste it into a message, the video description or your bio.'],
   ['Tocca una categoria per aprire i tuoi contenuti, oppure cerca qui sopra.', 'Tap a category to open your content, or search above.'],
   // ——— generali, tipi, visibilità
   ['Immagine', 'Image'], ['Testo', 'Text'], ['Video', 'Video'], ['Link', 'Link'], ['Audio', 'Audio'],
@@ -477,7 +479,7 @@ const D = [
   ['Chi sblocca l\'ultima riceve un', 'Whoever unlocks the last one gets a'], ['codice unico', 'unique code'], ['. Il gestore lo scrive in', '. The organiser enters it in'],
   ['Verifica un codice premio', 'Check a prize code'], [': se è valido viene segnato come ritirato e non si può riusare.', ': if valid it\'s marked as collected and can\'t be reused.'],
   ['Pubblicizza il link della tappa 1 sui social o con un QR nel locale.', 'Promote the stage 1 link on social media or with a QR code at your venue.'],
-  ['📤 Condividere su WhatsApp, Facebook, X, Telegram e Instagram', '📤 Sharing on WhatsApp, Facebook, X, Telegram and Instagram'], ['Sotto ogni pin creato, e nel riquadro', 'Below every pin you create, and in the'],
+  ['📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram', '📤 Sharing on WhatsApp, Facebook, TikTok, Telegram and Instagram'], ['Sotto ogni pin creato, e nel riquadro', 'Below every pin you create, and in the'],
   [', trovi le icone dei social: un tocco apre l\'app con il link già pronto.', ' box, you find the social icons: one tap opens the app with the link ready.'],
   ['non permette di condividere un link con un tocco: Ubi lo', 'doesn\'t allow sharing a link with one tap: Ubi'], ['copia', 'copies it'],
   ['e apre Instagram. Crea una', 'and opens Instagram. Create a'], [', tocca l\'icona degli sticker →', ', tap the sticker icon →'], ['e incolla. Nei messaggi diretti basta incollarlo.', 'and paste. In direct messages just paste it.'],

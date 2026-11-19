@@ -1,10 +1,10 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611190424';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190424';
+import { CONFIG } from './config.js?v=202611190445';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190445';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.52';
+const APP_VERSION = 'v.53';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2144,8 +2144,9 @@ async function adminAdsTab(box) {
 const INVITE_URL = 'https://ubipin.it';
 const INVITE_IMG = 'invito-ubi.png';
 const INVITE_TEXT = 'Ti presento Ubi: lascia foto, video e messaggi in un luogo, si aprono solo quando ci arrivi. Provala:';
-// ---------- Pulsanti social con icona: WhatsApp, Facebook, X, Telegram, Instagram (+ menu del telefono)
+// ---------- Pulsanti social con icona: WhatsApp, Facebook, TikTok, Telegram, Instagram (+ menu del telefono)
 const SOCIAL_SVG = {
+  tt: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#111"/><path d="M13.2 5.5h2.1c.2 1.6 1.2 2.7 2.8 2.9v2.1c-1.1 0-2-.3-2.8-.8v4.6a3.9 3.9 0 1 1-3.9-3.9h.3v2.2a1.8 1.8 0 1 0 1.5 1.7z" fill="#25F4EE" transform="translate(-.5 -.4)"/><path d="M13.2 5.5h2.1c.2 1.6 1.2 2.7 2.8 2.9v2.1c-1.1 0-2-.3-2.8-.8v4.6a3.9 3.9 0 1 1-3.9-3.9h.3v2.2a1.8 1.8 0 1 0 1.5 1.7z" fill="#FE2C55" transform="translate(.5 .4)"/><path d="M13.2 5.5h2.1c.2 1.6 1.2 2.7 2.8 2.9v2.1c-1.1 0-2-.3-2.8-.8v4.6a3.9 3.9 0 1 1-3.9-3.9h.3v2.2a1.8 1.8 0 1 0 1.5 1.7z" fill="#fff"/></svg>',
   wa: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#25D366"/><path d="M12 5.2a6.8 6.8 0 0 0-5.9 10.2L5.2 18.8l3.5-.9A6.8 6.8 0 1 0 12 5.2z" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M9.6 8.6c.2-.4.4-.4.6-.4h.4c.1 0 .3 0 .4.3l.6 1.4c.1.2 0 .4-.1.5l-.4.5c-.1.1-.1.3 0 .4.5.9 1.2 1.6 2.1 2.1.1.1.3.1.4 0l.5-.5c.1-.2.3-.2.5-.1l1.4.6c.2.1.3.3.2.5l-.1.5c-.1.5-.8 1-1.4 1-1 .1-2.6-.4-3.9-1.7S8.6 11 8.7 10c0-.6.6-1.2.9-1.4z" fill="#fff"/></svg>',
   fb: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path d="M13.4 19.5v-6h2l.3-2.4h-2.3V9.6c0-.7.2-1.2 1.2-1.2h1.2V6.3c-.2 0-1-.1-1.8-.1-1.8 0-3 1.1-3 3.1v1.8H9v2.4h2v6z" fill="#fff"/></svg>',
   x: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#000"/><path d="M7 6.5h3.1l2.5 3.4 2.9-3.4h1.3l-3.6 4.2 4.3 5.8h-3.1l-2.7-3.7-3.2 3.7H7.2l3.9-4.5z" fill="#fff"/></svg>',
@@ -2159,7 +2160,7 @@ function socialButtons(url, text) {
   return `<div class="socials" data-url="${esc(url)}" data-text="${esc(text)}">
     ${a('wa', `https://wa.me/?text=${t}%20${u}`, 'WhatsApp')}
     ${a('fb', `https://www.facebook.com/sharer/sharer.php?u=${u}`, 'Facebook')}
-    ${a('x', `https://x.com/intent/post?text=${t}&url=${u}`, 'X')}
+    <button type="button" class="soc" data-soc="tt" aria-label="TikTok" title="TikTok">${SOCIAL_SVG.tt}<span>TikTok</span></button>
     ${a('tg', `https://t.me/share/url?url=${u}&text=${t}`, 'Telegram')}
     <button type="button" class="soc" data-soc="ig" aria-label="Instagram" title="Instagram">${SOCIAL_SVG.ig}<span>Instagram</span></button>
     <button type="button" class="soc" data-soc="more" aria-label="Altro" title="Altro">${SOCIAL_SVG.more}<span>Altro</span></button>
@@ -2177,6 +2178,11 @@ function bindSocials(root = document) {
         return;
       }
       try { await navigator.clipboard.writeText(url); } catch { /* lo mostriamo comunque */ }
+      if (b.dataset.soc === 'tt') {
+        msg(out, `Link copiato ✓ Su TikTok incollalo in un <b>messaggio</b>, nella <b>descrizione</b> del video o nella <b>bio</b>.<br><span class="small">${esc(url)}</span>`, 'ok');
+        if (/iphone|ipad|android/i.test(navigator.userAgent)) setTimeout(() => { location.href = 'tiktok://'; }, 900);
+        return;
+      }
       msg(out, `Link copiato ✓ Su Instagram: crea una <b>storia</b> → tocca l'icona degli sticker → <b>Link</b> → incolla. Nei post e nei messaggi diretti puoi incollarlo nel testo.<br><span class="small">${esc(url)}</span>`, 'ok');
       if (/iphone|ipad|android/i.test(navigator.userAgent)) setTimeout(() => { location.href = 'instagram://story-camera'; }, 900);
     };
@@ -2798,9 +2804,10 @@ const FAQ_GUIDE = [
     <li>La tappa 2 compare sulla mappa solo dopo aver trovato la 1, la 3 dopo la 2.</li>
     <li>Chi sblocca l'ultima riceve un <b>codice unico</b>. Il gestore lo scrive in <i>Verifica un codice premio</i>: se è valido viene segnato come ritirato e non si può riusare.</li>
     <li>Pubblicizza il link della tappa 1 sui social o con un QR nel locale.</li></ol>`],
-  ['📤 Condividere su WhatsApp, Facebook, X, Telegram e Instagram', `<ol>
+  ['📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram', `<ol>
     <li>Sotto ogni pin creato, e nel riquadro <b>Invita un amico</b>, trovi le icone dei social: un tocco apre l'app con il link già pronto.</li>
     <li><b>Instagram</b> non permette di condividere un link con un tocco: Ubi lo <b>copia</b> e apre Instagram. Crea una <b>storia</b>, tocca l'icona degli sticker → <b>Link</b> e incolla. Nei messaggi diretti basta incollarlo.</li>
+    <li>Anche <b>TikTok</b> funziona così: Ubi copia il link e apre TikTok; incollalo in un messaggio, nella descrizione del video o nella bio.</li>
     <li><b>Altro</b> apre il menu di condivisione del telefono (Messaggi, email, Signal…).</li></ol>`],
   ['📸 Mettere un post o un reel di Instagram in un pin', `<ol>
     <li>Su Instagram apri il post o il reel e tocca l'icona <b>Condividi</b> (l'aeroplanino ✈️) → <b>Copia link</b>. Per un profilo: ⋯ in alto → <b>Copia URL del profilo</b>.</li>
