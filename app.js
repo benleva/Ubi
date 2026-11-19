@@ -1,10 +1,10 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611190503';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190503';
+import { CONFIG } from './config.js?v=202611190536';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190536';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.54';
+const APP_VERSION = 'v.55';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1837,14 +1837,25 @@ async function drawAdSlot(box) {
   if (!ads.length || !document.body.contains(box)) return;
   const card = (a) => `<a class="adbanner" style="background:${esc(a.color)}" ${a.link_url ? `href="${esc(a.link_url)}" target="_blank" rel="noopener sponsored"` : ''}>
       ${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}<span class="adtxt"><b>${esc(a.title)}</b>${a.body ? `<span>${esc(a.body)}</span>` : ''}</span><span class="adtag">Sponsor</span></a>`;
-  let i = Math.floor(Math.random() * ads.length);
-  box.innerHTML = card(ads[i]);
+  // Banner raggruppati per sito del link (es. tutti i libri su amazon.it = un gruppo, Calma Chiara = un altro):
+  // si alternano i gruppi e dentro ogni gruppo l'ordine è casuale, così nessun prodotto ne copre un altro.
+  const grpOf = (a) => { try { return new URL(a.link_url).hostname.replace(/^www\./, ''); } catch { return 'nolink:' + a.id; } };
+  const groups = {}; ads.forEach((a) => { (groups[grpOf(a)] = groups[grpOf(a)] || []).push(a); });
+  const keys = Object.keys(groups).sort(() => Math.random() - 0.5);
+  const bags = {}; let g = 0;
+  const shuffle = (arr) => { const b = arr.slice(); for (let k = b.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [b[k], b[j]] = [b[j], b[k]]; } return b; };
+  const next = () => {
+    const key = keys[g % keys.length]; g++;
+    if (!bags[key] || !bags[key].length) bags[key] = shuffle(groups[key]);
+    return bags[key].pop();
+  };
+  box.innerHTML = card(next());
   clearInterval(adTimer);
   if (ads.length > 1) adTimer = setInterval(() => {
     if (!document.body.contains(box)) { clearInterval(adTimer); return; }
-    i = (i + 1) % ads.length;
+    const a = next();
     box.firstElementChild.classList.add('fade');
-    setTimeout(() => { if (document.body.contains(box)) box.innerHTML = card(ads[i]); }, 600);
+    setTimeout(() => { if (document.body.contains(box)) box.innerHTML = card(a); }, 600);
   }, 9000);   // rotazione lenta: un banner ogni 9 secondi
 }
 
