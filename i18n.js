@@ -14,6 +14,17 @@ export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch { /* */ } location.reload(); }
 
 const D = [
+  ['📤 Condividi questo pin', '📤 Share this pin'], ['Copia messaggio e link', 'Copy message and link'],
+  ['Pubblicalo sui social o mandalo agli amici: chi lo apre scopre il luogo e Ubi.', 'Post it on social media or send it to friends: whoever opens it discovers the place and Ubi.'],
+  ['Messaggio e link copiati ✓ Incollali dove vuoi.', 'Message and link copied ✓ Paste them wherever you like.'],
+  ['Messaggio e link copiati ✓ Incollali dove vuoi, oppure usa le icone qui sotto.', 'Message and link copied ✓ Paste them wherever you like, or use the icons below.'],
+  ['^Messaggio e link copiati ✓ Su TikTok incolla il testo nella descrizione o nel messaggio.', 'Message and link copied ✓ On TikTok paste the text in the description or a message.'],
+  ['^Messaggio e link copiati ✓ Su Instagram incolla il testo nella descrizione o nel messaggio.', 'Message and link copied ✓ On Instagram paste the text in the caption or a message.'],
+  ['^Messaggio e link copiati ✓', 'Message and link copied ✓'], ['Incollalo dove vuoi.', 'Paste it wherever you like.'],
+  ['Su Instagram: crea una', 'On Instagram: create a'], ['→ sticker', '→ sticker'], ['→ incolla, oppure incolla nel messaggio.', '→ paste, or paste it in a message.'],
+  ['Questo ricordo è riservato', 'This memory is private'], ['Solo chi l\'ha ricevuto può aprirlo, oppure è stato rimosso.', 'Only the people it was sent to can open it, or it has been removed.'],
+  ['Con Ubi anche tu puoi lasciare foto, video e messaggi in un luogo: si aprono solo quando qualcuno ci arriva.', 'With Ubi you too can leave photos, videos and messages in a place: they only open when someone gets there.'],
+  ['📍 Scopri Ubi e lascia il tuo', '📍 Discover Ubi and leave yours'],
   ['Link copiato ✓ Su TikTok incollalo in un', 'Link copied ✓ On TikTok paste it into a'], ['messaggio', 'message'], [', nella', ', the'], ['descrizione', 'description'], ['del video o nella', 'of the video or your'],
   ['Anche', 'Also'], ['funziona così: Ubi copia il link e apre TikTok; incollalo in un messaggio, nella descrizione del video o nella bio.', 'works this way: Ubi copies the link and opens TikTok; paste it into a message, the video description or your bio.'],
   ['Tocca una categoria per aprire i tuoi contenuti, oppure cerca qui sopra.', 'Tap a category to open your content, or search above.'],

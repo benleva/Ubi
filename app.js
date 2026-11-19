@@ -1,10 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611190536';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190536';
+import { CONFIG } from './config.js?v=202611190612';
+import { qrMatrix } from './qr.js?v=1';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190612';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.55';
+const APP_VERSION = 'v.56';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -982,7 +983,7 @@ async function viewHome(user, prof) {
   $('#list').onclick = async (e) => {
     const b = e.target.closest('button'); if (!b || !b.closest('.card[data-i]')) return;
     const c = items[+b.closest('.card').dataset.i];
-    if (b.dataset.a === 'share') return shareSheet(c.title, c.share_slug, b.closest('.card'));
+    if (b.dataset.a === 'share') return shareSheet(c.title, c.share_slug, b.closest('.card'), c.hint);
     if (b.dataset.a === 'del') {
       if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma eliminazione'; return; }
       b.disabled = true;
@@ -992,21 +993,50 @@ async function viewHome(user, prof) {
 }
 const alertIn = (el, text) => el.insertAdjacentHTML('beforeend', `<div class="msg err">${text}</div>`);
 
-function shareSheet(title, slug, container) {
+// Testo pronto per condividere un pin (nella lingua dell'app)
+const pinShareText = (title) => LANG === 'en'
+  ? `📍 «${title}» — a memory left in this place with Ubi: it only opens when you get there.`
+  : `📍 «${title}» — un ricordo lasciato in questo luogo con Ubi: si apre solo quando ci arrivi.`;
+function shareSheet(title, slug, container, hint = '') {
   const url = shareUrl(slug);
   const old = container.querySelector('.share'); if (old) { old.remove(); return; }
+  const text = pinShareText(title);
   container.insertAdjacentHTML('beforeend', `
     <div class="share"><p class="linkbox">${esc(url)}</p>
-      <div class="actions"><button data-s="copy">Copia link</button></div>
-      ${socialButtons(url, `${title} — aprilo quando arrivi sul posto:`)}</div>`);
+      <div class="actions"><button data-s="copy">Copia messaggio e link</button></div>
+      ${socialButtons(url, text, { k: 'pin', title, hint: hint || '' })}</div>`);
   const box = container.querySelector('.share');
   bindSocials(box);
   box.onclick = async (e) => {
     const b = e.target.closest('button'); if (!b) return;
     e.stopPropagation();
-    if (b.dataset.s === 'copy') { try { await navigator.clipboard.writeText(url); b.textContent = 'Copiato ✓'; } catch { b.textContent = 'Copia a mano il link'; } }
-    if (b.dataset.s === 'native') { try { await navigator.share({ title: `Ubi — ${title}`, text: 'Aprilo quando arrivi sul posto', url }); } catch { /* annullato */ } }
+    if (b.dataset.s === 'copy') { try { await navigator.clipboard.writeText(`${text} ${url}`); b.textContent = 'Copiato ✓'; } catch { b.textContent = 'Copia a mano il link'; } }
   };
+}
+// Riquadro "Condividi questo pin": pulsante grande (menu del telefono con immagine) + link + social
+function pinShareCard(title, slug, hint = '') {
+  return `<div class="card pinshare" data-slug="${esc(slug)}" data-title="${esc(title)}" data-hint="${esc(hint || '')}">
+    <button type="button" class="accent full" data-pinshare>📤 Condividi questo pin</button>
+    <p class="muted small" style="margin:8px 0 0">Pubblicalo sui social o mandalo agli amici: chi lo apre scopre il luogo e Ubi.</p>
+    <div class="pinsharemsg"></div><div class="pinsharebox"></div></div>`;
+}
+function bindPinShare(root = document) {
+  root.querySelectorAll('.pinshare').forEach((c) => {
+    const { slug, title, hint } = c.dataset; const url = shareUrl(slug); const text = pinShareText(title);
+    const filePromise = cardFile({ k: 'pin', title, hint }, url);
+    shareSheet(title, slug, c.querySelector('.pinsharebox'), hint);
+    c.querySelector('[data-pinshare]').onclick = async () => {
+      navigator.clipboard?.writeText(`${text} ${url}`).catch(() => {});
+      if (navigator.share) {
+        try {
+          const file = await filePromise;
+          const data = { title: `Ubi — ${title}`, text, url };
+          if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file];
+          await navigator.share(data);
+        } catch (err) { if (err && err.name !== 'AbortError') msg(c.querySelector('.pinsharemsg'), 'Messaggio e link copiati ✓ Incollali dove vuoi.', 'ok'); }
+      } else msg(c.querySelector('.pinsharemsg'), 'Messaggio e link copiati ✓ Incollali dove vuoi, oppure usa le icone qui sotto.', 'ok');
+    };
+  });
 }
 
 async function viewNew(ed = null, opts = {}) {
@@ -1464,10 +1494,10 @@ function viewCreated(title, slug, info = null) {
   app.innerHTML = `
     <div class="hero"><span class="pin"></span><h1>Fissato!</h1>
       <p class="muted">«<span translate="no">${esc(title)}</span>» ora vive in quel luogo. Manda il link: si aprirà solo sul posto.</p></div>
+    ${pinShareCard(title, slug, info?.hint)}
     ${info && info.recipients.length ? emailCard(info) : ''}
-    <div class="card" id="sh"></div>
     <a class="btn ghost full" href="#/">Torna alla mappa</a>`;
-  shareSheet(title, slug, $('#sh'));
+  bindPinShare(app);
   if (info && info.recipients.length) autoNotify(slug, $('#automsg'));
 }
 
@@ -1495,7 +1525,10 @@ async function viewContent(slug, user) {
   try { t = await B.teaser(slug); } catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
   if (!t) {
     if (!user) { setPending(location.hash); return viewLogin('Questo contenuto è riservato. Accedi o registrati: se è per te, lo vedrai.'); }
-    app.innerHTML = '<div class="card center"><h2>Contenuto non disponibile</h2><p class="muted">Non esiste, è stato rimosso, oppure non sei tra i destinatari.</p><a class="btn" href="#/">Vai a Ubi</a></div>';
+    app.innerHTML = `<div class="card center"><p style="font-size:44px;margin:0">🔒</p><h2>Questo ricordo è riservato</h2>
+      <p class="muted">Solo chi l'ha ricevuto può aprirlo, oppure è stato rimosso.</p>
+      <p>Con Ubi anche tu puoi lasciare foto, video e messaggi in un luogo: si aprono solo quando qualcuno ci arriva.</p>
+      <a class="btn full accent" href="#/">📍 Scopri Ubi e lascia il tuo</a></div>`;
     return;
   }
   setDatingTheme(t.is_dating);
@@ -1522,9 +1555,11 @@ async function viewContent(slug, user) {
       ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica o sostituisci il contenuto</a>
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
+      ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint)}
       <div id="prizebox"></div>
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
+    bindPinShare(app);
     if (user) replySection(t, slug, $('#replybox')).catch((err) => msg($('#replybox'), errText(err)));
     if (user && t.hunt_id) huntPrizeBox(t, slug, $('#prizebox')).catch(() => {});
     if ($('#delpin')) $('#delpin').onclick = async () => {
@@ -1570,7 +1605,9 @@ async function viewContent(slug, user) {
         : early ? `<div class="capsule center"><div style="font-size:44px">⏳</div><p>Questa capsula si apre tra</p><div class="countdown" id="countdown">…</div>
             <p class="muted small">${t.open_anywhere ? 'Quel giorno potrai aprirla da dove vuoi.' : 'Quel giorno dovrai essere sul posto.'}</p></div>`
         : `<button class="full accent" id="unlock">${anywhereNow ? '🔓 Apri la capsula' : '🔓 Sblocca qui'}</button>`}
-    </div>`;
+    </div>
+    ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint)}`;
+  bindPinShare(app);
   if (early) {
     const tick = () => {
       const el = $('#countdown'); if (!el) { clearInterval(iv); return; }
@@ -2154,7 +2191,7 @@ async function adminAdsTab(box) {
 // ======================= INVITA UN AMICO (card con QR) =======================
 const INVITE_URL = 'https://ubipin.it';
 const INVITE_IMG = 'invito-ubi.png';
-const INVITE_TEXT = 'Ti presento Ubi: lascia foto, video e messaggi in un luogo, si aprono solo quando ci arrivi. Provala:';
+const INVITE_TEXT = LANG === 'en' ? 'Meet Ubi: leave photos, videos and messages in a place, they only open when you get there. Try it:' : 'Ti presento Ubi: lascia foto, video e messaggi in un luogo, si aprono solo quando ci arrivi. Provala:';
 // ---------- Pulsanti social con icona: WhatsApp, Facebook, TikTok, Telegram, Instagram (+ menu del telefono)
 const SOCIAL_SVG = {
   tt: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#111"/><path d="M13.2 5.5h2.1c.2 1.6 1.2 2.7 2.8 2.9v2.1c-1.1 0-2-.3-2.8-.8v4.6a3.9 3.9 0 1 1-3.9-3.9h.3v2.2a1.8 1.8 0 1 0 1.5 1.7z" fill="#25F4EE" transform="translate(-.5 -.4)"/><path d="M13.2 5.5h2.1c.2 1.6 1.2 2.7 2.8 2.9v2.1c-1.1 0-2-.3-2.8-.8v4.6a3.9 3.9 0 1 1-3.9-3.9h.3v2.2a1.8 1.8 0 1 0 1.5 1.7z" fill="#FE2C55" transform="translate(.5 .4)"/><path d="M13.2 5.5h2.1c.2 1.6 1.2 2.7 2.8 2.9v2.1c-1.1 0-2-.3-2.8-.8v4.6a3.9 3.9 0 1 1-3.9-3.9h.3v2.2a1.8 1.8 0 1 0 1.5 1.7z" fill="#fff"/></svg>',
@@ -2165,10 +2202,10 @@ const SOCIAL_SVG = {
   ig: '<svg viewBox="0 0 24 24"><defs><linearGradient id="igg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".35" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><circle cx="12" cy="12" r="12" fill="url(#igg)"/><rect x="6.5" y="6.5" width="11" height="11" rx="3.2" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="15.3" cy="8.7" r=".8" fill="#fff"/></svg>',
   more: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#687385"/><circle cx="7.5" cy="12" r="1.5" fill="#fff"/><circle cx="12" cy="12" r="1.5" fill="#fff"/><circle cx="16.5" cy="12" r="1.5" fill="#fff"/></svg>',
 };
-function socialButtons(url, text) {
+function socialButtons(url, text, card = { k: 'invite' }) {
   const u = encodeURIComponent(url), t = encodeURIComponent(text);
   const a = (k, href, label) => `<a class="soc" href="${href}" target="_blank" rel="noopener" aria-label="${label}" title="${label}">${SOCIAL_SVG[k]}<span>${label}</span></a>`;
-  return `<div class="socials" data-url="${esc(url)}" data-text="${esc(text)}">
+  return `<div class="socials" data-url="${esc(url)}" data-text="${esc(text)}" data-card="${esc(JSON.stringify(card))}">
     ${a('wa', `https://wa.me/?text=${t}%20${u}`, 'WhatsApp')}
     ${a('fb', `https://www.facebook.com/sharer/sharer.php?u=${u}`, 'Facebook')}
     <button type="button" class="soc" data-soc="tt" aria-label="TikTok" title="TikTok">${SOCIAL_SVG.tt}<span>TikTok</span></button>
@@ -2177,27 +2214,73 @@ function socialButtons(url, text) {
     <button type="button" class="soc" data-soc="more" aria-label="Altro" title="Altro">${SOCIAL_SVG.more}<span>Altro</span></button>
   </div><div class="socmsg"></div>`;
 }
-// Instagram non ha un link di condivisione: copiamo il link e apriamo l'app (storia → sticker «Link»)
+// TikTok e Instagram non permettono di precompilare un post con un link: sul telefono apriamo il menu Condividi
+// con testo, link e immagine-card (TikTok/Instagram la accettano), e copiamo comunque il messaggio intero.
+const isPhone = () => /iphone|ipad|android/i.test(navigator.userAgent);
 function bindSocials(root = document) {
   root.querySelectorAll('.socials').forEach((box) => {
+    const url = box.dataset.url, text = box.dataset.text, out = box.nextElementSibling;
+    let card = { k: 'invite' }; try { card = JSON.parse(box.dataset.card || '{}'); } catch { /* invito */ }
+    let filePromise = null;
+    const getFile = () => (filePromise = filePromise || cardFile(card, url));
+    if (isPhone() && navigator.share) getFile();          // la prepariamo subito, così il tocco apre il menu senza attese
     box.onclick = async (e) => {
       const b = e.target.closest('button[data-soc]'); if (!b) return;
-      const url = box.dataset.url, text = box.dataset.text, out = box.nextElementSibling;
-      if (b.dataset.soc === 'more') {
-        if (navigator.share) { try { await navigator.share({ title: 'Ubi', text, url }); } catch { /* annullato */ } }
-        else { try { await navigator.clipboard.writeText(`${text} ${url}`); msg(out, 'Link copiato ✓', 'ok'); } catch { msg(out, esc(url), 'info'); } }
-        return;
+      const full = `${text} ${url}`;
+      navigator.clipboard?.writeText(full).catch(() => {});
+      const app_ = b.dataset.soc === 'tt' ? 'TikTok' : b.dataset.soc === 'ig' ? 'Instagram' : '';
+      if (navigator.share && (isPhone() || b.dataset.soc === 'more')) {
+        try {
+          const file = await getFile();
+          const data = { title: 'Ubi', text, url };
+          if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file];
+          await navigator.share(data);
+          if (app_) msg(out, `Messaggio e link copiati ✓ Su ${app_} incolla il testo nella descrizione o nel messaggio.`, 'ok');
+          return;
+        } catch (err) { if (err && err.name === 'AbortError') return; }
       }
-      try { await navigator.clipboard.writeText(url); } catch { /* lo mostriamo comunque */ }
-      if (b.dataset.soc === 'tt') {
-        msg(out, `Link copiato ✓ Su TikTok incollalo in un <b>messaggio</b>, nella <b>descrizione</b> del video o nella <b>bio</b>.<br><span class="small">${esc(url)}</span>`, 'ok');
-        if (/iphone|ipad|android/i.test(navigator.userAgent)) setTimeout(() => { location.href = 'tiktok://'; }, 900);
-        return;
-      }
-      msg(out, `Link copiato ✓ Su Instagram: crea una <b>storia</b> → tocca l'icona degli sticker → <b>Link</b> → incolla. Nei post e nei messaggi diretti puoi incollarlo nel testo.<br><span class="small">${esc(url)}</span>`, 'ok');
-      if (/iphone|ipad|android/i.test(navigator.userAgent)) setTimeout(() => { location.href = 'instagram://story-camera'; }, 900);
+      const where = b.dataset.soc === 'ig' ? `Su Instagram: crea una <b>storia</b> → sticker <b>Link</b> → incolla, oppure incolla nel messaggio.`
+        : b.dataset.soc === 'tt' ? 'Su TikTok incollalo in un <b>messaggio</b>, nella <b>descrizione</b> del video o nella <b>bio</b>.'
+        : 'Incollalo dove vuoi.';
+      msg(out, `Messaggio e link copiati ✓ ${where}<br><span class="small">${esc(full)}</span>`, 'ok');
     };
   });
+}
+// Immagine da condividere: la card di Ubi per gli inviti, una card generata per i pin (titolo, indizio, QR del pin)
+async function cardFile(card, url) {
+  try {
+    if (!card || card.k !== 'pin') {
+      const blob = await (await fetch(INVITE_IMG)).blob();
+      return new File([blob], 'Ubi-card.png', { type: 'image/png' });
+    }
+    const W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const g = cv.getContext('2d'); const F = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    g.fillStyle = '#1f3a5f'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#e8743b'; g.beginPath(); g.arc(W / 2, 300, 70, Math.PI, 0); g.lineTo(W / 2, 440); g.closePath(); g.fill();
+    g.beginPath(); g.arc(W / 2, 300, 70, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#1f3a5f'; g.beginPath(); g.arc(W / 2, 300, 26, 0, Math.PI * 2); g.fill();
+    g.textAlign = 'center'; g.fillStyle = '#f0a27a'; g.font = `700 40px ${F}`;
+    g.fillText(LANG === 'en' ? 'A MEMORY LEFT HERE' : 'UN RICORDO LASCIATO QUI', W / 2, 540);
+    const wrap = (txt, font, maxW, maxLines) => {
+      g.font = font; const words = String(txt).split(/\s+/); const lines = []; let cur = '';
+      for (const w of words) { const t = cur ? `${cur} ${w}` : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
+      if (cur) lines.push(cur);
+      if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] += '…'; }
+      return lines;
+    };
+    let y = 650; g.fillStyle = '#ffffff';
+    for (const l of wrap(card.title, `800 84px ${F}`, 900, 3)) { g.font = `800 84px ${F}`; g.fillText(l, W / 2, y); y += 100; }
+    if (card.hint) { g.fillStyle = '#d6dde8'; for (const l of wrap(card.hint, `italic 400 44px ${F}`, 880, 3)) { g.font = `italic 400 44px ${F}`; g.fillText(l, W / 2, y + 10); y += 60; } }
+    const m = qrMatrix(url), n = m.length, box = 520, cell = Math.floor((box - 60) / n), qs = cell * n, bx = (W - box) / 2, by = 1080;
+    g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect ? g.roundRect(bx, by, box, box, 36) : g.rect(bx, by, box, box); g.fill();
+    g.fillStyle = '#1f3a5f'; const ox = bx + (box - qs) / 2, oy = by + (box - qs) / 2;
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (m[r][c]) g.fillRect(ox + c * cell, oy + r * cell, cell, cell);
+    g.fillStyle = '#ffffff'; g.font = `700 46px ${F}`;
+    g.fillText(LANG === 'en' ? 'It only opens when you get there' : 'Si apre solo quando ci arrivi', W / 2, 1700);
+    g.fillStyle = '#f0a27a'; g.font = `800 56px ${F}`; g.fillText('ubipin.it', W / 2, 1790);
+    const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
+    return blob ? new File([blob], 'Ubi-pin.png', { type: 'image/png' }) : null;
+  } catch { return null; }
 }
 
 // Condivide l'invito con il menu del telefono (WhatsApp, Instagram, Messaggi, Telegram, email…)
