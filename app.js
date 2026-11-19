@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611190842';
+import { CONFIG } from './config.js?v=202611191016';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611190842';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191016';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.58';
+const APP_VERSION = 'v.59';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -225,6 +225,9 @@ async function supabaseBackend() {
       return sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
     },
     async adminUsers() { return must(await sb.rpc('admin_users')) || []; },
+    async adminPinStats() { return must(await sb.rpc('admin_pin_stats')) || []; },
+    async huntStats(id) { try { return must(await sb.rpc('hunt_stats', { p_hunt: id })) || []; } catch { return null; } },   // null se il database non è aggiornato
+    async setSignupSource(slug) { try { must(await sb.rpc('set_signup_source', { p_slug: slug })); } catch { /* database non aggiornato */ } },
     async adminSetPlan(id, plan) { must(await sb.rpc('admin_set_plan', { p_user: id, p_plan: plan })); },
     async myQuota() { try { return (must(await sb.rpc('my_quota')) || [])[0] || null; } catch { return null; } },   // null se il database non è ancora aggiornato
     async adminId() { try { return must(await sb.rpc('ubi_admin_id')); } catch { return null; } },
@@ -467,6 +470,9 @@ function demoBackend() {
     async deleteAd() {},
     async uploadAdImage() { throw new Error('Non disponibile nella demo.'); },
     async adminUsers() { return []; },
+    async adminPinStats() { return []; },
+    async huntStats() { return null; },
+    async setSignupSource() {},
     async adminSetPlan() {},
     async myQuota() { return null; },
     async adminId() { return null; },
@@ -631,6 +637,7 @@ async function routeInner() {
   if (page === 'avvisi') return viewOptout(arg);
   const user = await B.user();
   if (page === 'c' && arg) {
+    if (!user && !store.get('ubi_from_pin')) store.set('ubi_from_pin', arg);   // per le statistiche: da quale pin arriva un nuovo iscritto
     if (user) {
       const p = await ensureProfile();
       if (!p) { setPending(location.hash); return viewConsent(); }
@@ -788,7 +795,11 @@ async function viewConsent() {
     </form></div>`;
   $('#f').onsubmit = async (e) => {
     e.preventDefault();
-    try { await B.saveProfile($('#name').value.trim()); route(); } catch (err) { msg($('#m'), errText(err)); }
+    try {
+      await B.saveProfile($('#name').value.trim());
+      const from = store.get('ubi_from_pin'); if (from) { store.set('ubi_from_pin', null); B.setSignupSource(from); }
+      route();
+    } catch (err) { msg($('#m'), errText(err)); }
   };
 }
 
@@ -1849,6 +1860,7 @@ async function viewHunt(id) {
         <a class="btn ghost" href="#/c/${esc(x.share_slug)}">Apri</a></div>`).join('') : '<p class="muted">Nessuna tappa: aggiungi la prima.</p>'}
       ${next <= 20 ? `<a class="btn accent full" href="#/new/caccia-${esc(id)}" style="margin-top:10px">＋ Aggiungi la tappa ${next}</a>` : ''}
       ${steps.length ? `<p class="muted small">Condividi il link della <b>tappa 1</b> (o lasciala visibile a tutti sulla mappa): le altre si scoprono giocando.</p>` : ''}</div>
+    <div class="card" id="hstats" hidden></div>
     <div class="card"><h2>✅ Verifica un codice premio</h2>
       <div class="row"><input id="code" maxlength="6" placeholder="Es. A1B2C3" style="text-transform:uppercase;font-size:20px;letter-spacing:3px"><button class="accent" id="chk" style="flex:0 0 auto">Verifica</button></div>
       <div id="cm"></div></div>
@@ -1856,6 +1868,15 @@ async function viewHunt(id) {
       ${winners.length ? `<table class="tbl"><tr><th>Codice</th><th>Nome</th><th>Vinto</th><th>Ritirato</th></tr>${winners.map((w) => `<tr><td><b>${esc(w.code)}</b></td><td>${esc(w.name || '—')}</td><td>${fmtWhen(w.won_at)}</td><td>${w.redeemed_at ? '✅' : '—'}</td></tr>`).join('')}</table>`
         : '<p class="muted">Ancora nessun vincitore.</p>'}</div>
     <p class="center small"><a href="#/cacce">Le mie cacce</a> · <a href="#" id="hdel">Elimina la caccia</a></p>`;
+  B.huntStats(id).then((st) => {
+    if (!st || !st.length || !$('#hstats')) return;
+    const tot = st.reduce((a, r) => a + Number(r.sblocchi), 0), nu = st.reduce((a, r) => a + Number(r.nuovi_iscritti), 0);
+    $('#hstats').innerHTML = `<h2>📊 Statistiche</h2>
+      <p><b>${tot}</b> sblocchi · <b>${nu}</b> nuovi iscritti a Ubi arrivati da questa caccia · <b>${winners.length}</b> codici dati, <b>${winners.filter((w) => w.redeemed_at).length}</b> ritirati</p>
+      ${st.length > 1 ? `<table class="tbl"><tr><th>Tappa</th><th>Sblocchi</th><th>Nuovi iscritti</th></tr>${st.map((r) => `<tr><td>${r.tappa} · ${esc(r.titolo)}</td><td>${r.sblocchi}</td><td>${r.nuovi_iscritti}</td></tr>`).join('')}</table>` : ''}
+      <p class="muted small">Solo numeri: Ubi non comunica nomi né email di chi ha sbloccato.</p>`;
+    $('#hstats').hidden = false;
+  });
   $('#chk').onclick = async () => {
     const code = $('#code').value.trim(); if (!code) return;
     try {
@@ -1909,12 +1930,13 @@ async function drawAdSlot(box) {
 // ======================= AMMINISTRATORE =======================
 async function viewAdmin(tab) {
   if (!(await B.isAdmin())) { app.innerHTML = '<div class="card center">Pagina riservata all\'amministratore. <a href="#/">Torna a Ubi</a></div>'; return; }
-  const t = ['iscritti', 'curiosita'].includes(tab) ? tab : 'banner';
+  const t = ['iscritti', 'curiosita', 'pin'].includes(tab) ? tab : 'banner';
   app.innerHTML = `<h1>⚙️ Amministrazione</h1>
-    <div class="seg"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a></div>
+    <div class="seg"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'pin' ? 'on' : 'ghost'}" href="#/admin/pin">📊 Pin</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a></div>
     <div id="adm" style="margin-top:12px"><p class="muted center">Carico…</p></div>
     <p class="center"><a href="#/">Torna a Ubi</a></p>`;
   if (t === 'iscritti') return adminUsersTab($('#adm'));
+  if (t === 'pin') return adminPinTab($('#adm'));
   if (t === 'curiosita') return adminSeedTab($('#adm'));
   return adminAdsTab($('#adm'));
 }
@@ -2128,6 +2150,30 @@ async function adminSeedTab(box) {
     draw();
   }
 }
+// File CSV con «;» (Excel italiano lo apre a colonne) e BOM per gli accenti
+function downloadCsv(name, head, rows) {
+  const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [head.map(q).join(';'), ...rows.map((r) => r.map(q).join(';'))];
+  const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.append(a); a.click(); a.remove();
+}
+async function adminPinTab(box) {
+  let rows;
+  try { rows = await B.adminPinStats(); }
+  catch (e) { box.innerHTML = `<div class="card"><p class="msg err">Statistiche non disponibili: lancia su Supabase il file <b>supabase/migrations/20261119100000_statistiche_pin.sql</b>.</p></div>`; return; }
+  const d = (x) => (x ? new Date(x).toLocaleDateString(LOC) : '');
+  const tot = rows.reduce((a, r) => a + Number(r.sblocchi || 0), 0), nuovi = rows.reduce((a, r) => a + Number(r.nuovi_iscritti || 0), 0);
+  box.innerHTML = `<div class="card"><p><b>${rows.length}</b> pin pubblici o di cacce · <b>${tot}</b> sblocchi da altre persone · <b>${nuovi}</b> nuovi iscritti arrivati da un pin</p>
+    <button class="accent full" id="pxls">📥 Scarica per Excel</button>
+    <p class="muted small">Sono numeri vostri, per il marketing: a un locale potete dire quante persone hanno sbloccato il suo pin e quante si sono iscritte arrivando da lì, senza dare nomi né email. «Nuovi iscritti» conta chi ha aperto il link del pin prima di registrarsi (dal 19/11/2026).</p></div>
+    <div class="card" style="overflow-x:auto"><table class="tbl"><tr><th>Pin</th><th>Autore</th><th>Caccia</th><th>Sblocchi</th><th>Nuovi iscritti</th><th>Codici dati / ritirati</th><th>Ultimo sblocco</th></tr>
+    ${rows.map((r) => `<tr><td><a href="#/c/${esc(r.slug)}">${esc(r.titolo)}</a></td><td>${esc(r.autore || '')}</td><td>${esc(r.caccia ? `${r.caccia} · tappa ${r.tappa}` : '')}</td><td><b>${r.sblocchi}</b></td><td>${r.nuovi_iscritti}</td>
+      <td>${r.codici_dati == null ? '' : `${r.codici_dati} / ${r.codici_ritirati}`}</td><td>${d(r.ultimo_sblocco)}</td></tr>`).join('')}</table></div>`;
+  $('#pxls').onclick = () => downloadCsv('statistiche-pin-ubi',
+    ['Pin', 'Link', 'Autore', 'Email autore', 'Visibilità', 'Caccia', 'Tappa', 'Creato il', 'Sblocchi', 'Primo sblocco', 'Ultimo sblocco', 'Nuovi iscritti dal pin', 'Codici dati', 'Codici ritirati'],
+    rows.map((r) => [r.titolo, shareUrl(r.slug), r.autore, r.autore_email, r.visibilita === 'public' ? 'tutti' : r.visibilita, r.caccia || '', r.tappa ?? '', d(r.creato_il), r.sblocchi, d(r.primo_sblocco), d(r.ultimo_sblocco), r.nuovi_iscritti, r.codici_dati ?? '', r.codici_ritirati ?? '']));
+}
 async function adminUsersTab(box) {
   const rows = await B.adminUsers();
   const d = (x) => (x ? new Date(x).toLocaleDateString(LOC) : '');
@@ -2144,14 +2190,9 @@ async function adminUsersTab(box) {
     catch (e) { alert(e.message || e); }
     b.disabled = false;
   }; });
-  $('#xls').onclick = () => {
-    const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const head = ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati', 'File', 'Piano'];
-    const lines = [head.map(q).join(';'), ...rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati, r.file_caricati ?? '', r.piano || 'free'].map(q).join(';'))];
-    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `iscritti-ubi-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.append(a); a.click(); a.remove();
-  };
+  $('#xls').onclick = () => downloadCsv('iscritti-ubi',
+    ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati', 'File', 'Piano', 'Arrivato dal pin', 'Pin sbloccati'],
+    rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati, r.file_caricati ?? '', r.piano || 'free', r.arrivato_da_pin || '', r.pin_sbloccati ?? '']));
 }
 async function adminAdsTab(box) {
   const ads = await B.listAds();

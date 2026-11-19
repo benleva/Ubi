@@ -14,6 +14,8 @@ export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch { /* */ } location.reload(); }
 
 const D = [
+  ['📊 Statistiche', '📊 Statistics'], ['sblocchi ·', 'unlocks ·'], ['nuovi iscritti a Ubi arrivati da questa caccia ·', 'new Ubi sign-ups who came from this hunt ·'], ['codici dati,', 'codes issued,'], ['ritirati', 'redeemed'],
+  ['Solo numeri: Ubi non comunica nomi né email di chi ha sbloccato.', 'Numbers only: Ubi never shares the names or emails of people who unlocked.'], ['Sblocchi', 'Unlocks'], ['Nuovi iscritti', 'New sign-ups'], ['Tappa', 'Stage'],
   ['Offerta sbloccata!', 'Offer unlocked!'], ['Mostra questo codice alla cassa.', 'Show this code at the checkout.'],
   ["È solo tuo, vale una volta: sei tra i primi che hanno sbloccato l'offerta.", "It's yours only and works once: you're among the first to unlock the offer."],
   ['🎁 Offerta esaurita', '🎁 Offer sold out'], ['I codici sconto di questa offerta sono già stati presi tutti. Il contenuto resta tuo: guardalo quando vuoi.', 'All the discount codes for this offer have been taken. The content is still yours: watch it whenever you like.'],
