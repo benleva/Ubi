@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611191540';
+import { CONFIG } from './config.js?v=202611191759';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191540';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191759';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.62';
+const APP_VERSION = 'v.63';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -28,9 +28,11 @@ const isMonu = (c) => (c.tags || []).includes('curiosità');
 const monuBadge = (extra = '') => `<span class="tico ${extra}" style="background:${MONU.c}" title="Monumento o curiosità">M</span>`;
 // Luoghi degli scrittori (tag #letteratura): pallino con il libro
 const isLit = (c) => (c.tags || []).includes('letteratura');
+// Caccia al tesoro: forziere dorato con il numero della tappa (si distingue dai pallini rossi)
+const CHEST_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5C3 6.9 5.9 4 9.5 4h5C18.1 4 21 6.9 21 10.5V11H3z" fill="#8a4b12"/><path d="M3 11h18v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="#a85d1a"/><path d="M3 11h18v2.2H3z" fill="#5e3209"/><path d="M7 4.6v15.4M17 4.6v15.4" stroke="#ffd96a" stroke-width="1.6"/><rect x="10" y="10" width="4" height="5" rx="1" fill="#ffd96a" stroke="#5e3209" stroke-width=".8"/></svg>';
+const chestBadge = (step, extra = '') => `<span class="tico chest ${extra}" title="Caccia al tesoro${step ? ` · tappa ${step}` : ''}">${CHEST_SVG}${step ? `<b class="cnum">${step}</b>` : ''}</span>`;
 const litBadge = (extra = '') => `<span class="tico ${extra}" style="background:#1f6f5c;font-size:.8em" title="Luogo di uno scrittore">📖</span>`;
-const pinBadge = (c, extra = '') => (isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
-  : c.hunt_step ? iconBadge(String(c.hunt_step), '#c0392b', `Caccia al tesoro · tappa ${c.hunt_step}`, extra)
+const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
   : c.unlock_at && Date.parse(c.unlock_at) > Date.now() ? iconBadge('⏳', '#8a6d3b', 'Capsula del tempo', extra)
   : badge(c.media_type, extra));
 const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
@@ -243,7 +245,40 @@ async function supabaseBackend() {
     async getHunt(id) { return must(await sb.from('hunts').select('*').eq('id', id).maybeSingle()); },
     async createHunt(h) { return must(await sb.from('hunts').insert({ title: h.title, prize: h.prize, max_winners: h.max_winners }).select('*').single()); },
     async deleteHunt(id) { must(await sb.from('hunts').delete().eq('id', id)); },
-    async huntSteps(id) { return must(await sb.from('contents').select('share_slug,title,hunt_step').eq('hunt_id', id).order('hunt_step')) || []; },
+    async huntSteps(id) { return must(await sb.from('contents').select('share_slug,title,hunt_step,lat,lng').eq('hunt_id', id).order('hunt_step')) || []; },
+    // Copia la caccia con tutte le tappe (stesse foto, testi, indizi e risposte), spostata di dlat/dlng.
+    // Le foto vengono copiate nella cartella del nuovo pin, così chi gioca la copia le può vedere.
+    async duplicateHunt(id, { title, dlat, dlng }) {
+      const u = await B.user();
+      const h = await B.getHunt(id); if (!h) throw new Error('Caccia non trovata.');
+      const rows = must(await sb.from('contents').select('*').eq('hunt_id', id).order('hunt_step')) || [];
+      const nh = await B.createHunt({ title, prize: h.prize, max_winners: h.max_winners });
+      const made = [], files = [];
+      try {
+        for (const r of rows) {
+          const nid = crypto.randomUUID();
+          let media_path = null;
+          if (r.media_path) {
+            media_path = `${u.id}/${nid}/${r.media_path.split('/').pop()}`;
+            must(await sb.storage.from('media').copy(r.media_path, media_path)); files.push(media_path);
+          }
+          const { id: _i, share_slug: _s, created_at: _c, ...rest } = r;
+          must(await sb.from('contents').insert({ ...rest, id: nid, owner_id: u.id, media_path, hunt_id: nh.id, parent_id: null,
+            lat: Math.max(-89.9, Math.min(89.9, r.lat + dlat)), lng: ((r.lng + dlng + 540) % 360) - 180 }));
+          made.push(nid);
+          if (r.visibility === 'restricted') {
+            const rc = must(await sb.from('content_recipients').select('email').eq('content_id', r.id)) || [];
+            if (rc.length) must(await sb.from('content_recipients').insert(rc.filter((x) => x.email).map((x) => ({ content_id: nid, email: x.email }))));
+          }
+        }
+      } catch (err) {   // qualcosa è andato storto: tolgo la copia a metà
+        if (made.length) await sb.from('contents').delete().in('id', made);
+        if (files.length) await sb.storage.from('media').remove(files);
+        await sb.from('hunts').delete().eq('id', nh.id);
+        throw err;
+      }
+      return nh;
+    },
     async huntWinners(id) { return must(await sb.rpc('hunt_winners_list', { p_hunt: id })) || []; },
     async huntRedeem(id, code) { return (must(await sb.rpc('hunt_redeem', { p_hunt: id, p_code: code })) || [])[0]; },
     async myHuntPrize(slug) { return (must(await sb.rpc('my_hunt_prize', { p_slug: slug })) || [])[0] || null; },
@@ -493,11 +528,17 @@ function demoBackend() {
     async repliesFor() { return []; },
     async myReplies() { return []; },
     async myDatingPhotos() { return []; },
-    async listHunts() { return []; },
-    async getHunt() { return null; },
-    async createHunt() { throw new Error('La caccia al tesoro non è disponibile nella demo.'); },
-    async deleteHunt() {},
-    async huntSteps() { return []; },
+    async listHunts() { return (db.hunts || []).filter((h) => h.owner_id === db.user?.id); },
+    async getHunt(id) { return (db.hunts || []).find((h) => h.id === id) || null; },
+    async createHunt(h) { const x = { id: crypto.randomUUID(), owner_id: db.user.id, created_at: new Date().toISOString(), ...h }; (db.hunts = db.hunts || []).push(x); save(); return x; },
+    async deleteHunt(id) { db.hunts = (db.hunts || []).filter((h) => h.id !== id); db.contents.forEach((c) => { if (c.hunt_id === id) { c.hunt_id = null; c.hunt_step = null; } }); save(); },
+    async huntSteps(id) { return db.contents.filter((c) => c.hunt_id === id).sort((a, b) => a.hunt_step - b.hunt_step).map((c) => ({ share_slug: c.share_slug, title: c.title, hunt_step: c.hunt_step, lat: c.lat, lng: c.lng })); },
+    async duplicateHunt(id, { title, dlat, dlng }) {
+      const h = await B.getHunt(id); const nh = await B.createHunt({ title, prize: h.prize, max_winners: h.max_winners });
+      db.contents.filter((c) => c.hunt_id === id).forEach((c) => db.contents.push({ ...c, id: crypto.randomUUID(), share_slug: Math.random().toString(16).slice(2, 14),
+        hunt_id: nh.id, lat: c.lat + dlat, lng: c.lng + dlng, created_at: new Date().toISOString() }));
+      save(); return nh;
+    },
     async huntWinners() { return []; },
     async huntRedeem() { return { status: 'not_found' }; },
     async myHuntPrize() { return null; },
@@ -992,7 +1033,7 @@ async function homeMap(opts = {}) {
       map.setView([hunt.lat, hunt.lng], 16); load(); return;
     }
     huntSlugs.add(target.share_slug);
-    const tm = L.marker([target.lat, target.lng], { icon: ico(String(hunt.next), 'hnext', 40), title: T2(`Tappa ${hunt.next}`, `Stage ${hunt.next}`), zIndexOffset: 1000 })
+    const tm = L.marker([target.lat, target.lng], { icon: L.divIcon({ className: '', iconSize: [46, 46], iconAnchor: [23, 23], html: chestBadge(hunt.next, 'pin hnext') }), title: T2(`Tappa ${hunt.next}`, `Stage ${hunt.next}`), zIndexOffset: 1000 })
       .on('click', () => { location.hash = `#/c/${target.share_slug}`; }).addTo(map);
     map.fitBounds([[hunt.lat, hunt.lng], [target.lat, target.lng]], { padding: [60, 60], maxZoom: 17 });
     load();
@@ -1005,13 +1046,13 @@ async function homeMap(opts = {}) {
       if (!document.body.contains(el)) { stopWatch(); return; }
       const ll = [p.lat, p.lng];
       if (!meM) meM = L.circleMarker(ll, { radius: 8, color: '#1f3a5f', fillOpacity: 0.9 }).addTo(map); else meM.setLatLng(ll);
-      if (!line) line = L.polyline([ll, [target.lat, target.lng]], { color: '#c0392b', weight: 3, dashArray: '8 10', opacity: 0.85 }).addTo(map);
+      if (!line) line = L.polyline([ll, [target.lat, target.lng]], { color: '#b07a0c', weight: 3, dashArray: '8 10', opacity: 0.9 }).addTo(map);
       else line.setLatLngs([ll, [target.lat, target.lng]]);
       const dm = distanceM(p.lat, p.lng, target.lat, target.lng);
       $('#hdist').innerHTML = `📍 <b>${fmtDist(dm)}</b> ${T2('in linea d\'aria dalla tappa', 'as the crow flies to stage')} ${hunt.next} · <a href="#/c/${esc(target.share_slug)}">${T2('apri la tappa', 'open the stage')}</a>`;
       if (!fitted) { fitted = true; map.fitBounds([ll, [target.lat, target.lng]], { padding: [60, 60], maxZoom: 17 }); }
     };
-    $('#hdist').innerHTML = `<a href="#/c/${esc(target.share_slug)}">${T2('Tocca il pin rosso per aprire la tappa', 'Tap the red pin to open the stage')}</a>`;
+    $('#hdist').innerHTML = `<a href="#/c/${esc(target.share_slug)}">${T2('Tocca il forziere per aprire la tappa', 'Tap the chest to open the stage')}</a>`;
     if (navigator.geolocation) {
       stopWatch();
       watchId = navigator.geolocation.watchPosition((p) => upd({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {}, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
@@ -1984,7 +2025,7 @@ async function viewHunts() {
   try {
     const list = await B.listHunts();
     $('#hl').innerHTML = list.length ? list.map((h) => `<a class="card item" href="#/caccia/${esc(h.id)}" style="text-decoration:none;color:inherit">
-      <div class="ico">${iconBadge('🗺', '#c0392b', '')}</div><div><div class="t">${esc(h.title)}</div><div class="meta">🏆 ${esc(h.prize)} · max ${h.max_winners} vincitori</div></div></a>`).join('')
+      <div class="ico">${chestBadge(0)}</div><div><div class="t">${esc(h.title)}</div><div class="meta">🏆 ${esc(h.prize)} · max ${h.max_winners} vincitori</div></div></a>`).join('')
       : '<div class="card center muted">Nessuna caccia ancora.</div>';
   } catch (err) { msg($('#hl'), errText(err)); }
 }
@@ -1997,7 +2038,7 @@ async function viewHunt(id) {
   app.innerHTML = `<h1>🗺️ <span translate="no">${esc(h.title)}</span></h1>
     <p class="muted">🏆 ${esc(h.prize)} · vincitori: <b>${winners.length}/${h.max_winners}</b></p>
     <div class="card"><h2>Tappe</h2>
-      ${steps.length ? steps.map((x) => `<div class="item"><div class="ico">${iconBadge(String(x.hunt_step), '#c0392b', '')}</div><div style="flex:1"><div class="t">${esc(x.title)}</div></div>
+      ${steps.length ? steps.map((x) => `<div class="item"><div class="ico">${chestBadge(x.hunt_step)}</div><div style="flex:1"><div class="t">${esc(x.title)}</div></div>
         <a class="btn ghost" href="#/c/${esc(x.share_slug)}">Apri</a></div>`).join('') : '<p class="muted">Nessuna tappa: aggiungi la prima.</p>'}
       ${next <= 20 ? `<a class="btn accent full" href="#/new/caccia-${esc(id)}" style="margin-top:10px">＋ Aggiungi la tappa ${next}</a>` : ''}
       ${steps.length ? `<p class="muted small">Condividi il link della <b>tappa 1</b> (o lasciala visibile a tutti sulla mappa): le altre si scoprono giocando.</p>` : ''}</div>
@@ -2009,7 +2050,11 @@ async function viewHunt(id) {
       ${winners.length ? `<table class="tbl"><tr><th>Codice</th><th>Nome</th><th>Vinto</th><th>Ritirato</th></tr>${winners.map((w) => `<tr><td><b>${esc(w.code)}</b></td><td>${esc(w.name || '—')}</td><td>${fmtWhen(w.won_at)}</td><td>${w.redeemed_at ? `✅ <span class="small muted">${fmtWhen(w.redeemed_at)}</span>` : `<button type="button" class="accent small" data-redeem="${esc(w.code)}">✓ Ritirato</button>`}</td></tr>`).join('')}</table>
         <p class="muted small">Il cliente ti mostra il codice sul telefono: se è uguale a quello sulla sua riga, tocca <b>✓ Ritirato</b> (due tocchi per confermare). Così nessuno ritira due volte.</p>`
         : '<p class="muted">Ancora nessun vincitore.</p>'}</div>
+    ${steps.length ? `<div class="card"><h2>📑 Duplica la caccia</h2>
+      <p class="small">Crea una copia con le stesse tappe (foto, testi, indizi e risposte) da mettere in un'altra zona, per esempio per un altro locale. Vincitori e statistiche ripartono da zero.</p>
+      <button type="button" class="full" id="dupopen">📑 Duplica caccia</button><div id="dupbox" hidden></div></div>` : ''}
     <p class="center small"><a href="#/cacce">Le mie cacce</a> · <a href="#" id="hdel">Elimina la caccia</a></p>`;
+  if ($('#dupopen')) $('#dupopen').onclick = () => huntDuplicatePanel(h, steps);
   B.huntStats(id).then((st) => {
     if (!st || !st.length || !$('#hstats')) return;
     const tot = st.reduce((a, r) => a + Number(r.sblocchi), 0), nu = st.reduce((a, r) => a + Number(r.nuovi_iscritti), 0);
@@ -2044,6 +2089,55 @@ async function viewHunt(id) {
     e.preventDefault();
     if (e.target.dataset.confirm !== '1') { e.target.dataset.confirm = '1'; e.target.textContent = 'Conferma: elimina la caccia (le tappe restano come pin normali)'; return; }
     try { await B.deleteHunt(id); location.hash = '#/cacce'; } catch (err) { msg($('#cm'), errText(err)); }
+  };
+}
+
+// Duplica: scegli sulla mappa dove va la tappa 1; le altre si spostano insieme, con le stesse distanze.
+async function huntDuplicatePanel(h, steps) {
+  const box = $('#dupbox'); $('#dupopen').hidden = true; box.hidden = false;
+  const s1 = steps.find((x) => x.hunt_step === 1) || steps[0];
+  box.innerHTML = `<label for="dupt">Nome della copia</label><input id="dupt" maxlength="80" value="${esc((h.title + ' – copia').slice(0, 80))}">
+    <p class="small" style="margin:12px 0 6px"><b>Dove la metti?</b> Tocca la mappa nel punto della nuova <b>tappa 1</b>: le altre tappe si spostano insieme, alla stessa distanza tra loro.</p>
+    <div class="row" style="margin-bottom:8px"><input id="dupq" placeholder="Cerca un posto (es. Clusone, piazza)"><button type="button" class="ghost" id="dupgo" style="flex:0 0 auto">Cerca</button></div>
+    <button type="button" class="ghost full" id="dupme">📍 Usa la mia posizione</button>
+    <div class="map" id="dupmap" style="height:300px;margin-top:8px"></div>
+    <p class="muted small" id="dupinfo">Nessun punto scelto: tocca la mappa.</p>
+    <button type="button" class="full accent" id="dupok" disabled>📑 Duplica qui</button><div id="dupm"></div>
+    <p class="muted small">Dopo puoi aprire ogni tappa e usare <b>Modifica</b> per sistemarla al punto giusto (davanti al locale, a una vetrina…).</p>`;
+  await waitLeaflet();
+  const map = makeMap($('#dupmap'), s1.lat, s1.lng, 15); if (!map) return;
+  const orig = L.layerGroup().addTo(map), copy = L.layerGroup().addTo(map);
+  const ico = (n, cls) => L.divIcon({ className: '', iconSize: [34, 34], iconAnchor: [17, 17], html: chestBadge(n, `pin ${cls}`) });
+  steps.forEach((x) => L.marker([x.lat, x.lng], { icon: ico(x.hunt_step, 'dupold') }).addTo(orig));
+  let shift = null;
+  const place = (lat, lng) => {
+    shift = { dlat: lat - s1.lat, dlng: lng - s1.lng };
+    copy.clearLayers();
+    const pts = steps.map((x) => [x.lat + shift.dlat, x.lng + shift.dlng]);
+    steps.forEach((x, i) => L.marker(pts[i], { icon: ico(x.hunt_step, 'dupnew'), zIndexOffset: 500 }).addTo(copy));
+    if (pts.length > 1) L.polyline(pts, { color: '#c8901a', weight: 3, dashArray: '6 8' }).addTo(copy);
+    map.fitBounds(pts.length > 1 ? pts : [pts[0], pts[0]], { padding: [50, 50], maxZoom: 17 });
+    $('#dupinfo').textContent = `Nuova tappa 1 a ${fmtDist(distanceM(s1.lat, s1.lng, lat, lng))} dalla vecchia. Le tappe nuove sono i forzieri pieni.`;
+    $('#dupok').disabled = false;
+  };
+  map.on('click', (e) => place(e.latlng.lat, e.latlng.lng));
+  $('#dupme').onclick = async () => { try { const p = await getPos(); place(p.lat, p.lng); } catch { msg($('#dupm'), 'Posizione non disponibile: tocca la mappa.'); } };
+  const search = async () => {
+    const q = $('#dupq').value.trim(); if (!q) return;
+    try {
+      const r = await (await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=it&q=${encodeURIComponent(q)}`)).json();
+      if (!r.length) return msg($('#dupm'), 'Posto non trovato: prova con un altro nome o tocca la mappa.');
+      $('#dupm').innerHTML = ''; map.setView([+r[0].lat, +r[0].lon], 16);
+    } catch { msg($('#dupm'), 'Ricerca non disponibile: sposta la mappa a mano.'); }
+  };
+  $('#dupgo').onclick = search; $('#dupq').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); search(); } };
+  $('#dupok').onclick = async () => {
+    if (!shift) return;
+    const b = $('#dupok'); b.disabled = true; b.textContent = 'Copio le tappe…';
+    try {
+      const nh = await B.duplicateHunt(h.id, { title: $('#dupt').value.trim() || h.title, ...shift });
+      location.hash = `#/caccia/${nh.id}`;
+    } catch (err) { b.disabled = false; b.textContent = '📑 Duplica qui'; msg($('#dupm'), errText(err)); }
   };
 }
 
