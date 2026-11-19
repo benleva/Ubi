@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611191759';
+import { CONFIG } from './config.js?v=202611192305';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611191759';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611192305';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.63';
+const APP_VERSION = 'v.64';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1151,14 +1151,18 @@ const alertIn = (el, text) => el.insertAdjacentHTML('beforeend', `<div class="ms
 const pinShareText = (title) => LANG === 'en'
   ? `📍 «${title}» — a memory left in this place with Ubi: it only opens when you get there.`
   : `📍 «${title}» — un ricordo lasciato in questo luogo con Ubi: si apre solo quando ci arrivi.`;
-function shareSheet(title, slug, container, hint = '') {
+// Caccia al tesoro: si condivide il link della tappa 1, con un messaggio che parla del gioco e del premio
+const huntShareText = (title, prize) => LANG === 'en'
+  ? `🗺️ Treasure hunt «${title}» on Ubi!${prize ? ` Prize: ${prize}.` : ''} Start from stage 1 — you'll discover the rest by playing.`
+  : `🗺️ Caccia al tesoro «${title}» con Ubi!${prize ? ` In palio: ${prize}.` : ''} Parti dalla tappa 1: il resto lo scopri giocando.`;
+function shareSheet(title, slug, container, hint = '', hunt = null) {
   const url = shareUrl(slug);
   const old = container.querySelector('.share'); if (old) { old.remove(); return; }
-  const text = pinShareText(title);
+  const text = hunt ? huntShareText(hunt.title, hunt.prize) : pinShareText(title);
   container.insertAdjacentHTML('beforeend', `
     <div class="share"><p class="linkbox">${esc(url)}</p>
       <div class="actions"><button data-s="copy">Copia messaggio e link</button></div>
-      ${socialButtons(url, text, { k: 'pin', title, hint: hint || '' })}</div>`);
+      ${socialButtons(url, text, hunt ? { k: 'hunt', title: hunt.title, prize: hunt.prize || '', steps: hunt.steps || 0 } : { k: 'pin', title, hint: hint || '' })}</div>`);
   const box = container.querySelector('.share');
   bindSocials(box);
   box.onclick = async (e) => {
@@ -1168,23 +1172,25 @@ function shareSheet(title, slug, container, hint = '') {
   };
 }
 // Riquadro "Condividi questo pin": pulsante grande (menu del telefono con immagine) + link + social
-function pinShareCard(title, slug, hint = '') {
-  return `<div class="card pinshare" data-slug="${esc(slug)}" data-title="${esc(title)}" data-hint="${esc(hint || '')}">
-    <button type="button" class="accent full" data-pinshare>📤 Condividi questo pin</button>
-    <p class="muted small" style="margin:8px 0 0">Pubblicalo sui social o mandalo agli amici: chi lo apre scopre il luogo e Ubi.</p>
+function pinShareCard(title, slug, hint = '', hunt = null) {
+  return `<div class="card pinshare" data-slug="${esc(slug)}" data-title="${esc(title)}" data-hint="${esc(hint || '')}"${hunt ? ` data-hunt="${esc(JSON.stringify(hunt))}"` : ''}>
+    <button type="button" class="accent full" data-pinshare>📤 ${hunt ? 'Condividi la caccia' : 'Condividi questo pin'}</button>
+    <p class="muted small" style="margin:8px 0 0">${hunt ? 'Si condivide il link della <b>tappa 1</b> con un\'immagine della caccia e il premio: le altre tappe si scoprono giocando.' : 'Pubblicalo sui social o mandalo agli amici: chi lo apre scopre il luogo e Ubi.'}</p>
     <div class="pinsharemsg"></div><div class="pinsharebox"></div></div>`;
 }
 function bindPinShare(root = document) {
   root.querySelectorAll('.pinshare').forEach((c) => {
-    const { slug, title, hint } = c.dataset; const url = shareUrl(slug); const text = pinShareText(title);
-    const filePromise = cardFile({ k: 'pin', title, hint }, url);
-    shareSheet(title, slug, c.querySelector('.pinsharebox'), hint);
+    const { slug, title, hint } = c.dataset; const url = shareUrl(slug);
+    let hunt = null; try { hunt = c.dataset.hunt ? JSON.parse(c.dataset.hunt) : null; } catch { /* pin normale */ }
+    const text = hunt ? huntShareText(hunt.title, hunt.prize) : pinShareText(title);
+    const filePromise = cardFile(hunt ? { k: 'hunt', title: hunt.title, prize: hunt.prize, steps: hunt.steps } : { k: 'pin', title, hint }, url);
+    shareSheet(title, slug, c.querySelector('.pinsharebox'), hint, hunt);
     c.querySelector('[data-pinshare]').onclick = async () => {
       navigator.clipboard?.writeText(`${text} ${url}`).catch(() => {});
       if (navigator.share) {
         try {
           const file = await filePromise;
-          const data = { title: `Ubi — ${title}`, text, url };
+          const data = { title: `Ubi — ${hunt ? hunt.title : title}`, text, url };
           if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file];
           await navigator.share(data);
         } catch (err) { if (err && err.name !== 'AbortError') msg(c.querySelector('.pinsharemsg'), 'Messaggio e link copiati ✓ Incollali dove vuoi.', 'ok'); }
@@ -1720,7 +1726,7 @@ async function viewContent(slug, user) {
       ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica o sostituisci il contenuto</a>
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
-      ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint)}
+      ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint, t.hunt_id && t.hunt_step === 1 ? { title: t.hunt_title || t.title, prize: '', steps: t.hunt_steps } : null)}
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     bindPinShare(app);
@@ -1774,7 +1780,7 @@ async function viewContent(slug, user) {
             <p class="muted small">${t.open_anywhere ? 'Quel giorno potrai aprirla da dove vuoi.' : 'Quel giorno dovrai essere sul posto.'}</p></div>`
         : `<button class="full accent" id="unlock">${anywhereNow ? '🔓 Apri la capsula' : '🔓 Sblocca qui'}</button>`}
     </div>
-    ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint)}`;
+    ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint, t.hunt_id && t.hunt_step === 1 ? { title: t.hunt_title || t.title, prize: '', steps: t.hunt_steps } : null)}`;
   bindPinShare(app);
   if (early) {
     const tick = () => {
@@ -2041,7 +2047,8 @@ async function viewHunt(id) {
       ${steps.length ? steps.map((x) => `<div class="item"><div class="ico">${chestBadge(x.hunt_step)}</div><div style="flex:1"><div class="t">${esc(x.title)}</div></div>
         <a class="btn ghost" href="#/c/${esc(x.share_slug)}">Apri</a></div>`).join('') : '<p class="muted">Nessuna tappa: aggiungi la prima.</p>'}
       ${next <= 20 ? `<a class="btn accent full" href="#/new/caccia-${esc(id)}" style="margin-top:10px">＋ Aggiungi la tappa ${next}</a>` : ''}
-      ${steps.length ? `<p class="muted small">Condividi il link della <b>tappa 1</b> (o lasciala visibile a tutti sulla mappa): le altre si scoprono giocando.</p>` : ''}</div>
+      ${steps.length ? `<p class="muted small">Le tappe dalla 2 in poi si scoprono giocando: condividi la caccia qui sotto.</p>` : ''}</div>
+    ${steps.length ? pinShareCard((steps.find((x) => x.hunt_step === 1) || steps[0]).title, (steps.find((x) => x.hunt_step === 1) || steps[0]).share_slug, '', { title: h.title, prize: h.prize, steps: steps.length }) : ''}
     <div class="card" id="hstats" hidden></div>
     <div class="card"><h2>✅ Verifica un codice premio</h2>
       <div class="row"><input id="code" maxlength="6" placeholder="Es. A1B2C3" style="text-transform:uppercase;font-size:20px;letter-spacing:3px"><button class="accent" id="chk" style="flex:0 0 auto">Verifica</button></div>
@@ -2055,6 +2062,7 @@ async function viewHunt(id) {
       <button type="button" class="full" id="dupopen">📑 Duplica caccia</button><div id="dupbox" hidden></div></div>` : ''}
     <p class="center small"><a href="#/cacce">Le mie cacce</a> · <a href="#" id="hdel">Elimina la caccia</a></p>`;
   if ($('#dupopen')) $('#dupopen').onclick = () => huntDuplicatePanel(h, steps);
+  bindPinShare(app);
   B.huntStats(id).then((st) => {
     if (!st || !st.length || !$('#hstats')) return;
     const tot = st.reduce((a, r) => a + Number(r.sblocchi), 0), nu = st.reduce((a, r) => a + Number(r.nuovi_iscritti), 0);
@@ -2545,6 +2553,7 @@ function bindSocials(root = document) {
 // Immagine da condividere: la card di Ubi per gli inviti, una card generata per i pin (titolo, indizio, QR del pin)
 async function cardFile(card, url) {
   try {
+    if (card && card.k === 'hunt') return await huntCardFile(card, url);
     if (!card || card.k !== 'pin') {
       const blob = await (await fetch(INVITE_IMG)).blob();
       return new File([blob], 'Ubi-card.png', { type: 'image/png' });
@@ -2577,6 +2586,45 @@ async function cardFile(card, url) {
     const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
     return blob ? new File([blob], 'Ubi-pin.png', { type: 'image/png' }) : null;
   } catch { return null; }
+}
+
+// Immagine della caccia: forziere dorato, nome, premio e QR della tappa 1
+async function huntCardFile(card, url) {
+  const W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d'); const F = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#2a1a05'); bg.addColorStop(1, '#5e3209'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  // forziere
+  const cx = W / 2, top = 170;
+  const gold = g.createRadialGradient(cx - 60, top + 80, 20, cx, top + 140, 260); gold.addColorStop(0, '#ffe58a'); gold.addColorStop(1, '#c98a10');
+  g.fillStyle = gold; g.beginPath(); g.arc(cx, top + 150, 175, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#8a4b12'; g.beginPath(); g.moveTo(cx - 120, top + 150); g.quadraticCurveTo(cx - 120, top + 60, cx - 50, top + 60); g.lineTo(cx + 50, top + 60);
+  g.quadraticCurveTo(cx + 120, top + 60, cx + 120, top + 150); g.closePath(); g.fill();
+  g.fillStyle = '#a85d1a'; g.fillRect(cx - 120, top + 150, 240, 110);
+  g.fillStyle = '#5e3209'; g.fillRect(cx - 120, top + 150, 240, 22);
+  g.fillStyle = '#ffd96a'; g.fillRect(cx - 78, top + 64, 16, 196); g.fillRect(cx + 62, top + 64, 16, 196);
+  g.fillRect(cx - 22, top + 140, 44, 56); g.fillStyle = '#5e3209'; g.fillRect(cx - 5, top + 160, 10, 20);
+  g.textAlign = 'center'; g.fillStyle = '#ffd96a'; g.font = `800 50px ${F}`;
+  g.fillText(LANG === 'en' ? 'TREASURE HUNT' : 'CACCIA AL TESORO', W / 2, 610);
+  const wrap = (txt, font, maxW, maxLines) => {
+    g.font = font; const words = String(txt || '').split(/\s+/); const lines = []; let cur = '';
+    for (const w of words) { const t = cur ? `${cur} ${w}` : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
+    if (cur) lines.push(cur); if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] += '…'; } return lines;
+  };
+  let y = 720; g.fillStyle = '#ffffff';
+  for (const l of wrap(card.title, `800 86px ${F}`, 940, 2)) { g.font = `800 86px ${F}`; g.fillText(l, W / 2, y); y += 100; }
+  if (card.prize) {
+    y += 10; g.fillStyle = '#ffe58a'; g.font = `700 44px ${F}`; g.fillText(LANG === 'en' ? '🏆 PRIZE' : '🏆 IN PALIO', W / 2, y); y += 62;
+    g.fillStyle = '#ffffff'; for (const l of wrap(card.prize, `600 50px ${F}`, 900, 2)) { g.font = `600 50px ${F}`; g.fillText(l, W / 2, y); y += 62; }
+  }
+  const m = qrMatrix(url), n = m.length, box = 480, cell = Math.floor((box - 56) / n), qs = cell * n, bx = (W - box) / 2, by = y + 90;
+  g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect ? g.roundRect(bx, by, box, box, 36) : g.rect(bx, by, box, box); g.fill();
+  g.fillStyle = '#2a1a05'; const ox = bx + (box - qs) / 2, oy = by + (box - qs) / 2;
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (m[r][c]) g.fillRect(ox + c * cell, oy + r * cell, cell, cell);
+  g.fillStyle = '#ffffff'; g.font = `700 46px ${F}`;
+  g.fillText(card.steps > 1 ? (LANG === 'en' ? `${card.steps} stages · start from stage 1` : `${card.steps} tappe · parti dalla tappa 1`) : (LANG === 'en' ? 'It opens when you get there' : 'Si apre quando ci arrivi'), W / 2, by + box + 90);
+  g.fillStyle = '#ffd96a'; g.font = `800 56px ${F}`; g.fillText('ubipin.it', W / 2, Math.min(H - 60, by + box + 180));
+  const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
+  return blob ? new File([blob], 'Ubi-caccia.png', { type: 'image/png' }) : null;
 }
 
 // Condivide l'invito con il menu del telefono (WhatsApp, Instagram, Messaggi, Telegram, email…)

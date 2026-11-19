@@ -14,6 +14,10 @@ export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch { /* */ } location.reload(); }
 
 const D = [
+  ['📤 Condividi la caccia', '📤 Share the hunt'],
+  ['Le tappe dalla 2 in poi si scoprono giocando: condividi la caccia qui sotto.', 'Stages 2 onwards are discovered by playing: share the hunt below.'],
+  ['Si condivide il link della ', 'This shares the link of '], ['tappa 1', 'stage 1'], [' con un\'immagine della caccia e il premio: le altre tappe si scoprono giocando.', ' with a picture of the hunt and the prize: the other stages are discovered by playing.'],
+  ['📑 Duplica la caccia', '📑 Duplicate the hunt'], ['📑 Duplica caccia', '📑 Duplicate hunt'], ['📑 Duplica qui', '📑 Duplicate here'], ['📍 Usa la mia posizione', '📍 Use my location'],
   ["🧩 La tua risposta all'indovinello", '🧩 Your answer to the riddle'], ['Scrivi qui la risposta', 'Type your answer here'],
   ["Scrivi la risposta all'indovinello.", 'Type the answer to the riddle.'], ["Risposta sbagliata: rileggi l'indovinello e riprova.", 'Wrong answer: read the riddle again and retry.'],
   ["^🧩 Risposta all'indovinello", "🧩 Answer to the riddle"], ['🔒 risposta attuale mantenuta', '🔒 current answer kept'], ['Es. campanile', 'E.g. bell tower'],
