@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611192305';
+import { CONFIG } from './config.js?v=202611192311';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611192305';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611192311';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.64';
+const APP_VERSION = 'v.65';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1190,8 +1190,9 @@ function bindPinShare(root = document) {
       if (navigator.share) {
         try {
           const file = await filePromise;
-          const data = { title: `Ubi — ${hunt ? hunt.title : title}`, text, url };
-          if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file];
+          let data = { title: `Ubi — ${hunt ? hunt.title : title}`, text, url };
+          // con l'immagine il link va dentro il testo: alcune app (Facebook) se ricevono anche «url» scartano la foto
+          if (file && navigator.canShare && navigator.canShare({ files: [file] })) data = { files: [file], text: `${text} ${url}` };
           await navigator.share(data);
         } catch (err) { if (err && err.name !== 'AbortError') msg(c.querySelector('.pinsharemsg'), 'Messaggio e link copiati ✓ Incollali dove vuoi.', 'ok'); }
       } else msg(c.querySelector('.pinsharemsg'), 'Messaggio e link copiati ✓ Incollali dove vuoi, oppure usa le icone qui sotto.', 'ok');
@@ -2536,8 +2537,8 @@ function bindSocials(root = document) {
       if (navigator.share && (isPhone() || b.dataset.soc === 'more')) {
         try {
           const file = await getFile();
-          const data = { title: 'Ubi', text, url };
-          if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file];
+          let data = { title: 'Ubi', text, url };
+          if (file && navigator.canShare && navigator.canShare({ files: [file] })) data = { files: [file], text: `${text} ${url}` };   // vedi sopra: foto + link nel testo
           await navigator.share(data);
           if (app_) msg(out, `Messaggio e link copiati ✓ Su ${app_} incolla il testo nella descrizione o nel messaggio.`, 'ok');
           return;
