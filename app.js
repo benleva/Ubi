@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611192311';
+import { CONFIG } from './config.js?v=202611192316';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611192311';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611192316';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.65';
+const APP_VERSION = 'v.66';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1149,12 +1149,12 @@ const alertIn = (el, text) => el.insertAdjacentHTML('beforeend', `<div class="ms
 
 // Testo pronto per condividere un pin (nella lingua dell'app)
 const pinShareText = (title) => LANG === 'en'
-  ? `📍 «${title}» — a memory left in this place with Ubi: it only opens when you get there.`
-  : `📍 «${title}» — un ricordo lasciato in questo luogo con Ubi: si apre solo quando ci arrivi.`;
+  ? `📍 «${title}» — a memory left in this place with Ubi: it only opens when you get there. #Ubi #ubipin #memories`
+  : `📍 «${title}» — un ricordo lasciato in questo luogo con Ubi: si apre solo quando ci arrivi. #Ubi #ubipin #ricordi`;
 // Caccia al tesoro: si condivide il link della tappa 1, con un messaggio che parla del gioco e del premio
 const huntShareText = (title, prize) => LANG === 'en'
-  ? `🗺️ Treasure hunt «${title}» on Ubi!${prize ? ` Prize: ${prize}.` : ''} Start from stage 1 — you'll discover the rest by playing.`
-  : `🗺️ Caccia al tesoro «${title}» con Ubi!${prize ? ` In palio: ${prize}.` : ''} Parti dalla tappa 1: il resto lo scopri giocando.`;
+  ? `🗺️ Treasure hunt «${title}» on Ubi!${prize ? ` Prize: ${prize}.` : ''} Start from stage 1 — you'll discover the rest by playing. #treasurehunt #Ubi #ubipin`
+  : `🗺️ Caccia al tesoro «${title}» con Ubi!${prize ? ` In palio: ${prize}.` : ''} Parti dalla tappa 1: il resto lo scopri giocando. #cacciaaltesoro #caccialtesoro #Ubi #ubipin`;
 function shareSheet(title, slug, container, hint = '', hunt = null) {
   const url = shareUrl(slug);
   const old = container.querySelector('.share'); if (old) { old.remove(); return; }
