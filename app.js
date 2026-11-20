@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611202037';
+import { CONFIG } from './config.js?v=202611202046';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202037';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202046';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.67';
+const APP_VERSION = 'v.68';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -3921,6 +3921,20 @@ const FAQ_GUIDE = [
     <li><b>TikTok e Instagram</b> non permettono di precompilare un post: sul telefono si apre il menu Condividi con il messaggio, il link e l'immagine (la card di Ubi o l'immagine del pin con il QR). Scegli TikTok o Instagram e pubblicala.</li>
     <li>In ogni caso il <b>messaggio intero con il link</b> viene copiato: incollalo nella descrizione, in un messaggio o nella bio. Su Instagram puoi anche usare lo sticker <b>Link</b> nelle storie.</li>
     <li><b>Altro</b> apre il menu di condivisione del telefono (Messaggi, email, Signal…).</li></ol>`],
+  ['🎁 Regali dei negozi: alberi di Natale, buoni e consumazioni', `<ol>
+    <li>Alcuni negozi e locali regalano o vendono <b>regali da sbloccare</b>: ricevi un <b>biglietto con un QR</b> oppure un link su WhatsApp.</li>
+    <li>Inquadra il QR con la fotocamera (o scrivi il codice in <b>🎁 I miei regali</b>): il regalo diventa <b>tuo</b>. Sulla mappa cadono gli alberi e il tuo si <b>illumina</b>.</li>
+    <li>Tra le date scritte sul biglietto vai nel negozio, entra nell'area segnata e tocca <b>🔓 Sblocca qui</b>: scopri il premio, l'eventuale messaggio e un <b>codice da mostrare in cassa</b>.</li>
+    <li>Vuoi farne un dono? Tocca <b>🎁 Regalalo a chi vuoi tu</b>, scrivi un pensiero (ci sono tracce e idee) e manda il link: <b>vale una volta sola</b> e quando la persona lo accetta il regalo passa a lei.</li>
+    <li>Dopo la <b>data di scadenza</b> il regalo sparisce dalla mappa e il codice non vale più.</li></ol>`],
+  ['🏪 Per negozi, garden, bar e ristoranti: campagne regalo', `<ol>
+    <li>Ubi crea per la tua attività una <b>campagna regalo</b>: per esempio a Natale tanti alberi sulla mappa del tuo negozio, uno per ogni cliente, con premi a sorpresa (una pianta, uno sconto, un caffè).</li>
+    <li>Ricevi i <b>biglietti da stampare</b> con il QR da dare in cassa. Il cliente torna da te per aprirlo, nell'area che scegli tu (es. il reparto decorazioni).</li>
+    <li>I clienti possono <b>regalarlo</b> ad amici e parenti con un pensiero: così ti portano <b>clienti nuovi</b>.</li>
+    <li>Un pub o un bar può anche <b>vendere</b> consumazioni da regalare («regala una birra»): il cliente paga al banco e manda il regalo a chi vuole.</li>
+    <li>Hai una <b>pagina Cassa</b> riservata, protetta da PIN, per controllare i codici e vedere i numeri: biglietti attivati, regalati, ritirati.</li>
+    <li>Per informazioni scrivi a <a href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">info@ubipin.it</a>.</li></ol>
+    <a class="btn full accent" href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">✉️ Voglio una campagna regalo</a>`],
   ['📣 Pubblicità su Ubi: fai conoscere la tua attività', `<ol>
     <li>Hai un'<b>attività</b>, un <b>negozio</b>, un <b>ristorante</b>, un <b>evento</b> o un <b>prodotto</b> da far conoscere? Su Ubi puoi comparire con un <b>banner</b> nella pagina principale, quella che tutti vedono quando aprono l'app.</li>
     <li>Il banner mostra il tuo <b>logo o una foto</b>, un titolo, una breve descrizione e porta al tuo sito, alla tua pagina social o al tuo negozio online. È segnato come <b>Sponsor</b>.</li>
@@ -3949,7 +3963,8 @@ const FAQ_GUIDE = [
     <li>La posizione del telefono è usata <b>solo mentre usi l'app</b> e non viene salvata nel profilo.</li>
     <li>I file sono in un archivio privato: chi non è autorizzato <b>non può scaricarli</b>, neanche conoscendo il link.</li>
     <li>La distanza e la password sono <b>verificate dal server</b>, non solo dal telefono.</li>
-    <li>Pubblica solo contenuti <b>tuoi</b> e con il permesso delle persone riprese.</li></ul>`],
+    <li>Pubblica solo contenuti <b>tuoi</b> e con il permesso delle persone riprese.</li>
+    <li>Il <b>pensiero</b> che scrivi quando regali un dono lo legge solo chi lo riceve, quando lo apre. Il negozio vede solo i numeri e il codice del premio.</li></ul>`],
   ['Limiti utili da sapere', `<ul>
     <li>Video: massimo <b>60 secondi</b> (per i più lunghi usa un <i>Link</i> a YouTube o a un altro sito).</li>
     <li>Gli indirizzi web scritti nei testi e negli indizi diventano <b>cliccabili</b>.</li>
@@ -4023,7 +4038,7 @@ function viewOptout(esito) {
 function viewFaq(arg) {
   stopWatch();
   const det = ([q, a], open = false) => {
-    const id = q.startsWith('📍 La posizione') ? 'posizione' : q.startsWith('📣 Pubblicità') ? 'pubblicita' : '';
+    const id = q.startsWith('📍 La posizione') ? 'posizione' : q.startsWith('📣 Pubblicità') ? 'pubblicita' : q.startsWith('🏪 Per negozi') ? 'negozi' : q.startsWith('🎁 Regali') ? 'regali' : '';
     return `<details class="faq"${id ? ` id="faq-${id}"` : ''}${open || (id && arg === id) ? ' open' : ''}><summary>${q}</summary><div>${a}</div></details>`;
   };
   app.innerHTML = `
