@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611202136';
+import { CONFIG } from './config.js?v=202611210030';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202136';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210030';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.73';
+const APP_VERSION = 'v.74';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2961,15 +2961,16 @@ async function drawAdSlot(box) {
 async function viewAdmin(tab) {
   if (!(await B.isAdmin())) { app.innerHTML = '<div class="card center">Pagina riservata all\'amministratore. <a href="#/">Torna a Ubi</a></div>'; return; }
   if (tab === 'biglietti') return adminCardsPrint(location.hash.split('/')[3]);
-  const t = ['iscritti', 'curiosita', 'pin', 'negozi'].includes(tab) ? tab : 'banner';
+  const t = ['iscritti', 'curiosita', 'pin', 'negozi', 'guida'].includes(tab) ? tab : 'banner';
   app.innerHTML = `<h1>⚙️ Amministrazione</h1>
-    <div class="admtabs"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'pin' ? 'on' : 'ghost'}" href="#/admin/pin">📊 Pin</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a><a class="btn ${t === 'negozi' ? 'on' : 'ghost'}" href="#/admin/negozi">🏪 Negozi</a></div>
+    <div class="admtabs"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'pin' ? 'on' : 'ghost'}" href="#/admin/pin">📊 Pin</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a><a class="btn ${t === 'negozi' ? 'on' : 'ghost'}" href="#/admin/negozi">🏪 Negozi</a><a class="btn ${t === 'guida' ? 'on' : 'ghost'}" href="#/admin/guida">📘 Guida</a></div>
     <div id="adm" style="margin-top:12px"><p class="muted center">Carico…</p></div>
     <p class="center"><a href="#/">Torna a Ubi</a></p>`;
   if (t === 'iscritti') return adminUsersTab($('#adm'));
   if (t === 'pin') return adminPinTab($('#adm'));
   if (t === 'curiosita') return adminSeedTab($('#adm'));
   if (t === 'negozi') return adminShopsTab($('#adm'));
+  if (t === 'guida') { $('#adm').innerHTML = ADMIN_GUIDE; return; }
   return adminAdsTab($('#adm'));
 }
 // ---------- Curiosità: pin pronti (testo nostro + foto libere da Wikimedia Commons) ----------
@@ -3270,6 +3271,105 @@ async function adminAdsTab(box) {
     } catch (err) { alertIn(b.closest('.card'), errText(err)); }
   };
 }
+
+
+// ---------- Guida dell'amministratore (solo per l'admin: niente dati riservati, solo istruzioni) ----------
+const ADMIN_GUIDE = `<div class="aguide">
+<p class="muted small">La tua guida per gestire Ubi. Tocca un titolo per aprirlo.</p>
+<details open><summary>1 · Il pannello</summary>
+<p>Tutto si gestisce da <b>ubipin.it/#/admin</b>, visibile solo al tuo account.</p>
+<table class="tbl"><tr><th>Scheda</th><th>A cosa serve</th></tr>
+<tr><td>📣 Banner</td><td>Pubblicità in home: crea, modifica, accendi e spegni</td></tr>
+<tr><td>👥 Iscritti</td><td>Elenco iscritti, piano Gratis/Pro, download per Excel</td></tr>
+<tr><td>📊 Pin</td><td>Sblocchi, nuovi iscritti e codici premio per ogni pin pubblico o di caccia</td></tr>
+<tr><td>🗺️ Curiosità</td><td>Pin pronti dei comuni (testi + foto libere da Wikimedia)</td></tr>
+<tr><td>🏪 Negozi</td><td>Clienti business: Cassa, catalogo, campagne regalo, biglietti, partner</td></tr></table>
+<p class="small">Se una scheda dice che manca qualcosa, quasi sempre manca un pezzo di SQL su Supabase (sezione 8).</p></details>
+
+<details><summary>2 · Aprire e gestire un negozio</summary>
+<ol><li><b>Negozi → ＋ Nuovo negozio</b>: nome e indirizzo. Posizione: tocca <b>📍 Qui</b> quando sei nel negozio, oppure incolla lat/lng da Google Maps.</li>
+<li>Facoltativi: telefono, link «Come acquistare», note solo per te.</li>
+<li>Scegli il <b>PIN della Cassa</b> (4–8 cifre) e premi <b>Salva</b>.</li>
+<li>Apri <b>🧾 Cassa → Copia link</b> e mandalo al negozio. Il PIN <b>a voce</b>, mai nello stesso messaggio.</li></ol>
+<table class="tbl"><tr><th>Comando</th><th>Cosa succede (non si cancella niente)</th></tr>
+<tr><td>☑️ Area riservata attiva</td><td>Tolta: la Cassa dice «servizio sospeso». I regali già dati restano apribili</td></tr>
+<tr><td>Attivo fino al</td><td>Dal giorno dopo si sospende da solo. ✕ toglie la data</td></tr>
+<tr><td>Nascondi anche i doni</td><td>Casi gravi: i regali spariscono anche dalla mappa</td></tr>
+<tr><td>Nuovo PIN → Salva PIN</td><td>Cambia il PIN (es. se un dipendente se ne va)</td></tr>
+<tr><td>✏️ Modifica dati</td><td>Nome, indirizzo, posizione, telefono, note</td></tr></table>
+<p><b>⭐ Partner</b>: spunta «Mostra tra i partner» solo con il consenso del negozio, poi categoria, paese, frase, logo e sito → Salva. Compare in ubipin.it/#/business; se lo sospendi, sparisce da solo.</p>
+<p class="small">Dopo 8 PIN sbagliati in 15 minuti la Cassa si blocca per 15 minuti.</p></details>
+
+<details><summary>3 · Catalogo e campagne regalo</summary>
+<p><b>🛍️ Catalogo</b>: articoli con nome, valore, significato (es. dei fiori) e foto (link https). <b>Togli/Rimetti</b> li nasconde dalla Cassa.</p>
+<ol><li><b>🎄 Campagne → ＋ Nuova campagna</b>: titolo e tema (Natale, Capodanno, San Valentino, Pasqua, Festa della mamma, Compleanno, Regalo).</li>
+<li>Frase sul regalo, es. «Vieni a sbloccare il tuo regalo».</li>
+<li>Date: «Si apre dal» e «Scade (incluso)», es. 1/12 → 8/1. Dopo la scadenza i regali spariscono e i codici non valgono più.</li>
+<li>Area: tocca la mappa dove devono andare i clienti. Raggio 40–60 m nei garden; «Alberi sparsi in» = quanto si allargano sulla mappa.</li>
+<li>Premi e quantità (es. 150 × Sconto 10%, 40 × Stella mignon): assegnati a caso, massimo 2000.</li>
+<li><b>Crea la campagna</b> → pagina <b>🖨️ Biglietti</b>, 8 per A4: Stampa → Salva come PDF.</li></ol>
+<p>Ogni campagna mostra doni, attivati, regalati, aperti, ritirati. <b>🖨️ Biglietti</b> per ristampare, <b>⏰ Cambia scadenza</b> per prorogare tutto.</p>
+<p class="small">Premi a sorte = possibile concorso a premi: il negozio lo verifichi con il suo consulente.</p></details>
+
+<details><summary>4 · La Cassa (cosa spiegare al negozio)</summary>
+<ul><li><b>Controlla un regalo</b>: il cliente mostra il codice di 6 caratteri → <b>Verifica</b>.
+<ul><li>✓ Valido → consegna e <b>Segna come ritirato</b> (due tocchi)</li><li>🔒 Non ancora aperto → il cliente deve aprirlo stando nell'area</li>
+<li>⏰ Scaduto → se vuole, <b>Proroga di 7 giorni</b></li><li>⚠️ Già ritirato → non va dato di nuovo</li></ul></li>
+<li><b>Vendi un regalo</b> (bar, pub): il cliente paga al banco, il barista tocca l'articolo due volte → QR da inquadrare (vale 6 mesi) o «Manda su WhatsApp».</li>
+<li><b>Numeri</b>: attivati, regalati, aperti, ritirati. <b>Esci dalla cassa</b> richiede di nuovo il PIN.</li></ul>
+<p class="small">Per vendere servono posizione del negozio e almeno un articolo in catalogo. Ubi non incassa nulla.</p></details>
+
+<details><summary>5 · Banner pubblicitari</summary>
+<ol><li><b>📣 Banner</b>: nome e testo breve.</li><li>Link: sito, Instagram, Maps, WhatsApp o Vinted.</li>
+<li>Colore di sfondo e, se vuoi, logo o immagine.</li><li>Lascia <b>Attivo</b> e premi <b>Salva banner</b>.</li></ol>
+<p>Ogni banner: <b>✏️ Modifica</b>, <b>⏸ Spegni / ▶️ Accendi</b>, <b>Elimina</b> (due tocchi). Ruotano uno ogni 9 secondi, alternando i gruppi per sito del link (libri, Vinted, negozi…).</p>
+<p class="small">Tanti banner insieme: chiedimi il comando SQL unico.</p></details>
+
+<details><summary>6 · Cacce al tesoro</summary>
+<ol><li><b>Profilo → Le mie cacce</b>: nome, premio, numero massimo di vincitori.</li>
+<li>Tappa 1: pin nel punto di partenza, <b>senza risposta</b> se si apre solo arrivando (es. volantino con le regole).</li>
+<li>Tappe dopo: <b>🧩 Risposta all'indovinello</b> (maiuscole e accenti non contano). L'indovinello sta nel contenuto della tappa prima.</li>
+<li>Ogni tappa compare (forziere dorato) solo dopo la precedente. All'ultima, i primi N ricevono un codice unico.</li></ol>
+<ul><li><b>✅ Verifica un codice premio</b> e <b>✓ Ritirato</b> sul vincitore</li><li><b>📊 Statistiche</b> di gioco</li>
+<li><b>📤 Condividi la caccia</b>: link della tappa 1 con immagine e hashtag</li>
+<li><b>📑 Duplica caccia</b>: tocchi dove va la nuova tappa 1, poi sistemi ogni tappa con Modifica</li></ul>
+<p class="small">Per togliere la risposta: Modifica → spunta «Togli la password» (la casella vuota non basta).</p></details>
+
+<details><summary>7 · Iscritti, statistiche, curiosità</summary>
+<p><b>👥 Iscritti</b>: Gratis/⭐ Pro cambia il piano (gratis 500 pin, 100 file, 10 video). 📥 Scarica per Excel.</p>
+<p><b>📊 Pin</b>: sblocchi, nuovi iscritti dal pin, codici dati/ritirati. Numeri da mostrare ai locali, senza nomi né email.</p>
+<p><b>🗺️ Curiosità</b>: «⚡ Fai tutto in automatico» crea i pin dei comuni con foto libere; lascia la pagina aperta.</p></details>
+
+<details><summary>8 · Aggiornamenti, SQL e sicurezza</summary>
+<ol><li><b>SQL</b>: Supabase → SQL Editor → incolla tutto → <b>Run</b> → «Success». Sempre prima dell'app che lo usa; aggiunge e non cancella.</li>
+<li><b>App</b>: in alto compare la nuova versione; se vedi la vecchia, chiudi e riapri.</li>
+<li>Chi usa l'app durante un aggiornamento continua con la vecchia finché non ricarica.</li></ol>
+<ul><li>Mai condividere la chiave <b>service_role</b> di Supabase.</li><li>Mai incollare chiavi o password in chat (es. SMTP Brevo).</li>
+<li>PIN delle Casse a voce; cambialo se un dipendente lascia.</li><li>Prima di cancellare dal database, chiedi: di solito basta spegnere o sospendere.</li></ul></details>
+
+<details><summary>9 · Problemi frequenti</summary>
+<table class="tbl"><tr><th>Problema</th><th>Soluzione</th></tr>
+<tr><td>Versione vecchia</td><td>Chiudi e riapri la pagina</td></tr>
+<tr><td>Non trova la posizione</td><td>iPhone: Privacy → Localizzazione → Safari → «Mentre usi l'app» (FAQ)</td></tr>
+<tr><td>Nel negozio ma «ti mancano X m»</td><td>Aumenta il raggio (40–60 m garden, 25 m in paese)</td></tr>
+<tr><td>Cassa: «PIN sbagliato»</td><td>Ricontrolla; dopo 8 errori aspetta 15 min o metti un PIN nuovo</td></tr>
+<tr><td>Cassa: «servizio sospeso»</td><td>Rimetti la spunta o cambia «Attivo fino al»</td></tr>
+<tr><td>«Regalo già preso»</td><td>Biglietto attivato da un altro account: il negozio ne dà uno nuovo</td></tr>
+<tr><td>Tappa chiede la risposta</td><td>Modifica → «Togli la password»</td></tr>
+<tr><td>Codice non trovato</td><td>Carattere letto male (B/8, O/0): ricontrollare</td></tr>
+<tr><td>Scheda admin incompleta</td><td>Manca un SQL: chiedimelo</td></tr></table></details>
+
+<details><summary>10 · Materiale per vendere</summary>
+<ul><li><a href="#/business">Pagina per le attività</a> (servizi, video, PDF, partner, contatti)</li>
+<li><a href="pdf/Ubi-per-le-attivita.pdf" target="_blank" rel="noopener">PDF Ubi per le attività</a></li>
+<li>Campagne regalo: <a href="pdf/Ubi-campagne-regalo.pdf" target="_blank" rel="noopener">PDF</a> · <a href="video/Ubi-tutorial-campagne-regalo.mp4" target="_blank" rel="noopener">video</a></li>
+<li>Regala una consumazione: <a href="pdf/Ubi-regala-una-consumazione.pdf" target="_blank" rel="noopener">PDF</a> · <a href="video/Ubi-tutorial-regala-una-consumazione.mp4" target="_blank" rel="noopener">video</a></li>
+<li>Caccia al tesoro: <a href="pdf/Ubi-caccia-al-tesoro.pdf" target="_blank" rel="noopener">PDF</a> · <a href="video/Ubi-tutorial-caccia-al-tesoro.mp4" target="_blank" rel="noopener">video</a></li>
+<li>Capsula del tempo: <a href="pdf/Ubi-capsula-del-tempo.pdf" target="_blank" rel="noopener">PDF</a> · <a href="video/Ubi-tutorial-capsula-del-tempo.mp4" target="_blank" rel="noopener">video</a></li>
+<li>Banner: <a href="pdf/Ubi-banner-pubblicitario.pdf" target="_blank" rel="noopener">PDF</a> · Come si apre un pin: <a href="video/Ubi-tutorial-come-si-apre-un-pin.mp4" target="_blank" rel="noopener">video</a></li>
+<li><a href="#/faq/negozi">FAQ per i negozi</a> · App in inglese: ubipin.it/?lang=en</li></ul>
+<p><b>Incontro tipo:</b> video della campagna adatta, PDF stampato, crei il negozio davanti al cliente e gli mandi il link della Cassa; il PIN a voce.</p></details>
+</div>`;
 
 // ======================= INVITA UN AMICO (card con QR) =======================
 const INVITE_URL = 'https://ubipin.it';

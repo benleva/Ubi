@@ -390,3 +390,7 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .vidbtn { background: #1f3a5f !important; color: #fff !important; margin-top: 8px; display: block; text-align: center; }
 .pdfs .vidbtn { margin-bottom: 8px; }
 .bizcards .vidbtn { padding: 6px; font-size: 14px; }
+.aguide details { background: #fff; border: 1px solid #e8e1d3; border-radius: 12px; padding: 4px 12px; margin-bottom: 8px; }
+.aguide summary { font-weight: 800; padding: 10px 0; cursor: pointer; font-size: 17px; }
+.aguide li { margin: 6px 0; } .aguide .tbl { font-size: 14px; margin: 8px 0; }
+.aguide .tbl th, .aguide .tbl td { white-space: normal; vertical-align: top; }
