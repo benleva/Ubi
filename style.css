@@ -355,3 +355,22 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
   .gcard svg.qr { width: 30mm; height: 30mm; }
 }
 @media (prefers-reduced-motion: reduce) { .gfall, .gtree.gmine, .gtree.gmine *, .giftart * { animation: none !important; } }
+
+/* ---- Pagina «Per le attività» ---- */
+.biz h2 { margin-top: 26px; }
+.bizhero { background: radial-gradient(circle at 80% 10%, #2c5282, #1f3a5f 65%); color: #fff; border-radius: 20px; padding: 22px 20px; text-align: center; }
+.bizhero svg { width: 90px; height: 90px; }
+.bizhero .l1 { animation: glamp 1.2s steps(2) infinite; } .bizhero .l2 { animation: glamp 1.2s steps(2) .4s infinite; } .bizhero .l3 { animation: glamp 1.2s steps(2) .8s infinite; }
+.bizhero h1 { color: #fff; font-size: 30px; line-height: 1.15; margin: 6px 0 10px; } .bizhero h1 em { font-style: normal; color: #f0a27a; }
+.bizhero p { color: #dbe4f0; } .bizk { font-weight: 800; letter-spacing: 3px; font-size: 13px; color: #f0a27a !important; margin: 4px 0 0; }
+.bizsteps > div { display: flex; gap: 12px; align-items: flex-start; margin: 10px 0; }
+.bizsteps b { flex: 0 0 38px; height: 38px; border-radius: 50%; background: #e8743b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.bizsteps p { margin: 6px 0 0; }
+.bizcards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bizcards .card { margin: 0; } .bizcards h3 { margin: 4px 0; font-size: 16px; } .bizcards p { font-size: 14px; margin: 0; } .bize { font-size: 30px; }
+.bizwhy li { margin: 8px 0; }
+.partners { display: grid; gap: 10px; }
+.partner { display: flex; gap: 12px; align-items: flex-start; margin: 0; }
+.partner img, .partner .plogo { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 14px; object-fit: cover; background: #f3efe6; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+.partner h3 { margin: 0; } .partner p { margin: 2px 0; }
+.bizcta { margin-top: 20px; }

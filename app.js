@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611202046';
+import { CONFIG } from './config.js?v=202611202050';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202046';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202050';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.68';
+const APP_VERSION = 'v.69';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -272,6 +272,9 @@ async function supabaseBackend() {
     },
     async adminCampaignCards(id) { return must(await sb.rpc('admin_campaign_cards', { p_campaign: id })) || []; },
     async adminCampaignDates(id, opens, expires) { must(await sb.rpc('admin_campaign_dates', { p_campaign: id, p_opens: opens, p_expires: expires })); },
+    async publicPartners() { return must(await sb.rpc('public_partners')) || []; },
+    async adminPartnerData() { return must(await sb.rpc('admin_partner_data')) || []; },
+    async adminPartnerSave(id, p) { must(await sb.rpc('admin_partner_save', { p_id: id, p })); },
     // Copia la caccia con tutte le tappe (stesse foto, testi, indizi e risposte), spostata di dlat/dlng.
     // Le foto vengono copiate nella cartella del nuovo pin, così chi gioca la copia le può vedere.
     async duplicateHunt(id, { title, dlat, dlng }) {
@@ -744,6 +747,7 @@ async function routeInner() {
   if (page === 'invita') return viewInvite();
   if (page === 'avvisi') return viewOptout(arg);
   if (page === 'cassa' && arg) return viewCashier(arg);
+  if (page === 'business') return viewBusiness();
   const user = await B.user();
   if (page === 'regalo' && arg && !user) { setPending(location.hash); return viewGiftReceive(arg, null); }
   if (page === 'dono' && arg && !user) {
@@ -2483,6 +2487,53 @@ function giftSendPanel(g) {
   draw();
 }
 
+// ======================= PAGINA «PER LE ATTIVITÀ» (#/business) =======================
+const PARTNER_CATS = {
+  garden: { e: '🌿', n: 'Garden' }, fiorista: { e: '💐', n: 'Fiorista' }, bar: { e: '☕', n: 'Bar' }, pub: { e: '🍺', n: 'Pub' },
+  ristorante: { e: '🍽️', n: 'Ristorante' }, pasticceria: { e: '🧁', n: 'Pasticceria' }, negozio: { e: '🛍️', n: 'Negozio' }, altro: { e: '⭐', n: 'Attività' },
+};
+async function viewBusiness() {
+  const mail = 'mailto:info@ubipin.it?subject=Voglio%20diventare%20partner%20di%20Ubi';
+  app.innerHTML = `<div class="biz">
+    <section class="bizhero">${TREE_SVG}<p class="bizk">UBI PER LE ATTIVITÀ</p>
+      <h1>Porta i clienti nel tuo negozio.<br><em>Con un regalo.</em></h1>
+      <p>Regali da sbloccare solo da te: il cliente torna, scopre il premio e ne parla agli amici.</p>
+      <a class="btn full accent" style="background:var(--accent);color:#fff" href="${mail}">✉️ Diventa partner</a></section>
+    <h2>Come funziona</h2>
+    <div class="bizsteps">
+      <div><b>1</b><p><strong>Dai un biglietto</strong> con un QR ai tuoi clienti, alla cassa.</p></div>
+      <div><b>2</b><p><strong>Sulla mappa</strong> cadono gli alberi: il suo si illumina e lo aspetta nel tuo negozio.</p></div>
+      <div><b>3</b><p><strong>Torna da te</strong>, lo sblocca nell'area che scegli, scopre il premio e lo ritira in cassa.</p></div></div>
+    <h2>Cosa puoi fare</h2>
+    <div class="bizcards">
+      <div class="card"><span class="bize">🎄</span><h3>Campagne regalo</h3><p>Natale, San Valentino, Festa della mamma, Pasqua: tanti regali a sorpresa, uno per cliente, con scadenza.</p></div>
+      <div class="card"><span class="bize">🍺</span><h3>Regala una consumazione</h3><p>Un caffè, una birra, un hamburger: il cliente paga al banco e lo regala a chi vuole, con un messaggio.</p></div>
+      <div class="card"><span class="bize">🗺️</span><h3>Caccia al tesoro</h3><p>Indovinelli e tappe nel paese, con il premio da ritirare da te.</p></div>
+      <div class="card"><span class="bize">📣</span><h3>Banner</h3><p>Il tuo logo nella pagina principale di Ubi, con il link al tuo sito o ai social.</p></div></div>
+    <h2>Perché funziona</h2>
+    <ul class="bizwhy">
+      <li><b>Il cliente torna</b>: il regalo si apre solo nel tuo negozio, tra le date che scegli tu.</li>
+      <li><b>Clienti nuovi</b>: chi riceve un biglietto può regalarlo a un amico, con un pensiero scritto.</li>
+      <li><b>Numeri chiari</b>: dalla tua pagina Cassa vedi biglietti attivati, regalati e ritirati.</li>
+      <li><b>Niente da installare</b>: Ubi funziona dal browser del telefono, per te e per i clienti.</li>
+      <li><b>Lo prepariamo noi</b>: tu ci dici premi e date, noi creiamo la campagna e i biglietti da stampare.</li></ul>
+    <h2>⭐ I nostri partner</h2>
+    <div id="partners"><p class="muted center">…</p></div>
+    <div class="card center bizcta"><h2>Vuoi la tua campagna?</h2><p>Scrivici nome dell'attività, paese e che tipo di regalo ti piacerebbe offrire.</p>
+      <a class="btn full accent" href="${mail}">✉️ info@ubipin.it</a>
+      <p class="small muted">Guida completa: <a href="#/faq/negozi">come funziona per i negozi</a></p></div>
+    <p class="center"><a href="#/">Ubi</a></p></div>`;
+  let ps = [];
+  try { ps = await B.publicPartners(); } catch { /* elenco non disponibile */ }
+  const box = $('#partners'); if (!box) return;
+  box.innerHTML = ps.length ? `<div class="partners">${ps.map((x) => { const c = PARTNER_CATS[x.category] || PARTNER_CATS.altro;
+    return `<div class="card partner">${x.logo_url ? `<img src="${esc(x.logo_url)}" alt="" loading="lazy">` : `<span class="plogo">${c.e}</span>`}
+      <div><h3 translate="no">${esc(x.name)}</h3><p class="small muted">${c.e} ${c.n}${x.city ? ` · ${esc(x.city)}` : ''}</p>
+      ${x.blurb ? `<p class="small">${esc(x.blurb)}</p>` : ''}
+      <p class="small">${x.website ? `<a href="${esc(x.website)}" target="_blank" rel="noopener">Sito</a>` : ''}${x.website && x.lat != null ? ' · ' : ''}${x.lat != null ? `<a href="https://www.google.com/maps/search/?api=1&query=${x.lat},${x.lng}" target="_blank" rel="noopener">📍 Dove si trova</a>` : ''}</p></div></div>`; }).join('')}</div>`
+    : '<div class="card center"><p><b>Stiamo scegliendo i primi partner.</b></p><p class="muted">Diventa la prima attività della tua zona su Ubi.</p></div>';
+}
+
 // ======================= CASSA del negozio (#/cassa/<token>) =======================
 async function viewCashier(token) {
   const KEY = `ubi_cassa_${token}`;
@@ -2569,6 +2620,7 @@ const qrSvg = (text, size = 200) => {
 async function adminShopsTab(box) {
   let list;
   try { list = await B.adminBusinesses(); } catch (err) { box.innerHTML = `<div class="card">${errText(err)}</div>`; return; }
+  try { const pd = await B.adminPartnerData(); list.forEach((b) => { b.p = pd.find((x) => x.id === b.id) || null; }); } catch { /* SQL partner non ancora lanciato */ }
   const today = new Date().toISOString().slice(0, 10);
   box.innerHTML = `<p class="muted small">${T2('Ogni negozio ha la sua spunta: togliendola sparisce il pannello e la Cassa, ma non si cancella niente. «Nascondi anche i doni» li toglie pure dalla mappa dei clienti.', '')}</p>
     <button type="button" class="full" id="bnew">＋ Nuovo negozio</button><div id="bform"></div>
@@ -2594,6 +2646,14 @@ async function adminShopsTab(box) {
           <span class="small">Doni ${c.total} · attivati ${c.claimed} · regalati ${c.gifted} · aperti ${c.unlocked} · ritirati <b>${c.redeemed}</b></span>
           ${c.kind === 'omaggio' ? `<div class="row"><a class="btn ghost" href="#/admin/biglietti/${esc(c.id)}">🖨️ Biglietti</a><button type="button" class="ghost" data-a="prolong" data-id="${esc(c.id)}" data-exp="${esc(c.expires_at)}">⏰ Cambia scadenza</button></div>` : ''}</div>`).join('')}
         <button type="button" class="full" data-a="newcamp">＋ Nuova campagna</button><div class="campform"></div></details>
+      <details><summary>⭐ Partner (pagina «Per le attività») ${b.p && b.p.show_as_partner ? '<span class="pill on">visibile</span>' : ''}</summary>
+        <label class="check"><input type="checkbox" data-a="pshow" ${b.p && b.p.show_as_partner ? 'checked' : ''}> <b>Mostra tra i partner</b> (solo con il loro consenso)</label>
+        <select data-a="pcat"><option value="">Categoria…</option>${Object.entries(PARTNER_CATS).map(([k, x]) => `<option value="${k}" ${b.p && b.p.category === k ? 'selected' : ''}>${x.e} ${x.n}</option>`).join('')}</select>
+        <input data-a="pcity" maxlength="60" placeholder="Paese / città" value="${esc(b.p?.city || '')}">
+        <input data-a="pblurb" maxlength="200" placeholder="Una frase sul negozio (max 200)" value="${esc(b.p?.blurb || '')}">
+        <input data-a="plogo" placeholder="Logo: link https (facoltativo)" value="${esc(b.p?.logo_url || '')}">
+        <input data-a="pweb" placeholder="Sito o pagina social: https://…" value="${esc(b.p?.website || '')}">
+        <button type="button" data-a="psave">Salva dati partner</button></details>
       <div class="row" style="margin-top:8px"><button type="button" class="ghost" data-a="edit">✏️ Modifica dati</button></div>
       <div class="bm"></div></div>`).join('')}`;
   $('#bnew').onclick = () => shopForm($('#bform'), {});
@@ -2615,6 +2675,10 @@ async function adminShopsTab(box) {
       const v = prompt('Nuova scadenza (AAAA-MM-GG): dopo questa data i doni spariscono', x.dataset.exp.slice(0, 10)); if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
       try { await B.adminCampaignDates(x.dataset.id, null, new Date(`${v}T23:59:00`).toISOString()); reload(); } catch (err) { msg(out, errText(err)); } }; });
     q('newcamp').onclick = () => campaignForm(card.querySelector('.campform'), b, reload);
+    q('psave').onclick = async () => {
+      try { await B.adminPartnerSave(b.id, { show_as_partner: q('pshow').checked, category: q('pcat').value, city: q('pcity').value.trim(), blurb: q('pblurb').value.trim(), logo_url: q('plogo').value.trim(), website: q('pweb').value.trim() }); reload(); }
+      catch (err) { msg(out, errText(err)); }
+    };
     q('edit').onclick = () => shopForm(out, b);
   });
 }
@@ -2812,6 +2876,11 @@ function demoGifts(getDb, save) {
       save(); return c.id; },
     async adminCampaignCards(id) { return D().gifts.filter((g) => g.campaign_id === id).map((g) => ({ card_code: g.card_code, claim_token: g.claim_token, claimed: !!g.holder_id })); },
     async adminCampaignDates(id, o, x) { const c = D().camps.find((y) => y.id === id); if (c) { if (o) c.opens_at = o; if (x) c.expires_at = x; save(); } },
+    async publicPartners() { return D().biz.filter((b) => b.show_as_partner && active(b)).map((b) => ({ name: b.name, category: b.category, city: b.city, logo_url: b.logo_url, blurb: b.blurb, website: b.website, lat: b.lat, lng: b.lng, partner_since: b.partner_since })); },
+    async adminPartnerData() { return D().biz.map((b) => ({ id: b.id, show_as_partner: !!b.show_as_partner, category: b.category, city: b.city, logo_url: b.logo_url, blurb: b.blurb, website: b.website, partner_since: b.partner_since })); },
+    async adminPartnerSave(id, p) { const b = D().biz.find((x) => x.id === id); if (!b) return;
+      Object.assign(b, { show_as_partner: !!p.show_as_partner, category: p.category || null, city: p.city || null, logo_url: p.logo_url || null, blurb: p.blurb || null, website: p.website || null });
+      if (p.show_as_partner && !b.partner_since) b.partner_since = new Date().toISOString().slice(0, 10); save(); },
   };
 }
 
@@ -3934,6 +4003,7 @@ const FAQ_GUIDE = [
     <li>Un pub o un bar può anche <b>vendere</b> consumazioni da regalare («regala una birra»): il cliente paga al banco e manda il regalo a chi vuole.</li>
     <li>Hai una <b>pagina Cassa</b> riservata, protetta da PIN, per controllare i codici e vedere i numeri: biglietti attivati, regalati, ritirati.</li>
     <li>Per informazioni scrivi a <a href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">info@ubipin.it</a>.</li></ol>
+    <a class="btn full ghost" href="#/business">⭐ Scopri la pagina per le attività e i nostri partner</a>
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">✉️ Voglio una campagna regalo</a>`],
   ['📣 Pubblicità su Ubi: fai conoscere la tua attività', `<ol>
     <li>Hai un'<b>attività</b>, un <b>negozio</b>, un <b>ristorante</b>, un <b>evento</b> o un <b>prodotto</b> da far conoscere? Su Ubi puoi comparire con un <b>banner</b> nella pagina principale, quella che tutti vedono quando aprono l'app.</li>
