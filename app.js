@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611202107';
+import { CONFIG } from './config.js?v=202611202136';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202107';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202136';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.72';
+const APP_VERSION = 'v.73';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -571,7 +571,16 @@ function demoBackend() {
     },
     async huntWinners() { return []; },
     async huntRedeem() { return { status: 'not_found' }; },
-    async myHuntPrize() { return null; },
+    async myHuntPrize(slug) {   // demo: stessa logica del database, codice salvato sul telefono
+      const c = db.contents.find((x) => x.share_slug === slug); if (!c || !c.hunt_id || !db.user) return null;
+      if (!db.unlocks.some((x) => x.c === c.id && x.u === db.user.id)) return null;
+      const steps = db.contents.filter((x) => x.hunt_id === c.hunt_id).length, h = (db.hunts || []).find((x) => x.id === c.hunt_id) || {};
+      const base = { steps, is_last: c.hunt_step === steps, prize: h.prize || '', hunt_title: h.title || c.hunt_title || '' };
+      if (!base.is_last) return base;
+      db.huntCodes = db.huntCodes || {}; const k = `${c.hunt_id}:${db.user.id}`;
+      if (!db.huntCodes[k]) { db.huntCodes[k] = Math.random().toString(36).slice(2, 8).toUpperCase(); save(); }
+      return { ...base, code: db.huntCodes[k], redeemed_at: null };
+    },
     async isAdmin() { return !!db.admin; },
     async listAds() { return []; },
     async saveAd() { throw new Error('Non disponibile nella demo.'); },
@@ -2503,6 +2512,15 @@ const bizContacts = (topic = 'Ubi per la mia attività') => `<div class="bizcont
   <a class="btn full" style="background:#25d366;color:#fff" href="${BIZ_WA}?text=${encodeURIComponent(`Ciao Andrea, vorrei informazioni su ${topic}.`)}" target="_blank" rel="noopener">💬 Scrivici su WhatsApp</a>
   <div class="row"><a class="btn ghost" href="tel:+39${BIZ_PHONE.replace(/ /g, '')}">📞 ${BIZ_PHONE}</a><a class="btn ghost" href="mailto:info@ubipin.it?subject=${encodeURIComponent(topic)}">✉️ Email</a></div></div>`;
 const PDF_ICON = '<svg class="pdfi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" fill="#e53935"/><path d="M15 2v5h5" fill="#ffcdd2"/><text x="13" y="18" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff" font-family="sans-serif">PDF</text></svg>';
+// Video tutorial (cartella /video): un pulsante «▶️ Guarda come funziona» per servizio
+const VIDEOS = {
+  pin: { f: 'video/Ubi-tutorial-come-si-apre-un-pin.mp4', s: 20 },
+  campagne: { f: 'video/Ubi-tutorial-campagne-regalo.mp4', s: 42 },
+  consumazione: { f: 'video/Ubi-tutorial-regala-una-consumazione.mp4', s: 36 },
+  caccia: { f: 'video/Ubi-tutorial-caccia-al-tesoro.mp4', s: 39 },
+  capsula: { f: 'video/Ubi-tutorial-capsula-del-tempo.mp4', s: 31 },
+};
+const videoBtn = (k, short = false) => { const v = VIDEOS[k]; return v ? `<a class="btn full vidbtn" href="${v.f}" target="_blank" rel="noopener">▶️ ${short ? 'Video' : 'Guarda come funziona'} <span class="small">(${v.s} s)</span></a>` : ''; };
 const pdfShort = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica PDF</span></a>` : ''; };
 const pdfBtn = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica il PDF: ${esc(x.t)}</span></a>` : ''; };
 const PARTNER_CATS = {
@@ -2524,10 +2542,10 @@ async function viewBusiness() {
       <div><b>3</b><p><strong>Torna da te</strong>, lo sblocca nell'area che scegli, scopre il premio e lo ritira in cassa.</p></div></div>
     <h2>Cosa puoi fare</h2>
     <div class="bizcards">
-      <div class="card"><span class="bize">🎄</span><h3>Campagne regalo</h3><p>Natale, San Valentino, Festa della mamma, Pasqua: tanti regali a sorpresa, uno per cliente, con scadenza.</p>${pdfShort('campagne')}</div>
-      <div class="card"><span class="bize">🍺</span><h3>Regala una consumazione</h3><p>Un caffè, una birra, un hamburger: il cliente paga al banco e lo regala a chi vuole, con un messaggio.</p>${pdfShort('consumazione')}</div>
-      <div class="card"><span class="bize">🗺️</span><h3>Caccia al tesoro</h3><p>Indovinelli e tappe nel paese, con il premio da ritirare da te.</p>${pdfShort('caccia')}</div>
-      <div class="card"><span class="bize">⏳</span><h3>Capsula del tempo</h3><p>Messaggi e video che si aprono in una data scelta: matrimoni, scuole, sagre, anniversari.</p>${pdfShort('capsula')}</div>
+      <div class="card"><span class="bize">🎄</span><h3>Campagne regalo</h3><p>Natale, San Valentino, Festa della mamma, Pasqua: tanti regali a sorpresa, uno per cliente, con scadenza.</p>${videoBtn('campagne', true)}${pdfShort('campagne')}</div>
+      <div class="card"><span class="bize">🍺</span><h3>Regala una consumazione</h3><p>Un caffè, una birra, un hamburger: il cliente paga al banco e lo regala a chi vuole, con un messaggio.</p>${videoBtn('consumazione', true)}${pdfShort('consumazione')}</div>
+      <div class="card"><span class="bize">🗺️</span><h3>Caccia al tesoro</h3><p>Indovinelli e tappe nel paese, con il premio da ritirare da te.</p>${videoBtn('caccia', true)}${pdfShort('caccia')}</div>
+      <div class="card"><span class="bize">⏳</span><h3>Capsula del tempo</h3><p>Messaggi e video che si aprono in una data scelta: matrimoni, scuole, sagre, anniversari.</p>${videoBtn('capsula', true)}${pdfShort('capsula')}</div>
       <div class="card"><span class="bize">📣</span><h3>Banner</h3><p>Il tuo logo nella pagina principale di Ubi, con il link al tuo sito o ai social.</p>${pdfShort('banner')}</div></div>
     <h2>Perché funziona</h2>
     <ul class="bizwhy">
@@ -2536,6 +2554,8 @@ async function viewBusiness() {
       <li><b>Numeri chiari</b>: dalla tua pagina Cassa vedi biglietti attivati, regalati e ritirati.</li>
       <li><b>Niente da installare</b>: Ubi funziona dal browser del telefono, per te e per i clienti.</li>
       <li><b>Lo prepariamo noi</b>: tu ci dici premi e date, noi creiamo la campagna e i biglietti da stampare.</li></ul>
+    <h2>▶️ Guarda come funziona</h2>
+    <div class="pdfs">${videoBtn('campagne').replace('Guarda come funziona', 'Campagne regalo')}${videoBtn('consumazione').replace('Guarda come funziona', 'Regala una consumazione')}${videoBtn('caccia').replace('Guarda come funziona', 'Caccia al tesoro')}${videoBtn('capsula').replace('Guarda come funziona', 'Capsula del tempo')}${videoBtn('pin').replace('Guarda come funziona', 'Come si apre un pin')}</div>
     <h2>📄 Presentazioni da scaricare</h2>
     <p class="muted small">Da stampare o da mandare via email e WhatsApp.</p>
     <div class="pdfs">${PDFS.filter((x) => x.f).map((x) => pdfBtn(x.k)).join('')}</div>
@@ -3920,7 +3940,8 @@ async function viewThread(other, slug) {
 
 // ======================= GUIDA E IDEE (FAQ) =======================
 const FAQ_GUIDE = [
-  ['Cos’è Ubi?', `<p>Ubi ti permette di <b>lasciare un contenuto in un luogo</b>: una foto, un video (fino a 60 secondi), un audio, un testo o un link. Chi lo riceve lo vede sulla mappa, ma può <b>aprirlo solo quando arriva lì</b> con il telefono.</p>`],
+  ['Cos’è Ubi?', `<p>Ubi ti permette di <b>lasciare un contenuto in un luogo</b>: una foto, un video (fino a 60 secondi), un audio, un testo o un link. Chi lo riceve lo vede sulla mappa, ma può <b>aprirlo solo quando arriva lì</b> con il telefono.</p>
+    ${videoBtn('pin')}`],
   ['📍 La posizione non funziona? Come attivarla', `<p>Se Ubi dice che <b>non riesce a trovare la tua posizione</b>, di solito è perché il telefono non ha ancora dato il permesso a Safari (o a Chrome). Si sistema una volta sola.</p>
     <p><b>iPhone e iPad (Safari)</b></p>
     <ol>
@@ -4000,14 +4021,14 @@ const FAQ_GUIDE = [
     <li>Scegli <b>data e ora</b> di apertura: fino ad allora si vedono solo titolo, indizio e conto alla rovescia.</li>
     <li>Decidi se, arrivata la data, bisogna essere <b>sul posto</b> oppure si apre <b>anche da lontano</b>.</li>
     <li>Idee: una lettera per i 18 anni di tuo figlio, un video per il decimo anniversario, un messaggio da riaprire tra un anno nello stesso posto.</li></ol>
-    ${pdfBtn('capsula')}`],
+    ${videoBtn('capsula')}${pdfBtn('capsula')}`],
   ['🗺️ Caccia al tesoro (anche per locali e pub)', `<ol>
     <li>Da home tocca <b>🗺️ Caccia al tesoro</b>, dai un nome, scrivi il <b>premio</b> (es. «una birra media o una maglietta») e quanti vincitori al massimo.</li>
     <li>Aggiungi le <b>tappe</b> (es. 3). In ognuna: nel campo <i>Indizio</i> cosa si vede prima, nel contenuto l'indizio per la tappa successiva.</li>
     <li>La tappa 2 compare sulla mappa solo dopo aver trovato la 1, la 3 dopo la 2.</li>
     <li>Chi sblocca l'ultima riceve un <b>codice unico</b>. Il gestore lo scrive in <i>Verifica un codice premio</i>: se è valido viene segnato come ritirato e non si può riusare.</li>
     <li>Pubblicizza il link della tappa 1 sui social o con un QR nel locale.</li></ol>
-    ${pdfBtn('caccia')}`],
+    ${videoBtn('caccia')}${pdfBtn('caccia')}`],
   ['📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram', `<ol>
     <li>Sotto ogni pin e nel riquadro <b>Invita un amico</b> trovi le icone dei social.</li>
     <li><b>WhatsApp, Facebook e Telegram</b> si aprono con il messaggio e il link già pronti.</li>
@@ -4019,7 +4040,8 @@ const FAQ_GUIDE = [
     <li>Inquadra il QR con la fotocamera (o scrivi il codice in <b>🎁 I miei regali</b>): il regalo diventa <b>tuo</b>. Sulla mappa cadono gli alberi e il tuo si <b>illumina</b>.</li>
     <li>Tra le date scritte sul biglietto vai nel negozio, entra nell'area segnata e tocca <b>🔓 Sblocca qui</b>: scopri il premio, l'eventuale messaggio e un <b>codice da mostrare in cassa</b>.</li>
     <li>Vuoi farne un dono? Tocca <b>🎁 Regalalo a chi vuoi tu</b>, scrivi un pensiero (ci sono tracce e idee) e manda il link: <b>vale una volta sola</b> e quando la persona lo accetta il regalo passa a lei.</li>
-    <li>Dopo la <b>data di scadenza</b> il regalo sparisce dalla mappa e il codice non vale più.</li></ol>`],
+    <li>Dopo la <b>data di scadenza</b> il regalo sparisce dalla mappa e il codice non vale più.</li></ol>
+    ${videoBtn('campagne')}`],
   ['🏪 Per negozi, garden, bar e ristoranti: campagne regalo', `<ol>
     <li>Ubi crea per la tua attività una <b>campagna regalo</b>: per esempio a Natale tanti alberi sulla mappa del tuo negozio, uno per ogni cliente, con premi a sorpresa (una pianta, uno sconto, un caffè).</li>
     <li>Ricevi i <b>biglietti da stampare</b> con il QR da dare in cassa. Il cliente torna da te per aprirlo, nell'area che scegli tu (es. il reparto decorazioni).</li>
@@ -4027,7 +4049,7 @@ const FAQ_GUIDE = [
     <li>Un pub o un bar può anche <b>vendere</b> consumazioni da regalare («regala una birra»): il cliente paga al banco e manda il regalo a chi vuole.</li>
     <li>Hai una <b>pagina Cassa</b> riservata, protetta da PIN, per controllare i codici e vedere i numeri: biglietti attivati, regalati, ritirati.</li>
     <li>Per informazioni scrivi a <a href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">info@ubipin.it</a>.</li></ol>
-    ${pdfBtn('campagne')}${pdfBtn('consumazione')}${pdfBtn('attivita')}
+    ${videoBtn('campagne')}${videoBtn('consumazione')}${pdfBtn('campagne')}${pdfBtn('consumazione')}${pdfBtn('attivita')}
     ${bizContacts('una campagna regalo')}
     <a class="btn full ghost" href="#/business">⭐ Scopri la pagina per le attività e i nostri partner</a>
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">✉️ Voglio una campagna regalo</a>`],
