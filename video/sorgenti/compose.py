@@ -165,12 +165,41 @@ def card_outro(e):
     text_center(d, yy + 180, 'ubipin.it/#/business', font('s', 40), (219, 228, 240))
     return im
 
+
+import re
+def card_wachat(e):
+    im = frame_bg_with_caption(e['cap']); d = ImageDraw.Draw(im)
+    # telefono con WhatsApp disegnato
+    ImageDraw.Draw(im).rounded_rectangle([PX - BZ, PY - BZ, PX + SW + BZ, PY + SH + BZ], 66, fill=(12, 12, 14))
+    scr = Image.new('RGB', (SW, SH), (236, 229, 221)); sd = ImageDraw.Draw(scr)
+    sd.rectangle([0, 0, SW, 150], fill=(7, 94, 84))
+    sd.ellipse([30, 50, 110, 130], fill=(200, 210, 210)); sd.text((130, 62), e.get('who', 'Mamma'), font=font('b', 40), fill='white'); sd.text((130, 108), 'online', font=font('s', 26), fill=(200, 230, 225))
+    txt = re.sub(r'[\U00010000-\U0010ffff\u2600-\u27bf]', '', e['text']).replace('  ', ' ').strip()
+    f = font('s', 30); bw = SW - 120
+    lines = wrap(sd, txt, f, bw - 40)
+    og = Image.open('/home/claude/ubi/og-ubi.jpg').convert('RGB'); og = og.resize((bw - 24, int((bw - 24) * og.height / og.width)))
+    bh = 12 + og.height + 90 + len(lines) * 40 + 50
+    x0, y0 = SW - bw - 30, 260
+    sd.rounded_rectangle([x0, y0, x0 + bw, y0 + bh], 24, fill=(220, 248, 198))
+    scr.paste(og, (x0 + 12, y0 + 12))
+    sd.rectangle([x0 + 12, y0 + 12 + og.height, x0 + bw - 12, y0 + 12 + og.height + 80], fill=(205, 235, 185))
+    sd.text((x0 + 26, y0 + 22 + og.height), 'Ubi · ricordi nascosti nei luoghi', font=font('b', 24), fill=(40, 40, 40))
+    sd.text((x0 + 26, y0 + 54 + og.height), 'ubipin.it', font=font('s', 22), fill=(100, 100, 100))
+    yy = y0 + 12 + og.height + 95
+    for l in lines:
+        sd.text((x0 + 22, yy), l, font=f, fill=(53, 151, 240) if 'https://' in l else (30, 30, 30)); yy += 40
+    sd.text((x0 + bw - 120, yy + 6), '21:05 ✓✓', font=font('s', 22), fill=(80, 150, 200))
+    sd.rectangle([0, SH - 120, SW, SH], fill=(240, 240, 240)); sd.rounded_rectangle([20, SH - 100, SW - 110, SH - 30], 34, fill='white')
+    sd.ellipse([SW - 95, SH - 105, SW - 20, SH - 30], fill=(0, 168, 132))
+    im.paste(scr, (PX, PY), phone_mask())
+    return im
+
 # ---------- scene ----------
 def scenes(tl):
     out, cur = [], None
     for e in tl:
         key = json.dumps(e.get('cap')) if e['t'] in ('still', 'tap', 'seq') else None
-        if e['t'] in ('title', 'ticket', 'outro') or cur is None or key != cur['key']:
+        if e['t'] in ('title', 'ticket', 'outro', 'wachat') or cur is None or key != cur['key']:
             cur = {'key': key, 'ev': []}; out.append(cur)
         cur['ev'].append(e)
     return out
@@ -193,7 +222,10 @@ def render_scene(sc, path):
             im = card_title(e)
             for k in range(int(e['dur'] * FPS)): emit(im)
         elif e['t'] == 'outro':
-            im = card_outro(e)
+            im = card_title({'title': e['title'], 'sub': e.get('sub', ''), 'icon': e.get('icon', '✅')}) if e.get('plain') else card_outro(e)
+            for k in range(int(e['dur'] * FPS)): emit(im)
+        elif e['t'] == 'wachat':
+            im = card_wachat(e); fade_in(im, 6 if prev is not None else 0)
             for k in range(int(e['dur'] * FPS)): emit(im)
         elif e['t'] == 'ticket':
             bg, card, (x0, y0) = card_ticket(e); n = int(e['dur'] * FPS)

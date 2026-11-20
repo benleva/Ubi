@@ -11,7 +11,7 @@ class Rec:
     self.p = await async_playwright().start()
     self.b = await self.p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
     self.ctx = await self.b.new_context(viewport={'width':390,'height':844}, device_scale_factor=2, locale='it-IT',
-      geolocation={'latitude':geo[0],'longitude':geo[1],'accuracy':8}, permissions=['geolocation'])
+      geolocation={'latitude':geo[0],'longitude':geo[1],'accuracy':8}, permissions=['geolocation','clipboard-read','clipboard-write'])
     await self.ctx.add_init_script("if(!localStorage.getItem('ubi_demo'))localStorage.setItem('ubi_demo', %s); localStorage.setItem('ubi_lang','%s');" % (json.dumps(json.dumps(db)), lang))
     await self.ctx.add_init_script("document.addEventListener('DOMContentLoaded',()=>{const s=document.createElement('style');s.textContent=%s;document.head.appendChild(s);});" % json.dumps(HIDE))
     self.pg = await self.ctx.new_page(); self.errs=[]; self.pg.on('pageerror', lambda e: self.errs.append(str(e)))
@@ -27,7 +27,9 @@ class Rec:
     await self.pg.wait_for_timeout(wait)
   async def shot(self):
     await self.pg.evaluate("""(()=>{document.querySelectorAll('.linkbox').forEach(e=>{e.textContent=e.textContent.replace(/https?:\\/\\/localhost:8799\\/index\\.html/g,'https://ubipin.it/')});
-      document.querySelectorAll('p.muted.small').forEach(e=>{if(/^Demo:/.test(e.textContent))e.remove()});})()""")
+      document.querySelectorAll('p.muted.small').forEach(e=>{if(/^Demo:/.test(e.textContent))e.remove()});
+      const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode())){if(n.nodeValue.includes('localhost:8799'))n.nodeValue=n.nodeValue.replace(/https?:\\/\\/localhost:8799\\/index\\.html/g,'https://ubipin.it/')}
+      document.querySelectorAll('input,textarea').forEach(e=>{if(e.value&&e.value.includes('localhost:8799'))e.value=e.value.replace(/https?:\\/\\/localhost:8799\\/index\\.html/g,'https://ubipin.it/')});})()""")
     self.n+=1; f=f'{self.out}/s{self.n:03d}.jpg'
     await self.pg.screenshot(path=f, type='jpeg', quality=92); return f
   def caption(self, num, text): self.cap=[num, text]

@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210030';
+import { CONFIG } from './config.js?v=202611210045';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210030';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210045';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.74';
+const APP_VERSION = 'v.75';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -541,6 +541,7 @@ function demoBackend() {
         visibility: d.visibility, recipients: d.recipients, password_hash: d.password ? await sha(d.password) : null,
         text_body: d.text_body || null, tags: d.tags || [], created_at: new Date().toISOString(),
         unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
+        hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null, replies_enabled: d.replies_enabled !== false,
       });
       save(); return slug;
     },
@@ -553,9 +554,15 @@ function demoBackend() {
     async notifyRecipients() { return { sent: 0, skipped: 0, demo: true }; },
     async joinDating() { throw new Error('La sezione dating non è disponibile nella demo.'); },
     async leaveDating() {},
-    async addReply() { throw new Error('Le risposte non sono disponibili nella demo.'); },
-    async repliesFor() { return []; },
-    async myReplies() { return []; },
+    // risposte nella demo: solo testo, salvate sul telefono
+    async addReply(slug, d) {
+      const c = db.contents.find((x) => x.share_slug === slug); if (!c || !db.user) throw new Error('Pin non trovato.');
+      if (d.file) throw new Error('Nella demo si può rispondere solo con un messaggio scritto.');
+      (db.replies = db.replies || []).push({ id: crypto.randomUUID(), content_id: c.id, author_id: db.user.id, author_name: db.profiles[db.user.id]?.display_name || 'Utente',
+        media_type: 'text', text_body: d.text, created_at: new Date().toISOString(), revealed: true }); save(); return { mailed: false };
+    },
+    async repliesFor(slug) { const c = db.contents.find((x) => x.share_slug === slug); return c ? (db.replies || []).filter((r) => r.content_id === c.id).reverse() : []; },
+    async myReplies() { return (db.replies || []).filter((r) => r.author_id === db.user?.id).map((r) => ({ ...r, share_slug: db.contents.find((c) => c.id === r.content_id)?.share_slug })); },
     async myDatingPhotos() { return []; },
     async listHunts() { return (db.hunts || []).filter((h) => h.owner_id === db.user?.id); },
     async getHunt(id) { return (db.hunts || []).find((h) => h.id === id) || null; },
@@ -582,10 +589,12 @@ function demoBackend() {
       return { ...base, code: db.huntCodes[k], redeemed_at: null };
     },
     async isAdmin() { return !!db.admin; },
-    async listAds() { return []; },
-    async saveAd() { throw new Error('Non disponibile nella demo.'); },
-    async deleteAd() {},
-    async uploadAdImage() { throw new Error('Non disponibile nella demo.'); },
+    // banner nella demo: salvati sul telefono, immagine come dataURL
+    async listAds() { return [...(db.ads || [])]; },
+    async saveAd(a) { db.ads = db.ads || []; const o = db.ads.find((x) => x.id === a.id);
+      if (o) Object.assign(o, a); else db.ads.push({ ...a, id: crypto.randomUUID(), created_at: new Date().toISOString() }); save(); },
+    async deleteAd(id) { db.ads = (db.ads || []).filter((x) => x.id !== id); save(); },
+    async uploadAdImage(blob) { return new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); }); },
     async adminUsers() { return []; },
     async adminPinStats() { return []; },
     async huntStats() { return null; },
@@ -690,6 +699,7 @@ function demoBackend() {
         unlock_at: c.unlock_at || null, open_anywhere: !!c.open_anywhere, hunt_id: c.hunt_id || null,
         hunt_step: c.hunt_step || null, hunt_steps: c.hunt_id ? db.contents.filter((x) => x.hunt_id === c.hunt_id).length : null,
         hunt_title: c.hunt_title || null, hunt_locked: false,
+        replies_enabled: c.replies_enabled !== false, i_replied: (db.replies || []).some((r) => r.content_id === c.id && r.author_id === db.user?.id),
       };
     },
     async unlock(slug, pos, password) {
@@ -2519,6 +2529,16 @@ const VIDEOS = {
   consumazione: { f: 'video/Ubi-tutorial-regala-una-consumazione.mp4', s: 36 },
   caccia: { f: 'video/Ubi-tutorial-caccia-al-tesoro.mp4', s: 39 },
   capsula: { f: 'video/Ubi-tutorial-capsula-del-tempo.mp4', s: 31 },
+  lascia: { f: 'video/Ubi-tutorial-lascia.mp4', s: 21 },
+  condividi: { f: 'video/Ubi-tutorial-condividi.mp4', s: 18 },
+  gestisci: { f: 'video/Ubi-tutorial-gestisci.mp4', s: 18 },
+  rispondi: { f: 'video/Ubi-tutorial-rispondi.mp4', s: 19 },
+  gruppi: { f: 'video/Ubi-tutorial-gruppi.mp4', s: 21 },
+  whatsapp: { f: 'video/Ubi-tutorial-whatsapp.mp4', s: 16 },
+  a_negozio: { f: 'video/Ubi-admin-negozio.mp4', s: 23 },
+  a_campagna: { f: 'video/Ubi-admin-campagna.mp4', s: 19 },
+  a_banner: { f: 'video/Ubi-admin-banner.mp4', s: 18 },
+  a_caccia: { f: 'video/Ubi-admin-caccia.mp4', s: 21 },
 };
 const videoBtn = (k, short = false) => { const v = VIDEOS[k]; return v ? `<a class="btn full vidbtn" href="${v.f}" target="_blank" rel="noopener">▶️ ${short ? 'Video' : 'Guarda come funziona'} <span class="small">(${v.s} s)</span></a>` : ''; };
 const pdfShort = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica PDF</span></a>` : ''; };
@@ -3298,7 +3318,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <tr><td>Nuovo PIN → Salva PIN</td><td>Cambia il PIN (es. se un dipendente se ne va)</td></tr>
 <tr><td>✏️ Modifica dati</td><td>Nome, indirizzo, posizione, telefono, note</td></tr></table>
 <p><b>⭐ Partner</b>: spunta «Mostra tra i partner» solo con il consenso del negozio, poi categoria, paese, frase, logo e sito → Salva. Compare in ubipin.it/#/business; se lo sospendi, sparisce da solo.</p>
-<p class="small">Dopo 8 PIN sbagliati in 15 minuti la Cassa si blocca per 15 minuti.</p></details>
+<p class="small">Dopo 8 PIN sbagliati in 15 minuti la Cassa si blocca per 15 minuti.</p>${videoBtn('a_negozio')}</details>
 
 <details><summary>3 · Catalogo e campagne regalo</summary>
 <p><b>🛍️ Catalogo</b>: articoli con nome, valore, significato (es. dei fiori) e foto (link https). <b>Togli/Rimetti</b> li nasconde dalla Cassa.</p>
@@ -3309,7 +3329,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <li>Premi e quantità (es. 150 × Sconto 10%, 40 × Stella mignon): assegnati a caso, massimo 2000.</li>
 <li><b>Crea la campagna</b> → pagina <b>🖨️ Biglietti</b>, 8 per A4: Stampa → Salva come PDF.</li></ol>
 <p>Ogni campagna mostra doni, attivati, regalati, aperti, ritirati. <b>🖨️ Biglietti</b> per ristampare, <b>⏰ Cambia scadenza</b> per prorogare tutto.</p>
-<p class="small">Premi a sorte = possibile concorso a premi: il negozio lo verifichi con il suo consulente.</p></details>
+<p class="small">Premi a sorte = possibile concorso a premi: il negozio lo verifichi con il suo consulente.</p>${videoBtn('a_campagna')}</details>
 
 <details><summary>4 · La Cassa (cosa spiegare al negozio)</summary>
 <ul><li><b>Controlla un regalo</b>: il cliente mostra il codice di 6 caratteri → <b>Verifica</b>.
@@ -3323,7 +3343,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <ol><li><b>📣 Banner</b>: nome e testo breve.</li><li>Link: sito, Instagram, Maps, WhatsApp o Vinted.</li>
 <li>Colore di sfondo e, se vuoi, logo o immagine.</li><li>Lascia <b>Attivo</b> e premi <b>Salva banner</b>.</li></ol>
 <p>Ogni banner: <b>✏️ Modifica</b>, <b>⏸ Spegni / ▶️ Accendi</b>, <b>Elimina</b> (due tocchi). Ruotano uno ogni 9 secondi, alternando i gruppi per sito del link (libri, Vinted, negozi…).</p>
-<p class="small">Tanti banner insieme: chiedimi il comando SQL unico.</p></details>
+<p class="small">Tanti banner insieme: chiedimi il comando SQL unico.</p>${videoBtn('a_banner')}</details>
 
 <details><summary>6 · Cacce al tesoro</summary>
 <ol><li><b>Profilo → Le mie cacce</b>: nome, premio, numero massimo di vincitori.</li>
@@ -3333,7 +3353,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <ul><li><b>✅ Verifica un codice premio</b> e <b>✓ Ritirato</b> sul vincitore</li><li><b>📊 Statistiche</b> di gioco</li>
 <li><b>📤 Condividi la caccia</b>: link della tappa 1 con immagine e hashtag</li>
 <li><b>📑 Duplica caccia</b>: tocchi dove va la nuova tappa 1, poi sistemi ogni tappa con Modifica</li></ul>
-<p class="small">Per togliere la risposta: Modifica → spunta «Togli la password» (la casella vuota non basta).</p></details>
+<p class="small">Per togliere la risposta: Modifica → spunta «Togli la password» (la casella vuota non basta).</p>${videoBtn('a_caccia')}</details>
 
 <details><summary>7 · Iscritti, statistiche, curiosità</summary>
 <p><b>👥 Iscritti</b>: Gratis/⭐ Pro cambia il piano (gratis 500 pin, 100 file, 10 video). 📥 Scarica per Excel.</p>
@@ -4196,6 +4216,11 @@ const FAQ_GUIDE = [
       Il link si apre solo a chi sblocca il pin, ma chiunque lo riceva in altro modo può vederlo: non condividerlo altrove.</li>
     <li>Raggio di sblocco: da 10 a 500 metri.</li></ul>`],
 ];
+// video tutorial in fondo alle voci della guida
+{ const FV = { '3 · Lascia un contenuto': 'lascia', '4 · Condividi': 'condividi', '5 · Sblocca un contenuto': 'pin', '6 · Gestisci i tuoi contenuti': 'gestisci',
+  '6c · Rispondere a un pin': 'rispondi', '👥 Gruppi: mandare un pin a più persone insieme': 'gruppi', '📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram': 'whatsapp' };
+  FAQ_GUIDE.forEach((x) => { const k = FV[x[0]]; if (k && Array.isArray(x) && x.length === 2) x[1] += videoBtn(k); }); }
+
 
 const FAQ_IDEAS = [
   ['👨‍👩‍👧 Famiglia', 'famiglia, ricordo, anniversario', `<ul>
