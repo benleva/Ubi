@@ -379,3 +379,10 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .admtabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .admtabs .btn { padding: 10px 6px; font-size: 15px; text-align: center; white-space: nowrap; margin: 0; }
 .admtabs .btn.on { background: var(--brand, #1f3a5f); color: #fff; }
+
+/* Pulsanti «Scarica il PDF» */
+.pdfbtn { display: flex !important; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+.pdfbtn .pdfi { width: 26px; height: 26px; flex: 0 0 auto; }
+.pdflight { background: #fff !important; color: var(--brand) !important; }
+.pdfs .pdfbtn { margin-bottom: 8px; }
+.bizcards .pdfbtn { padding: 6px; font-size: 14px; }

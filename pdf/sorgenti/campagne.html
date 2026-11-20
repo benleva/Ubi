@@ -1,0 +1,91 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Ubi · Campagne regalo</title><link rel="stylesheet" href="pdf.css">
+<style>
+.hero { display: grid; grid-template-columns: 1fr 48mm; gap: 6mm; align-items: center; }
+.hero .art { width: 48mm; height: 48mm; }
+.phones { margin-top: 6mm; }
+.four { display: flex; gap: 3mm; justify-content: space-between; }
+.four > div { zoom: .78; }
+.cap { font-size: 12pt; }
+.ticket { width: 54mm; border: 1mm dashed #1e7d45; border-radius: 4mm; background: #fff; padding: 3mm; text-align: center; flex: 0 0 auto; }
+.ticket .th { display: flex; align-items: center; gap: 2mm; justify-content: center; font-size: 8pt; text-align: left; }
+.ticket .th span { width: 9mm; height: 9mm; display: inline-block; }
+.ticket .qrs svg { width: 34mm; height: 34mm; margin: 2mm auto 1mm; display: block; }
+.ticket .code { font-family: monospace; font-weight: 900; font-size: 11pt; letter-spacing: 1.5px; }
+.ticket .t { font-size: 6.5pt; color: #444; margin: 1mm 0 0; }
+.mapm { height: 46mm; border-radius: 2mm; overflow: hidden; margin-top: 2mm; }
+.pmsg { background: #fffaf0; border: 1px solid #f3d9b8; border-radius: 2mm; padding: 2mm; text-align: left; font-size: 7pt; margin-top: 2mm; }
+.pcode { border: 1px solid #ffd54a; border-radius: 2mm; background: #fff; padding: 2mm; margin-top: 2mm; }
+.pcode b { display: block; font-family: monospace; font-size: 15pt; letter-spacing: 2px; color: #1e7d45; }
+.valid { background: #e3f6ea; color: #1e7d45; border-radius: 2mm; padding: 3mm; font-weight: 800; font-size: 9pt; margin-top: 2mm; }
+.chips span { display: inline-block; border: 1px solid #ddd; border-radius: 3mm; padding: .8mm 1.6mm; font-size: 6.2pt; margin: .5mm; background: #fff; }
+.ex { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.ex .box p { margin: 1mm 0; font-size: 12pt; }
+table.pr { width: 100%; border-collapse: collapse; font-size: 12pt; margin-top: 2mm; }
+table.pr td { padding: 1.5mm 0; border-bottom: 1px solid #eee; } table.pr td:last-child { text-align: right; font-weight: 800; }
+</style></head><body>
+
+<section class="pg">
+  <div class="hero">
+    <div><span class="k">Campagne regalo · per garden e negozi</span>
+      <h1 style="font-size:30pt">Un regalo per ogni cliente,<br><em>da aprire solo da te</em></h1>
+      <p class="lead" style="margin:0">Il cliente riceve un biglietto, sulla mappa il suo albero si illumina e torna nel tuo negozio per scoprire il premio.</p></div>
+    <div class="art" data-tree></div>
+  </div>
+  <h2 style="margin-top:6mm">Come funziona, in 4 passi</h2>
+  <div class="four">
+    <div><div class="ticket"><div class="th"><span data-tree></span><div><b>Un regalo per te</b><br>Il tuo garden</div></div>
+        <div class="qrs" data-qr="https://ubipin.it/#/business"></div><div class="code">K7RD-9QXA</div>
+        <p class="t">Inquadra il QR con la fotocamera<br>Aprilo dal 1/12 all'8/1 · ubipin.it</p></div>
+      <div class="cap">1 · In cassa dai il biglietto</div></div>
+    <div><div class="phone"><div class="bar"><i></i>Ubi</div><div class="scr">
+        <div style="width:16mm;height:16mm;margin:0 auto" data-tree></div><h4>Vieni a sbloccare il tuo regalo</h4>
+        <div>📍 <b>Il tuo garden</b></div><div class="mapm" data-map="12"></div>
+        <div style="color:#1e7d45;font-weight:800;margin-top:1.5mm">✓ Sei nell'area: puoi sbloccare!</div><div class="btnp">🔓 Sblocca qui</div></div></div>
+      <div class="cap">2 · Sulla mappa il suo albero si illumina</div></div>
+    <div><div class="phone"><div class="bar"><i></i>Ubi</div><div class="scr">
+        <div style="width:13mm;height:13mm;margin:0 auto" data-tree></div><h4>🎉 Hai trovato:<br><span style="color:#1e7d45">Stella di Natale mignon</span></h4>
+        <div style="font-style:italic;color:#3d6b4f">🌿 Auguri di gioia e di un anno luminoso</div>
+        <div class="pmsg">Buon Natale! Mi hai sempre aiutato con le piante.<div style="text-align:right;font-style:italic">— Giulia</div></div>
+        <div class="pcode">Mostra questo codice in cassa<b>3XDQQP</b></div></div></div>
+      <div class="cap">3 · Lo apre nel negozio e scopre il premio</div></div>
+  <div><div class="phone" ><div class="bar"><i></i>Cassa · Il tuo garden</div><div class="scr">
+        <div style="text-align:left;font-weight:800">Controlla un regalo</div>
+        <div style="border:1px solid #ccc;border-radius:2mm;padding:2mm;font-family:monospace;font-size:11pt;margin-top:1mm;background:#fff">3XDQQP</div>
+        <div class="valid">✓ Valido<br>Stella di Natale mignon</div><div class="btnp">✓ Segna come ritirato</div><div style="margin-top:3mm;font-size:7pt;color:#666;text-align:left">Biglietti 200 · attivati 64 · regalati 18 · ritirati 41</div></div></div>
+      <div class="cap">4 · Tu controlli il codice: ritirato!</div></div>
+    </div>
+  <div class="box" style="margin-top:7mm"><h3>🎁 Il regalo che porta clienti nuovi</h3>
+    <p style="margin:1mm 0 0">Ogni cliente può <b>regalare</b> il suo biglietto a un amico, a un figlio, alla nonna, con un <b>pensiero scritto</b> (l'app suggerisce tracce e idee). Il link vale una volta sola e chi lo riceve viene da te per aprirlo.</p></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>1</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<section class="pg">
+  <span class="k">Un esempio concreto</span>
+  <h2>Natale in un garden</h2>
+  <div class="ex">
+    <div class="box"><h3>🎄 La campagna</h3>
+      <table class="pr"><tr><td>Biglietti stampati</td><td>200</td></tr><tr><td>Sconto 10% sulle decorazioni</td><td>150</td></tr>
+        <tr><td>Stella di Natale mignon</td><td>40</td></tr><tr><td>Piantina grassa</td><td>10</td></tr></table>
+      <p style="margin-top:3mm"><b>Si apre</b> dal 1° dicembre <b>fino all'8 gennaio</b>. Dal 9 gennaio i regali spariscono dalla mappa e i codici scadono.</p></div>
+    <div class="box"><h3>📍 Dove si sblocca</h3>
+      <p>Nell'area che scegli tu, per esempio il <b>reparto decorazioni</b>: il cliente ci passa per forza.</p>
+      <p>Dentro le serre il GPS è meno preciso: per questo l'area è ampia (circa 50 metri) e copre tutto il garden.</p></div>
+  </div>
+  <h2 style="margin-top:7mm">Cosa ricevi</h2>
+  <ul class="check" style="padding:0;list-style:none">
+    <li style="margin:3mm 0">🖨️ <b>I biglietti pronti da stampare</b>, 8 per foglio A4, ognuno con il suo QR e il suo codice. Il premio non è scritto: è una sorpresa.</li>
+    <li style="margin:3mm 0">🧾 <b>La pagina Cassa</b> sul tuo telefono o computer, protetta da PIN: controlli i codici e segni i ritiri con un tocco.</li>
+    <li style="margin:3mm 0">📊 <b>I numeri in tempo reale</b>: biglietti attivati, regalati ad altri, aperti e ritirati, anche quelli portati da clienti nuovi.</li>
+    <li style="margin:3mm 0">⏰ <b>Proroga</b> con un tocco per chi arriva in ritardo.</li>
+    <li style="margin:3mm 0">⭐ <b>Visibilità</b> nella pagina dei partner di Ubi.</li>
+  </ul>
+  <div class="cta" style="margin-top:5mm">
+    <div class="qr"><div data-qr="https://ubipin.it/#/business"></div></div>
+    <div><h2>Vuoi la tua campagna?</h2><p>Dicci premi, quantità e date: prepariamo tutto noi.</p>
+      <p style="font-size:18pt;font-weight:900;margin-top:3mm">info@ubipin.it</p><p>Condizioni su richiesta · Disponibile anche per San Valentino, Festa della mamma e Pasqua.</p></div>
+  </div>
+  <p class="note" style="margin-top:5mm">I premi assegnati a sorte possono rientrare nella disciplina delle manifestazioni a premio: ti consigliamo di verificarlo con il tuo consulente. Per partecipare, il cliente si registra gratis su Ubi.</p>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>2</span><span class="u">ubipin.it</span></div>
+</section>
+<script type="module" src="pdf.js"></script>
+</body></html>

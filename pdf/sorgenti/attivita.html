@@ -1,0 +1,99 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Ubi per le attività</title><link rel="stylesheet" href="pdf.css">
+<style>
+.cover h1 { font-size: 44pt; margin-top: 14mm; }
+.cover .art { width: 62mm; height: 62mm; margin: 10mm 0 0; }
+.cover .row { display: flex; gap: 8mm; align-items: center; margin-top: 12mm; }
+.what { display: grid; grid-template-columns: 1.2fr 1fr; gap: 8mm; align-items: center; }
+.svc { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.svc .box h3 { font-size: 15pt; margin-top: 1mm; }
+.svc .box p { font-size: 13pt; margin: 1mm 0 0; }
+.svc .box .for { font-size: 10pt; color: #e8743b; font-weight: 800; margin-top: 2mm; }
+ul.check { padding: 0; list-style: none; } ul.check li { padding-left: 10mm; position: relative; margin: 4.5mm 0; }
+ul.check li:before { content: '✓'; position: absolute; left: 0; color: #fff; background: #2e9e5b; width: 6.5mm; height: 6.5mm; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10pt; font-weight: 900; top: .5mm; }
+.mapfig { height: 78mm; border-radius: 6mm; overflow: hidden; border: 1px solid #e3ddd0; }
+</style></head><body>
+
+<!-- 1. Copertina -->
+<section class="pg dark cover">
+  <span class="logo"><span class="pin"></span>Ubi</span>
+  <h1>Porta i clienti<br>nel tuo negozio.<br><em>Con un regalo.</em></h1>
+  <p class="lead">Ubi per garden, negozi, bar e ristoranti: regali, giochi e messaggi che si aprono solo da te.</p>
+  <div class="row"><div class="art" data-tree></div>
+    <div><div class="qr"><div data-qr="https://ubipin.it/#/business"></div></div><p style="margin:2mm 0 0;font-size:11pt;color:#dbe4f0">Inquadra per vedere<br>la pagina per le attività</p></div></div>
+  <div class="foot"><span>ubipin.it</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 2. Cos'è Ubi -->
+<section class="pg">
+  <span class="k">Cos'è Ubi</span>
+  <h2>Contenuti che si aprono<br><em>solo quando arrivi lì</em></h2>
+  <div class="what">
+    <div>
+      <p class="lead">Ubi è un'app che fissa foto, video, messaggi e regali in un <b>luogo preciso</b> sulla mappa.</p>
+      <p>Chi li vede sulla mappa può aprirli soltanto <b>arrivando sul posto</b>: il telefono controlla la posizione e solo lì si sblocca il contenuto.</p>
+      <p>Per un'attività vuol dire una cosa semplice: <b>le persone vengono da te</b> per scoprire cosa c'è.</p>
+    </div>
+    <div class="mapfig" data-map="16"></div>
+  </div>
+  <div class="grid2" style="margin-top:6mm;gap:5mm">
+    <div class="box"><div class="e">📱</div><h3>Niente da installare</h3><p style="margin:0">Funziona dal browser del telefono, per te e per i tuoi clienti. Basta inquadrare un QR.</p></div>
+    <div class="box"><div class="e">🔒</div><h3>Sicuro</h3><p style="margin:0">Posizione e codici sono controllati dal server, non dal telefono: niente furbizie.</p></div>
+    <div class="box"><div class="e">👵</div><h3>Facile per tutti</h3><p style="margin:0">Si inquadra il QR, si segue la mappa, si tocca «Sblocca qui». Niente password da ricordare in negozio.</p></div>
+    <div class="box"><div class="e">🌍</div><h3>Italiano e inglese</h3><p style="margin:0">L'app parla anche inglese: va bene per turisti e clienti stranieri.</p></div>
+  </div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>2</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 3. Servizi -->
+<section class="pg">
+  <span class="k">I servizi per la tua attività</span>
+  <h2>Cosa puoi fare con Ubi</h2>
+  <div class="svc">
+    <div class="box"><div class="e">🎄</div><h3>Campagne regalo</h3><p>A Natale, San Valentino, Festa della mamma o Pasqua: un regalo a sorpresa per ogni cliente, da aprire solo nel tuo negozio entro una data.</p><p class="for">Garden · fioristi · negozi</p></div>
+    <div class="box"><div class="e">🍺</div><h3>Regala una consumazione</h3><p>Il cliente paga al banco una birra, un caffè o un hamburger e lo regala a chi vuole, con un messaggio da leggere solo da te.</p><p class="for">Bar · pub · ristoranti</p></div>
+    <div class="box"><div class="e">🗺️</div><h3>Caccia al tesoro</h3><p>Indovinelli e tappe nel paese, con un premio da ritirare nel locale. Ogni vincitore ha un codice unico.</p><p class="for">Locali · pro loco · eventi</p></div>
+    <div class="box"><div class="e">⏳</div><h3>Capsula del tempo</h3><p>Un messaggio o un video che si apre in una data scelta, nel luogo scelto. Perfetta per eventi e anniversari.</p><p class="for">Eventi · associazioni</p></div>
+    <div class="box" style="grid-column:1 / span 2"><div class="e">📣</div><h3>Banner pubblicitario</h3><p>Il tuo logo nella pagina principale di Ubi, quella che tutti vedono quando aprono l'app, con il link al tuo sito o ai tuoi social.</p><p class="for">Tutte le attività</p></div>
+  </div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>3</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 4. Come lavoriamo -->
+<section class="pg">
+  <span class="k">Come lavoriamo</span>
+  <h2>Tu scegli i premi,<br><em>al resto pensiamo noi</em></h2>
+  <div class="steps" style="margin-top:6mm;gap:8mm">
+    <div class="step"><b class="n">1</b><div><h3>Ci racconti cosa vuoi offrire</h3><p>Premi, quantità, date e la zona del negozio dove vuoi far arrivare i clienti (per esempio il reparto decorazioni).</p></div></div>
+    <div class="step"><b class="n">2</b><div><h3>Prepariamo la campagna</h3><p>Creiamo i regali sulla mappa e ti diamo i <b>biglietti da stampare</b>, ognuno con il suo QR e il suo codice.</p></div></div>
+    <div class="step"><b class="n">3</b><div><h3>Li dai ai clienti</h3><p>In cassa, con un acquisto o come omaggio. Il cliente inquadra il QR e il regalo diventa suo.</p></div></div>
+    <div class="step"><b class="n">4</b><div><h3>Il cliente torna e ritira</h3><p>Lo apre nel tuo negozio, ti mostra il codice e tu lo controlli dalla tua <b>pagina Cassa</b>, protetta da PIN.</p></div></div>
+  </div>
+  <div class="box" style="margin-top:8mm"><h3>Nella tua pagina Cassa trovi</h3>
+    <ul class="check" style="margin:2mm 0 0"><li>il controllo dei codici con un tocco, e il «ritirato» che impedisce di usarli due volte</li>
+      <li>i numeri in tempo reale: biglietti attivati, regalati ad altri, aperti, ritirati</li>
+      <li>la proroga di un regalo per il cliente arrivato in ritardo</li></ul></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>4</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 5. Perché conviene + contatti -->
+<section class="pg">
+  <span class="k">Perché conviene</span>
+  <h2>Clienti che tornano,<br><em>clienti nuovi</em></h2>
+  <ul class="check">
+    <li><b>Il cliente torna da te</b>: il regalo si apre solo nel tuo negozio, entro le date che scegli tu.</li>
+    <li><b>Porta clienti nuovi</b>: ogni regalo si può girare a un amico o a un familiare, con un pensiero scritto. Chi lo riceve viene da te per aprirlo.</li>
+    <li><b>Passa tra i tuoi prodotti</b>: scegli tu l'area dove si sblocca, per esempio vicino alle novità o alle decorazioni.</li>
+    <li><b>Ne parlano</b>: un regalo a sorpresa da scoprire sulla mappa si racconta e si condivide sui social.</li>
+    <li><b>Sai come va</b>: i numeri li vedi in tempo reale, senza fogli e senza conteggi.</li>
+    <li><b>Visibilità</b>: i partner compaiono nella pagina di Ubi dedicata alle attività.</li>
+  </ul>
+  <div class="cta" style="margin-top:8mm">
+    <div class="qr"><div data-qr="https://ubipin.it/#/business"></div></div>
+    <div><h2>Parliamone</h2><p>Scrivici il nome dell'attività, il paese e che tipo di regalo vorresti offrire.</p>
+      <p style="font-size:18pt;font-weight:900;margin-top:3mm">info@ubipin.it</p><p>Condizioni su richiesta.</p></div>
+  </div>
+  <p class="note" style="margin-top:6mm">Le campagne con premi assegnati a sorte possono rientrare nella disciplina delle manifestazioni a premio: ti consigliamo di verificarlo con il tuo consulente.</p>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>5</span><span class="u">ubipin.it</span></div>
+</section>
+<script type="module" src="pdf.js"></script>
+</body></html>
