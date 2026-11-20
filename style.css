@@ -386,3 +386,4 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .pdflight { background: #fff !important; color: var(--brand) !important; }
 .pdfs .pdfbtn { margin-bottom: 8px; }
 .bizcards .pdfbtn { padding: 6px; font-size: 14px; }
+.bizcontacts { margin-top: 8px; } .bizcontacts .row { margin-top: 8px; } .bizcontacts .btn { margin: 0; }

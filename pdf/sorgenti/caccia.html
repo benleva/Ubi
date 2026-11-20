@@ -1,0 +1,82 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Ubi · Caccia al tesoro</title><link rel="stylesheet" href="pdf.css">
+<style>
+.hero { display: grid; grid-template-columns: 1fr 44mm; gap: 6mm; align-items: center; }
+.chest { width: 44mm; height: 44mm; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe58a, #f2b824 55%, #c98a10); display: flex; align-items: center; justify-content: center; box-shadow: 0 2mm 5mm rgba(0,0,0,.2); }
+.chest svg { width: 70%; height: 70%; }
+.four { display: flex; gap: 3mm; justify-content: space-between; margin-top: 5mm; }
+.four > div { zoom: .78; }
+.cap { font-size: 12pt; }
+.riddle { background: #fff8ee; border: 1px solid #f3d9b8; border-radius: 2mm; padding: 2mm; font-style: italic; font-size: 7.5pt; text-align: left; margin-top: 2mm; }
+.inp { border: 1px solid #ccc; border-radius: 2mm; background: #fff; padding: 2mm; font-size: 8pt; text-align: left; margin-top: 2mm; }
+.green { background: radial-gradient(circle at 50% 35%, #3bb36a, #1e7d45); color: #fff; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4mm; }
+.green h4 { font-size: 15pt; color: #fff; margin: 2mm 0; }
+.dots { display: flex; gap: 1.5mm; justify-content: center; margin-top: 2mm; }
+.dots span { width: 5mm; height: 5mm; border-radius: 50%; border: .5mm solid #fff; font-size: 6pt; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.dots span.ok { background: #fff; color: #1e7d45; } .dots span.now { background: #ffd54a; color: #5a3b00; border-color: #ffd54a; }
+.hmap { height: 60mm; position: relative; overflow: hidden; border-radius: 2mm; margin-top: 2mm; }
+.pcode { border: 1px solid #ffd54a; border-radius: 2mm; background: #fff; padding: 2mm; margin-top: 2mm; }
+.pcode b { display: block; font-family: monospace; font-size: 15pt; letter-spacing: 2px; color: #c98a10; }
+ul.check { padding: 0; list-style: none; } ul.check li { padding-left: 10mm; position: relative; margin: 2.5mm 0; }
+ul.check li:before { content: '✓'; position: absolute; left: 0; color: #fff; background: #2e9e5b; width: 6.5mm; height: 6.5mm; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10pt; font-weight: 900; top: .5mm; }
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs><symbol id="chestS" viewBox="0 0 24 24"><path d="M3 10.5C3 6.9 5.9 4 9.5 4h5C18.1 4 21 6.9 21 10.5V11H3z" fill="#8a4b12"/><path d="M3 11h18v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="#a85d1a"/><path d="M3 11h18v2.2H3z" fill="#5e3209"/><path d="M7 4.6v15.4M17 4.6v15.4" stroke="#ffd96a" stroke-width="1.6"/><rect x="10" y="10" width="4" height="5" rx="1" fill="#ffd96a" stroke="#5e3209" stroke-width=".8"/></symbol></defs></svg>
+
+<section class="pg">
+  <div class="hero">
+    <div><span class="k">Caccia al tesoro · per locali, pro loco ed eventi</span>
+      <h1 style="font-size:30pt">Un gioco nel tuo paese,<br><em>con il premio da te</em></h1>
+      <p class="lead" style="margin:0">Indovinelli e tappe sulla mappa: chi risolve tutto vince un premio da ritirare nel tuo locale.</p></div>
+    <div class="chest"><svg><use href="#chestS"/></svg></div>
+  </div>
+  <h2 style="margin-top:5mm">Come funziona</h2>
+  <div class="four">
+    <div><div class="phone"><div class="bar"><i></i>Ubi</div><div class="scr">
+        <h4>🗺️ Tappa 1 di 3</h4><div class="riddle">«Ho una voce ma non ho bocca, suono a festa e a mezzogiorno. Chi sono?»</div>
+        <div style="text-align:left;margin-top:2mm;font-weight:800">🧩 La tua risposta</div><div class="inp">campanile</div>
+        <div class="btnp">🔓 Sblocca qui</div></div></div>
+      <div class="cap">1 · Arriva alla tappa e risolve l'indovinello</div></div>
+    <div><div class="phone"><div class="green">
+        <div style="font-size:30pt">✅</div><h4>Esatto!</h4>
+        <div class="dots"><span class="ok">✓</span><span class="now">2</span><span>3</span></div>
+        <div style="font-size:8pt;margin-top:2mm">Tappa 1 di 3 ✓</div>
+        <div class="btnp" style="background:#fff;color:#1e7d45;margin-top:4mm">📜 Leggi l'indizio</div></div></div>
+      <div class="cap">2 · Schermata verde, si passa alla prossima</div></div>
+    <div><div class="phone"><div class="bar"><i></i>Ubi</div><div class="scr">
+        <div style="font-weight:800;text-align:left">🗺️ Caccia al tesoro</div>
+        <div class="hmap"><svg viewBox="0 0 100 100" style="width:100%;height:100%"><rect width="100" height="100" fill="#eef1e4"/><path d="M-5 70 L105 50" stroke="#fff" stroke-width="7"/><path d="M30 -5 L42 105" stroke="#fff" stroke-width="5"/>
+          <line x1="28" y1="78" x2="70" y2="28" stroke="#b07a0c" stroke-width="1.5" stroke-dasharray="3 3"/><circle cx="28" cy="78" r="3" fill="#1f3a5f" stroke="#fff"/>
+          <circle cx="70" cy="28" r="11" fill="#f2b824" opacity=".35"/><circle cx="70" cy="28" r="7.5" fill="#f2b824" stroke="#fff" stroke-width="1.2"/><use href="#chestS" x="64.5" y="22.5" width="11" height="11"/></svg></div>
+        <div style="margin-top:2mm">📍 <b>240 m</b> dalla tappa 2</div></div></div>
+      <div class="cap">3 · Sulla mappa compare il forziere della prossima tappa</div></div>
+    <div><div class="phone"><div class="green" style="background:radial-gradient(circle at 50% 35%,#f2b824,#c98a10)">
+        <div style="font-size:30pt">🏆</div><h4>Hai vinto!</h4>
+        <div class="pcode" style="color:#333">Mostra questo codice<b>5K7QX3</b></div>
+        <div style="font-size:8pt;margin-top:2mm">🍺 Una birra media al tuo locale</div></div></div>
+      <div class="cap">4 · Codice unico: lo controlli e lo segni come ritirato</div></div>
+  </div>
+  <div class="box" style="margin-top:6mm"><h3>🎯 Perfetta per</h3>
+    <p style="margin:1mm 0 0">Pub e bar che vogliono far girare il paese ai clienti, pro loco e sagre, negozi che lanciano un prodotto, eventi per famiglie, scuole e oratori.</p></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>1</span><span class="u">info@ubipin.it · 351 666 1495</span></div>
+</section>
+
+<section class="pg">
+  <span class="k">Un esempio concreto</span>
+  <h2>«La birra del campanile»</h2>
+  <div class="grid2">
+    <div class="box"><h3>🗺️ Il percorso</h3><p style="margin:0">3 tappe nel paese, a 5 minuti a piedi l'una dall'altra. Ogni tappa ha un indovinello: la risposta apre la successiva.</p></div>
+    <div class="box"><h3>🏆 Il premio</h3><p style="margin:0">Una birra media ai <b>primi 30</b> che completano la caccia, da ritirare al pub con il codice. Dopo il 30° la caccia si chiude da sola.</p></div>
+  </div>
+  <h2 style="margin-top:6mm">Cosa ricevi</h2>
+  <ul class="check">
+    <li><b>La caccia pronta</b>: tappe, indovinelli e grafiche le prepariamo con te.</li>
+    <li><b>Il cartello con il QR</b> della tappa 1 da appendere nel locale, e l'<b>immagine per i social</b> con premio e QR.</li>
+    <li><b>Codici unici</b> per i vincitori: li controlli con un tocco e nessuno li usa due volte.</li>
+    <li><b>I numeri</b>: quanti hanno giocato, a che tappa sono arrivati, quanti premi ritirati.</li>
+    <li><b>Si duplica</b>: la stessa caccia si copia in un altro paese o per un altro locale in un minuto.</li>
+  </ul>
+  <div data-contact data-title="Organizziamo la tua caccia?" data-text="Raccontaci il locale o l'evento e il premio: al percorso pensiamo insieme." style="margin-top:3mm"></div>
+  <p class="note" style="margin-top:2mm">Per giocare ci si registra gratis su Ubi. La posizione serve solo durante il gioco e non viene salvata.</p>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>2</span><span class="u">ubipin.it</span></div>
+</section>
+<script type="module" src="pdf.js"></script>
+</body></html>

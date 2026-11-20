@@ -1,0 +1,84 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Ubi · Regala una consumazione</title><link rel="stylesheet" href="pdf.css">
+<style>
+.hero { display: grid; grid-template-columns: 1fr 44mm; gap: 6mm; align-items: center; }
+.hero .art { width: 44mm; height: 44mm; }
+.four { display: flex; gap: 3mm; justify-content: space-between; margin-top: 5mm; }
+.four > div { zoom: .78; }
+.cap { font-size: 12pt; }
+.items { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm; margin-top: 2mm; }
+.items span { border: 1px solid #ddd; border-radius: 2mm; padding: 1.6mm 1mm; font-size: 7pt; font-weight: 700; background: #fff; }
+.items span.on { background: #e8743b; color: #fff; border-color: #e8743b; }
+.qrs svg { width: 26mm; height: 26mm; display: block; margin: 2mm auto; }
+.chips span { display: inline-block; border: 1px solid #ddd; border-radius: 3mm; padding: .8mm 1.6mm; font-size: 6.2pt; margin: .5mm; background: #fff; }
+.ta { border: 1px solid #ccc; border-radius: 2mm; background: #fff; padding: 2mm; text-align: left; font-size: 7.5pt; min-height: 16mm; margin-top: 1.5mm; }
+.pmsg { background: #fffaf0; border: 1px solid #f3d9b8; border-radius: 2mm; padding: 2mm; text-align: left; font-size: 7.5pt; margin-top: 2mm; }
+.pcode { border: 1px solid #ffd54a; border-radius: 2mm; background: #fff; padding: 2mm; margin-top: 2mm; }
+.pcode b { display: block; font-family: monospace; font-size: 15pt; letter-spacing: 2px; color: #c0392b; }
+table.pr { width: 100%; border-collapse: collapse; font-size: 13pt; margin-top: 2mm; }
+table.pr td { padding: 1.8mm 0; border-bottom: 1px solid #eee; } table.pr td:last-child { text-align: right; font-weight: 800; }
+ul.check { padding: 0; list-style: none; } ul.check li { padding-left: 10mm; position: relative; margin: 2.2mm 0; }
+ul.check li:before { content: '✓'; position: absolute; left: 0; color: #fff; background: #2e9e5b; width: 6.5mm; height: 6.5mm; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10pt; font-weight: 900; top: .5mm; }
+</style></head><body>
+
+<section class="pg">
+  <div class="hero">
+    <div><span class="k">Regala una consumazione · per bar, pub e ristoranti</span>
+      <h1 style="font-size:30pt">Regala una birra.<br><em>Anche a chi è lontano.</em></h1>
+      <p class="lead" style="margin:0">Il cliente paga al banco e regala una consumazione a chi vuole, con un messaggio che si legge solo nel tuo locale.</p></div>
+    <div class="art" data-box></div>
+  </div>
+  <h2 style="margin-top:5mm">Come funziona, in 4 passi</h2>
+  <div class="four">
+    <div><div class="phone"><div class="bar"><i></i>Cassa · Il tuo bar</div><div class="scr">
+        <div style="text-align:left;font-weight:800">🎁 Vendi un regalo</div>
+        <div class="items"><span>☕ Caffè</span><span class="on">🍺 Birra media</span><span>🍔 Hamburger</span><span>🥂 Aperitivo x2</span></div>
+        <div style="margin-top:2mm;font-weight:800">🎁 Birra media</div><div class="qrs" data-qr="https://ubipin.it/#/business"></div>
+        <div style="font-size:6.8pt">Il cliente inquadra il QR: il regalo diventa suo</div></div></div>
+      <div class="cap">1 · Il cliente paga, tu tocchi «Birra»: nasce il QR</div></div>
+    <div><div class="phone"><div class="bar"><i></i>Ubi</div><div class="scr">
+        <h4>✍️ Scrivi un pensiero</h4>
+        <div class="chips"><span>Ti regalo questo perché…</span><span>Mi ricordo quella volta che…</span></div>
+        <div class="ta">Questa birra ti aspetta ad Ardesio. Scusa se non ci vediamo abbastanza: la prossima la offri tu 🍺</div>
+        <div style="text-align:left;margin-top:1.5mm">Firma: <b>Marco</b></div>
+        <div class="btnr">🎁 Crea il link del regalo</div><div class="btnp" style="background:#25d366">WhatsApp</div></div></div>
+      <div class="cap">2 · Scrive un pensiero e lo manda su WhatsApp</div></div>
+    <div><div class="phone"><div class="bar"><i></i>Ubi</div><div class="scr">
+        <div style="width:16mm;height:16mm;margin:0 auto" data-box></div><h4>Hai ricevuto un regalo!</h4>
+        <div>Da: <b>Marco</b></div><div style="margin-top:1.5mm">🎁 <b>Birra media</b></div>
+        <div class="pmsg">📍 Ti aspetta al <b>tuo bar</b><br>🗓️ Valido fino al 20 maggio<br>💌 Dentro c'è un messaggio per te</div>
+        <div class="btnp">🎁 Accetta il regalo</div></div></div>
+      <div class="cap">3 · L'amico lo accetta e viene da te</div></div>
+    <div><div class="phone"><div class="bar"><i></i>Ubi</div><div class="scr">
+        <h4>🎉 Hai trovato:<br><span style="color:#c0392b">Birra media</span></h4>
+        <div class="pmsg">Questa birra ti aspetta ad Ardesio. Scusa se non ci vediamo abbastanza: la prossima la offri tu 🍺<div style="text-align:right;font-style:italic">— Marco</div></div>
+        <div class="pcode">Mostra questo codice al banco<b>T4KMR9</b></div>
+        <div class="btnp">✓ Ritirato</div></div></div>
+      <div class="cap">4 · Lo apre nel locale, legge e brinda</div></div>
+  </div>
+  <div class="box" style="margin-top:6mm"><h3>🍻 Perché ai tuoi clienti piace</h3>
+    <p style="margin:1mm 0 0">È un regalo diverso, per Natale, un compleanno o per dire grazie: non un buono qualsiasi, ma una consumazione con <b>un messaggio da leggere al bancone</b>. E chi lo riceve spesso arriva con un amico.</p></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>1</span><span class="u">info@ubipin.it · 351 666 1495</span></div>
+</section>
+
+<section class="pg">
+  <span class="k">Per il tuo locale</span>
+  <h2>Clienti nuovi, <em>pagati in anticipo</em></h2>
+  <div class="grid2">
+    <div class="box"><h3>🧾 Il tuo catalogo regali</h3><p style="margin:0;font-size:12pt">Esempio: scegli tu cosa regalare e a che prezzo.</p>
+      <table class="pr"><tr><td>☕ Caffè</td><td>1,20 €</td></tr><tr><td>🍺 Birra media</td><td>5 €</td></tr><tr><td>🍔 Hamburger e patatine</td><td>12 €</td></tr><tr><td>🥂 Aperitivo per due</td><td>15 €</td></tr></table></div>
+    <div class="box"><h3>💶 Il pagamento</h3><p style="margin:0">Il cliente <b>paga a te</b>, al banco, come sempre. Ubi non tocca i soldi: crea solo il regalo con il suo QR.</p>
+      <p style="margin:2mm 0 0">Ogni regalo vale <b>6 mesi</b> (lo decidi tu) e si ritira <b>una volta sola</b>, con il codice.</p></div>
+  </div>
+  <ul class="check" style="margin-top:3mm">
+    <li><b>Clienti nuovi</b>: chi riceve il regalo spesso non è mai entrato nel tuo locale.</li>
+    <li><b>Incasso anticipato</b>: il regalo si paga oggi e si consuma nelle settimane dopo.</li>
+    <li><b>Si torna in compagnia</b>: una birra regalata raramente si beve da soli.</li>
+    <li><b>Tutto dal telefono</b>: la pagina Cassa, con il PIN, crea i regali, controlla i codici, segna i ritiri e ti mostra i numeri.</li>
+    <li><b>Visibilità</b>: compari tra i partner di Ubi e il tuo locale è sulla mappa dei regali.</li>
+  </ul>
+  <div data-contact data-title="Vuoi regalare le tue birre?" data-text="Ci dici cosa mettere in catalogo e ti attiviamo la Cassa in un giorno." style="margin-top:3mm"></div>
+  <p class="note" style="margin-top:2mm">Chi riceve il regalo si registra gratis su Ubi per aprirlo. Per il trattamento fiscale dei buoni regalo venduti, chiedi conferma al tuo commercialista.</p>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>2</span><span class="u">ubipin.it</span></div>
+</section>
+<script type="module" src="pdf.js"></script>
+</body></html>

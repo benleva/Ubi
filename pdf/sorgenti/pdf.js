@@ -16,6 +16,14 @@ document.querySelectorAll('[data-map]').forEach((e) => {
     <circle cx="50" cy="50" r="30" fill="#1e7d45" fill-opacity=".07" stroke="#1e7d45" stroke-width=".7" stroke-dasharray="2 2"/>
     ${trees}${mine}<circle cx="36" cy="66" r="2.6" fill="#1f3a5f" stroke="#fff" stroke-width="1"/></svg>`;
 });
+// blocco contatti uguale in tutti i PDF (email, telefono, WhatsApp con QR)
+document.querySelectorAll('[data-contact]').forEach((e) => {
+  e.className = 'cta contact';
+  e.innerHTML = `<div class="qr"><div data-qr="https://wa.me/393516661495"></div><p class="qrl">WhatsApp</p></div>
+    <div><h2>${e.dataset.title || 'Parliamone'}</h2><p class="ct">${e.dataset.text || ''}</p>
+    <p class="cl">✉️ info@ubipin.it &nbsp; 📞 351 666 1495</p>
+    <p class="cs">💬 Inquadra il QR per scriverci su WhatsApp · Condizioni su richiesta</p></div>`;
+});
 document.querySelectorAll('[data-qr]').forEach((e) => {
   const m = qrMatrix(e.dataset.qr), n = m.length, q = 2; let d = '';
   m.forEach((row, y) => row.forEach((v, x) => { if (v) d += `M${x + q} ${y + q}h1v1h-1z`; }));

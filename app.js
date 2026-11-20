@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611202102';
+import { CONFIG } from './config.js?v=202611202107';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202102';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202107';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.71';
+const APP_VERSION = 'v.72';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2492,12 +2492,18 @@ function giftSendPanel(g) {
 const PDFS = [
   { k: 'attivita', t: 'Ubi per le attività (presentazione completa)', f: 'pdf/Ubi-per-le-attivita.pdf' },
   { k: 'campagne', t: 'Campagne regalo (garden e negozi)', f: 'pdf/Ubi-campagne-regalo.pdf' },
-  { k: 'consumazione', t: 'Regala una consumazione (bar e pub)', f: '' },
-  { k: 'caccia', t: 'Caccia al tesoro', f: '' },
-  { k: 'capsula', t: 'Capsula del tempo', f: '' },
-  { k: 'banner', t: 'Banner pubblicitario', f: '' },
+  { k: 'consumazione', t: 'Regala una consumazione (bar e pub)', f: 'pdf/Ubi-regala-una-consumazione.pdf' },
+  { k: 'caccia', t: 'Caccia al tesoro', f: 'pdf/Ubi-caccia-al-tesoro.pdf' },
+  { k: 'capsula', t: 'Capsula del tempo', f: 'pdf/Ubi-capsula-del-tempo.pdf' },
+  { k: 'banner', t: 'Banner pubblicitario', f: 'pdf/Ubi-banner-pubblicitario.pdf' },
 ];
+// Contatti per le attività (numero di lavoro di Andrea, pubblico per sua scelta)
+const BIZ_PHONE = '351 666 1495', BIZ_WA = 'https://wa.me/393516661495';
+const bizContacts = (topic = 'Ubi per la mia attività') => `<div class="bizcontacts">
+  <a class="btn full" style="background:#25d366;color:#fff" href="${BIZ_WA}?text=${encodeURIComponent(`Ciao Andrea, vorrei informazioni su ${topic}.`)}" target="_blank" rel="noopener">💬 Scrivici su WhatsApp</a>
+  <div class="row"><a class="btn ghost" href="tel:+39${BIZ_PHONE.replace(/ /g, '')}">📞 ${BIZ_PHONE}</a><a class="btn ghost" href="mailto:info@ubipin.it?subject=${encodeURIComponent(topic)}">✉️ Email</a></div></div>`;
 const PDF_ICON = '<svg class="pdfi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" fill="#e53935"/><path d="M15 2v5h5" fill="#ffcdd2"/><text x="13" y="18" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff" font-family="sans-serif">PDF</text></svg>';
+const pdfShort = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica PDF</span></a>` : ''; };
 const pdfBtn = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica il PDF: ${esc(x.t)}</span></a>` : ''; };
 const PARTNER_CATS = {
   garden: { e: '🌿', n: 'Garden' }, fiorista: { e: '💐', n: 'Fiorista' }, bar: { e: '☕', n: 'Bar' }, pub: { e: '🍺', n: 'Pub' },
@@ -2505,7 +2511,7 @@ const PARTNER_CATS = {
 };
 async function viewBusiness() {
   const mail = 'mailto:info@ubipin.it?subject=Voglio%20diventare%20partner%20di%20Ubi';
-  app.innerHTML = `<div class="biz">
+  app.innerHTML = `<div class="biz" translate="no">
     <section class="bizhero">${TREE_SVG}<p class="bizk">UBI PER LE ATTIVITÀ</p>
       <h1>Porta i clienti nel tuo negozio.<br><em>Con un regalo.</em></h1>
       <p>Regali da sbloccare solo da te: il cliente torna, scopre il premio e ne parla agli amici.</p>
@@ -2518,10 +2524,11 @@ async function viewBusiness() {
       <div><b>3</b><p><strong>Torna da te</strong>, lo sblocca nell'area che scegli, scopre il premio e lo ritira in cassa.</p></div></div>
     <h2>Cosa puoi fare</h2>
     <div class="bizcards">
-      <div class="card"><span class="bize">🎄</span><h3>Campagne regalo</h3><p>Natale, San Valentino, Festa della mamma, Pasqua: tanti regali a sorpresa, uno per cliente, con scadenza.</p>${pdfBtn('campagne').replace('Scarica il PDF: Campagne regalo (garden e negozi)', 'Scarica PDF')}</div>
-      <div class="card"><span class="bize">🍺</span><h3>Regala una consumazione</h3><p>Un caffè, una birra, un hamburger: il cliente paga al banco e lo regala a chi vuole, con un messaggio.</p></div>
-      <div class="card"><span class="bize">🗺️</span><h3>Caccia al tesoro</h3><p>Indovinelli e tappe nel paese, con il premio da ritirare da te.</p></div>
-      <div class="card"><span class="bize">📣</span><h3>Banner</h3><p>Il tuo logo nella pagina principale di Ubi, con il link al tuo sito o ai social.</p></div></div>
+      <div class="card"><span class="bize">🎄</span><h3>Campagne regalo</h3><p>Natale, San Valentino, Festa della mamma, Pasqua: tanti regali a sorpresa, uno per cliente, con scadenza.</p>${pdfShort('campagne')}</div>
+      <div class="card"><span class="bize">🍺</span><h3>Regala una consumazione</h3><p>Un caffè, una birra, un hamburger: il cliente paga al banco e lo regala a chi vuole, con un messaggio.</p>${pdfShort('consumazione')}</div>
+      <div class="card"><span class="bize">🗺️</span><h3>Caccia al tesoro</h3><p>Indovinelli e tappe nel paese, con il premio da ritirare da te.</p>${pdfShort('caccia')}</div>
+      <div class="card"><span class="bize">⏳</span><h3>Capsula del tempo</h3><p>Messaggi e video che si aprono in una data scelta: matrimoni, scuole, sagre, anniversari.</p>${pdfShort('capsula')}</div>
+      <div class="card"><span class="bize">📣</span><h3>Banner</h3><p>Il tuo logo nella pagina principale di Ubi, con il link al tuo sito o ai social.</p>${pdfShort('banner')}</div></div>
     <h2>Perché funziona</h2>
     <ul class="bizwhy">
       <li><b>Il cliente torna</b>: il regalo si apre solo nel tuo negozio, tra le date che scegli tu.</li>
@@ -2534,8 +2541,8 @@ async function viewBusiness() {
     <div class="pdfs">${PDFS.filter((x) => x.f).map((x) => pdfBtn(x.k)).join('')}</div>
     <h2>⭐ I nostri partner</h2>
     <div id="partners"><p class="muted center">…</p></div>
-    <div class="card center bizcta"><h2>Vuoi la tua campagna?</h2><p>Scrivici nome dell'attività, paese e che tipo di regalo ti piacerebbe offrire.</p>
-      <a class="btn full accent" href="${mail}">✉️ info@ubipin.it</a>
+    <div class="card center bizcta"><h2>Vuoi la tua campagna?</h2><p>Scrivici o chiamaci: nome dell'attività, paese e che tipo di regalo ti piacerebbe offrire.</p>
+      ${bizContacts()}
       <p class="small muted">Guida completa: <a href="#/faq/negozi">come funziona per i negozi</a></p></div>
     <p class="center"><a href="#/">Ubi</a></p></div>`;
   let ps = [];
@@ -4020,7 +4027,8 @@ const FAQ_GUIDE = [
     <li>Un pub o un bar può anche <b>vendere</b> consumazioni da regalare («regala una birra»): il cliente paga al banco e manda il regalo a chi vuole.</li>
     <li>Hai una <b>pagina Cassa</b> riservata, protetta da PIN, per controllare i codici e vedere i numeri: biglietti attivati, regalati, ritirati.</li>
     <li>Per informazioni scrivi a <a href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">info@ubipin.it</a>.</li></ol>
-    ${pdfBtn('campagne')}${pdfBtn('attivita')}
+    ${pdfBtn('campagne')}${pdfBtn('consumazione')}${pdfBtn('attivita')}
+    ${bizContacts('una campagna regalo')}
     <a class="btn full ghost" href="#/business">⭐ Scopri la pagina per le attività e i nostri partner</a>
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">✉️ Voglio una campagna regalo</a>`],
   ['📣 Pubblicità su Ubi: fai conoscere la tua attività', `<ol>
@@ -4030,6 +4038,7 @@ const FAQ_GUIDE = [
     <li>Puoi anche usare Ubi per portare gente da te: un <b>pin pubblico</b> davanti al locale, una <b>caccia al tesoro</b> con premio ritirabile in negozio, una <b>capsula del tempo</b> per un evento.</li>
     <li>Per informazioni e condizioni scrivi a <a href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">info@ubipin.it</a>: indica il nome dell'attività, la città, cosa vuoi promuovere e per quanto tempo. Ti risponderemo con le proposte.</li></ol>
     ${pdfBtn('banner')}${pdfBtn('attivita')}
+    ${bizContacts('la pubblicità su Ubi')}
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">✉️ Contattaci per la pubblicità</a>`],
   ['📸 Mettere un post o un reel di Instagram in un pin', `<ol>
     <li>Su Instagram apri il post o il reel e tocca l'icona <b>Condividi</b> (l'aeroplanino ✈️) → <b>Copia link</b>. Per un profilo: ⋯ in alto → <b>Copia URL del profilo</b>.</li>

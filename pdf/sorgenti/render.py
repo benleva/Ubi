@@ -6,10 +6,10 @@ async def m():
     b=await p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox'])
     pg=await b.new_page()
     errs=[]; pg.on('pageerror', lambda e: errs.append(str(e)))
-    for src,out in [('attivita','Ubi-per-le-attivita'),('campagne','Ubi-campagne-regalo')]:
+    for src,out in [('attivita','Ubi-per-le-attivita'),('campagne','Ubi-campagne-regalo'),('consumazione','Ubi-regala-una-consumazione'),('caccia','Ubi-caccia-al-tesoro'),('capsula','Ubi-capsula-del-tempo'),('banner','Ubi-banner-pubblicitario')]:
       await pg.goto(f'http://localhost:8811/{src}.html'); await pg.wait_for_selector('body[data-ready="1"]', timeout=10000); await pg.wait_for_timeout(300)
       # controllo: niente pagina che trabocca
-      ov = await pg.evaluate("[...document.querySelectorAll('.pg')].map((p,i)=>{const f=p.querySelector('.foot');const kids=[...p.children].filter(c=>c!==f&&c.tagName!=='SCRIPT');const b=Math.max(...kids.map(c=>c.getBoundingClientRect().bottom));return [i+1, Math.round(f.getBoundingClientRect().top - b)]})")
+      ov = await pg.evaluate("[...document.querySelectorAll('.pg')].map((p,i)=>{const f=p.querySelector('.foot');const kids=[...p.children].filter(c=>c!==f&&c.tagName!=='SCRIPT');const b=Math.max(...kids.map(c=>c.getBoundingClientRect().bottom));const pr=p.getBoundingClientRect();return [i+1, Math.round(f.getBoundingClientRect().top - b), Math.round(pr.bottom - f.getBoundingClientRect().bottom)]})")
       print(src, ov)
       await pg.pdf(path=f'/home/claude/pdfs/{out}.pdf', format='A4', print_background=True, margin={'top':'0','bottom':'0','left':'0','right':'0'})
     print('errs', errs); await b.close()
