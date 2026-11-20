@@ -374,3 +374,8 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .partner img, .partner .plogo { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 14px; object-fit: cover; background: #f3efe6; display: flex; align-items: center; justify-content: center; font-size: 32px; }
 .partner h3 { margin: 0; } .partner p { margin: 2px 0; }
 .bizcta { margin-top: 20px; }
+
+/* Schede dell'amministrazione: vanno a capo, niente pulsanti tagliati */
+.admtabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.admtabs .btn { padding: 10px 6px; font-size: 15px; text-align: center; white-space: nowrap; margin: 0; }
+.admtabs .btn.on { background: var(--brand, #1f3a5f); color: #fff; }
