@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611192316';
+import { CONFIG } from './config.js?v=202611202037';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611192316';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611202037';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.66';
+const APP_VERSION = 'v.67';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -59,6 +59,8 @@ function distanceM(lat1, lng1, lat2, lng2) {
   return 2 * 6371000 * Math.asin(Math.sqrt(a));
 }
 const fmtDist = (m) => (m >= 1000 ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 1)} km` : `${Math.round(m)} m`);
+// PostgREST: una funzione «setof jsonb» può arrivare come [{nome_funzione: {...}}] oppure [{...}]
+const unwrapRow = (fn) => (r) => (r && typeof r === 'object' && r[fn] && Object.keys(r).length === 1 ? r[fn] : r);
 const shareUrl = (slug) => `${location.origin}${location.pathname}#/c/${slug}`;
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -246,6 +248,30 @@ async function supabaseBackend() {
     async createHunt(h) { return must(await sb.from('hunts').insert({ title: h.title, prize: h.prize, max_winners: h.max_winners }).select('*').single()); },
     async deleteHunt(id) { must(await sb.from('hunts').delete().eq('id', id)); },
     async huntSteps(id) { return must(await sb.from('contents').select('share_slug,title,hunt_step,lat,lng').eq('hunt_id', id).order('hunt_step')) || []; },
+    // ---- Doni e negozi ----
+    async myGifts() { return (must(await sb.rpc('my_gifts')) || []).map(unwrapRow('my_gifts')); },
+    async giftClaim(t) { return must(await sb.rpc('gift_claim', { p_token: t })); },
+    async giftGet(id) { return must(await sb.rpc('gift_get', { p_id: id })); },
+    async giftUnlock(id, pos) { return must(await sb.rpc('gift_unlock', { p_id: id, p_lat: pos ? pos.lat : null, p_lng: pos ? pos.lng : null })); },
+    async giftSend(id, message, from) { return must(await sb.rpc('gift_send', { p_id: id, p_message: message, p_from: from })); },
+    async giftSendCancel(id) { must(await sb.rpc('gift_send_cancel', { p_id: id })); },
+    async giftPeek(t) { return must(await sb.rpc('gift_peek', { p_token: t })); },
+    async giftAccept(t) { return must(await sb.rpc('gift_accept', { p_token: t })); },
+    async giftTrees(b) { return must(await sb.rpc('map_gift_trees', { s: b.s, w: b.w, n: b.n, e: b.e })) || []; },
+    async cashierInfo(t, pin) { return must(await sb.rpc('cashier_info', { p_token: t, p_pin: pin })); },
+    async cashierCheck(t, pin, code, redeem = false) { return must(await sb.rpc('cashier_check', { p_token: t, p_pin: pin, p_code: code, p_redeem: redeem })); },
+    async cashierExtend(t, pin, code, days) { return must(await sb.rpc('cashier_extend', { p_token: t, p_pin: pin, p_code: code, p_days: days })); },
+    async cashierIssue(t, pin, item, days = 180) { return must(await sb.rpc('cashier_issue', { p_token: t, p_pin: pin, p_item: item, p_days: days })); },
+    async adminBusinesses() { return (must(await sb.rpc('admin_businesses')) || []).map(unwrapRow('admin_businesses')); },
+    async adminBusinessSave(p) { return must(await sb.rpc('admin_business_save', { p })); },
+    async adminBusinessToggle(id, enabled, hide) { must(await sb.rpc('admin_business_toggle', { p_id: id, p_enabled: enabled, p_hide: hide })); },
+    async adminItemSave(p) { return must(await sb.rpc('admin_item_save', { p })); },
+    async adminCampaignCreate(o) {
+      return must(await sb.rpc('admin_campaign_create', { p_business: o.business_id, p_title: o.title, p_theme: o.theme, p_opens: o.opens_at, p_expires: o.expires_at,
+        p_lat: o.lat, p_lng: o.lng, p_radius: o.radius_m, p_spread: o.spread_m, p_intro: o.intro || '', p_prizes: o.prizes }));
+    },
+    async adminCampaignCards(id) { return must(await sb.rpc('admin_campaign_cards', { p_campaign: id })) || []; },
+    async adminCampaignDates(id, opens, expires) { must(await sb.rpc('admin_campaign_dates', { p_campaign: id, p_opens: opens, p_expires: expires })); },
     // Copia la caccia con tutte le tappe (stesse foto, testi, indizi e risposte), spostata di dlat/dlng.
     // Le foto vengono copiate nella cartella del nuovo pin, così chi gioca la copia le può vedere.
     async duplicateHunt(id, { title, dlat, dlng }) {
@@ -532,6 +558,7 @@ function demoBackend() {
     async getHunt(id) { return (db.hunts || []).find((h) => h.id === id) || null; },
     async createHunt(h) { const x = { id: crypto.randomUUID(), owner_id: db.user.id, created_at: new Date().toISOString(), ...h }; (db.hunts = db.hunts || []).push(x); save(); return x; },
     async deleteHunt(id) { db.hunts = (db.hunts || []).filter((h) => h.id !== id); db.contents.forEach((c) => { if (c.hunt_id === id) { c.hunt_id = null; c.hunt_step = null; } }); save(); },
+    ...demoGifts(() => db, save),
     async huntSteps(id) { return db.contents.filter((c) => c.hunt_id === id).sort((a, b) => a.hunt_step - b.hunt_step).map((c) => ({ share_slug: c.share_slug, title: c.title, hunt_step: c.hunt_step, lat: c.lat, lng: c.lng })); },
     async duplicateHunt(id, { title, dlat, dlng }) {
       const h = await B.getHunt(id); const nh = await B.createHunt({ title, prize: h.prize, max_winners: h.max_winners });
@@ -542,7 +569,7 @@ function demoBackend() {
     async huntWinners() { return []; },
     async huntRedeem() { return { status: 'not_found' }; },
     async myHuntPrize() { return null; },
-    async isAdmin() { return false; },
+    async isAdmin() { return !!db.admin; },
     async listAds() { return []; },
     async saveAd() { throw new Error('Non disponibile nella demo.'); },
     async deleteAd() {},
@@ -716,7 +743,18 @@ async function routeInner() {
   if (page === 'faq') return viewFaq(arg);
   if (page === 'invita') return viewInvite();
   if (page === 'avvisi') return viewOptout(arg);
+  if (page === 'cassa' && arg) return viewCashier(arg);
   const user = await B.user();
+  if (page === 'regalo' && arg && !user) { setPending(location.hash); return viewGiftReceive(arg, null); }
+  if (page === 'dono' && arg && !user) {
+    setPending(location.hash);
+    app.innerHTML = `<div class="giftpage th-regalo">${giftArt('regalo')}<h1>${T2('C\'è un regalo per te!', 'There is a gift for you!')}</h1>
+      <p>${T2('Accedi o registrati per farlo tuo: poi lo apri nel negozio, tra le date scritte sul biglietto.', 'Log in or sign up to make it yours: then open it in the shop, between the dates on the card.')}</p>
+      <a class="btn full accent" href="#/" id="dlog">🎁 ${T2('Accedi o registrati', 'Log in or sign up')}</a>
+      <p class="muted small center">${T2('Ubi è gratis.', 'Ubi is free.')}</p></div>`;
+    $('#dlog').onclick = (e) => { e.preventDefault(); viewLogin(); };
+    return;
+  }
   if (page === 'c' && arg) {
     if (!user && !store.get('ubi_from_pin')) store.set('ubi_from_pin', arg);   // per le statistiche: da quale pin arriva un nuovo iscritto
     if (user) {
@@ -744,6 +782,9 @@ async function routeInner() {
     return viewNew(null, { dating: arg === 'dating', capsule: arg === 'capsula' });
   }
   if (page === 'capsule') return viewCapsules();
+  if (page === 'dono' && arg) return viewGiftClaim(decodeURIComponent(arg));
+  if (page === 'regalo' && arg) return viewGiftReceive(arg, user);
+  if (page === 'doni') return arg ? viewGift(arg) : viewGifts();
   if (page === 'cacce') return viewHunts();
   if (page === 'caccia' && arg) return viewHunt(arg);
   if (page === 'admin') return viewAdmin(arg);
@@ -971,8 +1012,20 @@ async function homeMap(opts = {}) {
     const n = draw();
     msg($('#mm'), rows.length && !n ? 'Nessun pin di questo tipo in questa zona: guarda i numeri sui bottoni, oppure tocca «Tutto».' : '', 'info');
   };
+  let giftLayer = null, giftsFell = false;
+  const loadGifts = async (b) => {   // alberi e regali delle campagne: cadono la prima volta, il mio si illumina
+    if (opts.dating || !B.giftTrees) return;
+    try {
+      const t = await B.giftTrees({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() });
+      if (!document.body.contains(el)) return;
+      t.sort((a, x) => a.mine - x.mine);
+      giftLayer = drawGiftTrees(map, t, { fall: !giftsFell && t.length > 0, layer: giftLayer });
+      if (t.length) giftsFell = true;
+    } catch { /* i regali non sono indispensabili per la mappa */ }
+  };
   const load = async () => {
     const b = map.getBounds().pad(0.3);
+    loadGifts(b);
     try {
       rows = await B.mapContents({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() });
       if (!document.body.contains(el)) return;
@@ -1085,10 +1138,11 @@ async function viewHome(user, prof) {
     <p class="muted small" style="margin:2px 0 6px">Accendi i bottoni per vedere solo quelle categorie (si sommano). «Tutto» rimette tutti i pin. Il numero dice quanti ce ne sono nella zona.</p>
     <div id="tagcloud" class="chips cloud"></div>
     <div id="mm"></div>
+    <div id="mygifts"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
-    <div id="adminrow" class="row" style="margin-top:10px" hidden><a href="#/admin/banner" class="btn ghost">📣 Banner pubblicitari</a><a href="#/admin/iscritti" class="btn ghost">👥 Iscritti (Excel)</a><a href="#/admin/curiosita" class="btn ghost">🗺️ Curiosità</a></div>
+    <div id="adminrow" class="row" style="margin-top:10px" hidden><a href="#/admin/banner" class="btn ghost">📣 Banner pubblicitari</a><a href="#/admin/iscritti" class="btn ghost">👥 Iscritti (Excel)</a><a href="#/admin/curiosita" class="btn ghost">🗺️ Curiosità</a><a href="#/admin/negozi" class="btn ghost">🏪 Negozi</a></div>
     <div id="adslot" style="margin-top:10px"></div>
     <a href="#/dating" class="btn full datingbtn" style="margin-top:10px">💗 Ubi Dating · incontra chi ama i tuoi luoghi</a>
     ${inviteBox(false)}
@@ -1100,6 +1154,12 @@ async function viewHome(user, prof) {
   homeMap();
   bindInvite(app);
   drawAdSlot($('#adslot'));
+  B.myGifts().then((gs) => {
+    const live = gs.filter((g) => ['open', 'not_yet', 'unlocked'].includes(g.state));
+    if (live.length && $('#mygifts')) $('#mygifts').innerHTML = `<a class="card item glink giftcta" href="${live.length === 1 ? `#/doni/${esc(live[0].id)}` : '#/doni'}">
+      <div class="ico">${giftIcon(live[0].theme, true)}</div><div><div class="t">${live.length === 1 ? T2('Hai un regalo da aprire', 'You have a gift to open') : T2(`Hai ${live.length} regali`, `You have ${live.length} gifts`)}</div>
+      <div class="meta"><span translate="no">${esc(live[0].business)}</span> · ${T2('fino al', 'until')} ${dLong(live[0].expires_at)}</div></div></a>`;
+  }).catch(() => {});
   B.isAdmin().then((ok) => { if (ok && $('#adminrow')) $('#adminrow').hidden = false; });
   let items;
   try { items = await B.listMine(); } catch (err) { msg($('#list'), errText(err)); return; }
@@ -2150,6 +2210,611 @@ async function huntDuplicatePanel(h, steps) {
   };
 }
 
+// ======================= DONI (regali da sbloccare in un negozio) =======================
+// Un dono appartiene a una persona alla volta, si apre sul posto tra due date e si può regalare.
+// Nasce da una campagna (garden: tanti alberi) o dalla Cassa di un negozio (pub: «regala una birra»).
+const THEMES = {
+  natale: { e: '🎄', n: 'Natale', en: 'Christmas', c: '#1e7d45' },
+  capodanno: { e: '🎆', n: 'Capodanno', en: "New Year's Eve", c: '#3b2a7a' },
+  sanvalentino: { e: '💝', n: 'San Valentino', en: "Valentine's Day", c: '#c2185b' },
+  pasqua: { e: '🥚', n: 'Pasqua', en: 'Easter', c: '#7cb342' },
+  festamamma: { e: '💐', n: 'Festa della mamma', en: "Mother's Day", c: '#d81b60' },
+  compleanno: { e: '🎂', n: 'Compleanno', en: 'Birthday', c: '#f57c00' },
+  regalo: { e: '🎁', n: 'Regalo', en: 'Gift', c: '#c0392b' },
+};
+const themeOf = (k) => THEMES[k] || THEMES.regalo;
+const TREE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.2l.8 1.6 1.7.2-1.3 1.2.3 1.7-1.5-.8-1.5.8.3-1.7-1.3-1.2 1.7-.2z" fill="#ffd54a"/>'
+  + '<polygon points="12,4 16.5,9.5 14.3,9.5 18.6,14.5 16,14.5 20.5,19.6 3.5,19.6 8,14.5 5.4,14.5 9.7,9.5 7.5,9.5" fill="#1e7d45"/>'
+  + '<rect x="10.6" y="19.6" width="2.8" height="3" fill="#8a4b12"/>'
+  + '<circle class="l1" cx="11" cy="9" r="1" fill="#ffd54a"/><circle class="l2" cx="14.2" cy="12.6" r="1" fill="#ff5252"/>'
+  + '<circle class="l3" cx="9.3" cy="13.4" r="1" fill="#4fc3f7"/><circle class="l1" cx="15.6" cy="17.4" r="1" fill="#ffd54a"/>'
+  + '<circle class="l2" cx="8" cy="17.6" r="1" fill="#ff5252"/><circle class="l3" cx="12" cy="16" r="1" fill="#fff"/></svg>';
+const BOX_SVG = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="9" y="27" width="46" height="31" rx="3" fill="#c0392b"/>'
+  + '<rect x="6" y="19" width="52" height="11" rx="3" fill="#e74c3c"/><rect x="29" y="19" width="6" height="39" fill="#ffd54a"/>'
+  + '<path d="M32 19c-5-11-18-10-14-2 2 3 8 3 14 2zm0 0c5-11 18-10 14-2-2 3-8 3-14 2z" fill="#ffd54a"/></svg>';
+// icona sulla mappa: albero per Natale, emoji per gli altri temi; il mio è più grande e si illumina
+const giftIcon = (theme, mine) => theme === 'natale'
+  ? `<span class="gtree${mine ? ' gmine' : ''}">${TREE_SVG}</span>`
+  : `<span class="gtree gemo${mine ? ' gmine' : ''}" style="--gc:${themeOf(theme).c}">${theme === 'regalo' ? BOX_SVG : themeOf(theme).e}</span>`;
+const giftArt = (theme) => `<div class="giftart th-${esc(theme)}">${theme === 'natale' ? TREE_SVG : BOX_SVG}${theme !== 'natale' && theme !== 'regalo' ? `<span class="gae">${themeOf(theme).e}</span>` : ''}</div>`;
+const dLong = (d) => new Date(d).toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' });
+const giftUrl = (kind, token) => `${location.origin}${location.pathname}#/${kind}/${token}`;
+
+// Disegna alberi/pacchi su una mappa Leaflet; fall = animazione «cadono dal cielo»
+function drawGiftTrees(map, trees, { fall = false, onMine = null, layer = null } = {}) {
+  const g = layer || L.layerGroup().addTo(map);
+  if (layer) layer.clearLayers();
+  trees.slice(0, 600).forEach((t, i) => {
+    const size = t.mine ? 48 : 28;
+    const html = `<span class="gwrap${fall ? ' gfall' : ''}" style="animation-delay:${fall ? Math.min(1.6, i * 0.035 + Math.random() * 0.3).toFixed(2) : 0}s">${giftIcon(t.theme, t.mine)}</span>`;
+    const m = L.marker([t.lat, t.lng], { icon: L.divIcon({ className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2], html }),
+      zIndexOffset: t.mine ? 2000 : 0, keyboard: !!t.mine, title: t.mine ? T2('Il tuo regalo', 'Your gift') : '' });
+    m.on('click', () => { if (t.mine && t.gift_id) { if (onMine) onMine(t); else location.hash = `#/doni/${t.gift_id}`; } else huntToast(T2('Questo è il regalo di qualcun altro 🎁', "This is someone else's gift 🎁")); });
+    m.addTo(g);
+  });
+  return g;
+}
+
+// ---------- Il biglietto: QR scansionato (#/dono/<token>) ----------
+async function viewGiftClaim(token) {
+  app.innerHTML = '<div class="card center muted">Apro il tuo regalo…</div>';
+  let r;
+  try { r = await B.giftClaim(token); } catch (err) { app.innerHTML = `<div class="card">${errText(err)}</div>`; return; }
+  if (r.status === 'ok') { history.replaceState(null, '', `#/doni/${r.gift.id}`); return viewGift(r.gift.id, { fresh: true }); }
+  const M = {
+    taken: T2('Questo regalo è già stato preso da un\'altra persona. Se è tuo, chiedi al negozio un nuovo biglietto.', 'This gift has already been taken by someone else. If it is yours, ask the shop for a new card.'),
+    not_found: T2('Biglietto non trovato: controlla il codice.', 'Card not found: check the code.'),
+  };
+  app.innerHTML = `<div class="card center">${giftArt('regalo')}<h2>${T2('Ops!', 'Oops!')}</h2><p>${M[r.status] || esc(r.status)}</p><a class="btn" href="#/doni">${T2('I miei regali', 'My gifts')}</a></div>`;
+}
+
+// ---------- Il link «Regalalo» (#/regalo/<token>) ----------
+async function viewGiftReceive(token, user) {
+  app.innerHTML = '<div class="card center muted">…</div>';
+  let p = null; try { p = await B.giftPeek(token); } catch { /* sotto */ }
+  if (!p) {
+    app.innerHTML = `<div class="card center">${giftArt('regalo')}<h2>${T2('Questo regalo non è più disponibile', 'This gift is no longer available')}</h2>
+      <p class="muted">${T2('Il link vale una volta sola: forse è già stato accettato, annullato o è scaduto.', 'The link works only once: it may have been accepted, cancelled or expired.')}</p><a class="btn" href="#/">Ubi</a></div>`;
+    return;
+  }
+  const from = p.from ? esc(p.from) : T2('qualcuno che ti vuole bene', 'someone who cares about you');
+  app.innerHTML = `<div class="giftpage th-${esc(p.theme)}">
+    ${giftArt(p.theme)}
+    <h1>${T2('Hai ricevuto un regalo!', 'You received a gift!')}</h1>
+    <p class="gfrom">${T2('Da', 'From')}: <b>${from}</b></p>
+    ${p.prize ? `<p class="gprize">🎁 <b>${esc(p.prize)}</b></p>` : ''}
+    <div class="card"><p>📍 ${T2('Ti aspetta da', 'Waiting for you at')} <b translate="no">${esc(p.business)}</b>${p.address ? `<br><span class="muted small">${esc(p.address)}</span>` : ''}</p>
+      <p class="small">🗓️ ${new Date(p.opens_at) > new Date() ? `${T2('Si apre dal', 'Opens from')} <b>${dLong(p.opens_at)}</b> · ` : ''}${T2('Valido fino al', 'Valid until')} <b>${dLong(p.expires_at)}</b></p>
+      ${p.has_message ? `<p class="small">💌 ${T2('Dentro c\'è anche un messaggio per te: lo leggi quando lo apri sul posto.', 'There is also a message for you inside: you can read it when you open it there.')}</p>` : ''}</div>
+    ${user ? `<button class="full accent" id="acc" type="button">🎁 ${T2('Accetta il regalo', 'Accept the gift')}</button>`
+      : `<a class="btn full accent" href="#/" id="acc2">🎁 ${T2('Accedi o registrati per accettarlo', 'Log in or sign up to accept it')}</a>
+         <p class="muted small center">${T2('Ubi è gratis: ti serve solo per aprire il regalo quando arrivi lì.', 'Ubi is free: you only need it to open the gift when you get there.')}</p>`}
+    <div id="am"></div></div>`;
+  if (!user) { $('#acc2').onclick = (e) => { e.preventDefault(); viewLogin(); }; return; }
+  $('#acc').onclick = async () => {
+    $('#acc').disabled = true;
+    try {
+      const r = await B.giftAccept(token);
+      if (r.status === 'ok') { history.replaceState(null, '', `#/doni/${r.gift.id}`); return viewGift(r.gift.id, { fresh: true }); }
+      const M = { own: T2('È un regalo che hai creato tu: mandalo a un\'altra persona.', 'You created this gift: send it to someone else.'),
+        used: T2('Questo link è già stato usato.', 'This link has already been used.'), expired: T2('Questo regalo è scaduto.', 'This gift has expired.') };
+      msg($('#am'), M[r.status] || esc(r.status)); $('#acc').disabled = false;
+    } catch (err) { msg($('#am'), errText(err)); $('#acc').disabled = false; }
+  };
+}
+
+// ---------- I miei regali ----------
+async function viewGifts() {
+  app.innerHTML = `<h1>🎁 ${T2('I miei regali', 'My gifts')}</h1><div id="gl"><p class="muted center">…</p></div>
+    <div class="card"><h2>${T2('Hai un biglietto?', 'Got a card?')}</h2><p class="muted small">${T2('Inquadra il QR con la fotocamera oppure scrivi qui il codice stampato.', 'Scan the QR with your camera or type the printed code here.')}</p>
+      <div class="row"><input id="gcode" placeholder="ABCD-EFGH" autocapitalize="characters" autocomplete="off"><button type="button" id="gok" style="flex:0 0 auto">${T2('Apri', 'Open')}</button></div><div id="gm"></div></div>
+    <p class="center"><a href="#/">${T2('Torna alla mappa', 'Back to the map')}</a></p>`;
+  $('#gok').onclick = () => { const v = $('#gcode').value.trim(); if (v) location.hash = `#/dono/${encodeURIComponent(v)}`; };
+  let list = [];
+  try { list = await B.myGifts(); } catch (err) { msg($('#gl'), errText(err)); return; }
+  const ST = { open: T2('da aprire', 'to open'), not_yet: T2('non ancora', 'not yet'), unlocked: T2('aperto: ritiralo', 'opened: collect it'),
+    redeemed: T2('ritirato ✓', 'collected ✓'), expired: T2('scaduto', 'expired'), hidden: '' };
+  $('#gl').innerHTML = list.length ? list.map((g) => `<a class="card item glink" href="#/doni/${esc(g.id)}">
+      <div class="ico">${giftIcon(g.theme, true)}</div>
+      <div><div class="t">${g.prize ? esc(g.prize) : T2('Regalo a sorpresa', 'Surprise gift')} · <span translate="no">${esc(g.business)}</span></div>
+      <div class="meta">${g.gifted ? T2('🎁 in regalo (link inviato)', '🎁 being gifted (link sent)') : ST[g.state] || ''} · ${T2('fino al', 'until')} ${dLong(g.expires_at)}</div></div></a>`).join('')
+    : `<div class="card center muted">${T2('Non hai ancora regali. Quando un negozio ti dà un biglietto, inquadra il QR.', "You don't have gifts yet. When a shop gives you a card, scan its QR.")}</div>`;
+}
+
+// Tracce per scrivere il pensiero
+const GIFT_STARTERS = () => (LANG === 'en'
+  ? ['I am giving you this because…', 'I remember that time when…', 'When you open it, think about…']
+  : ['Ti regalo questo perché…', 'Mi ricordo quella volta che…', 'Quando lo apri, pensa a…']);
+const GIFT_IDEAS = () => (LANG === 'en' ? {
+  natale: ['A small gift for a great year together. When you open it, raise a glass for me too 🎄', 'Merry Christmas! This is to remind you how special you are ✨'],
+  piante: ['This plant grows with you: every time you water it, think of me 🌱', 'A flower to say thank you, since I never manage to say it out loud', 'For your new home: may it bring roots and lots of light 🏡'],
+  amici: ['This beer is waiting for you. Sorry we don’t see each other enough: next round is on you 🍺', 'The first coffee of the day is on me ☕'],
+  amore: ['For you, simply because I love you ❤️', 'Open it thinking of us 💝'],
+  grazie: ['For all the times you were there. Thank you, really.'],
+} : {
+  natale: ['Un piccolo regalo per un grande anno insieme. Quando lo apri, brinda anche per me 🎄', 'Buon Natale! Questo è per ricordarti quanto sei speciale ✨'],
+  piante: ['Questa pianta cresce con te: ogni volta che la annaffi, pensa a me 🌱', 'Un fiore per dirti grazie, che a voce non riesco mai', 'Per la tua nuova casa: che porti radici e tanta luce 🏡', 'Ti regalo una pianta perché i fiori appassiscono, noi no'],
+  amici: ['Questa birra ti aspetta. Scusa se non ci vediamo abbastanza: la prossima la offri tu 🍺', 'Il primo caffè di oggi lo bevi pensando a me ☕'],
+  amore: ['Per te, semplicemente perché ti amo ❤️', 'Aprilo pensando a noi 💝'],
+  grazie: ['Per tutte le volte che ci sei stato. Grazie, davvero.', 'Per la mamma, che fa fiorire tutto quello che tocca 💐'],
+});
+
+// ---------- La pagina del mio regalo ----------
+async function viewGift(id, { fresh = false } = {}) {
+  let g;
+  try { g = await B.giftGet(id); } catch (err) { app.innerHTML = `<div class="card">${errText(err)}</div>`; return; }
+  if (!g) { app.innerHTML = `<div class="card center"><h2>${T2('Regalo non trovato', 'Gift not found')}</h2><p class="muted">${T2('Forse l\'hai regalato a qualcun altro.', 'Maybe you gave it to someone else.')}</p><a class="btn" href="#/doni">${T2('I miei regali', 'My gifts')}</a></div>`; return; }
+  const th = themeOf(g.theme), from = g.from != null ? (g.from ? esc(g.from) : T2('qualcuno che ti vuole bene', 'someone who cares about you')) : '';
+  const open = g.state === 'open', notYet = g.state === 'not_yet';
+  const intro = g.intro ? esc(g.intro) : T2('Vieni a sbloccare il tuo regalo', 'Come and unlock your gift');
+  const head = `${giftArt(g.theme)}
+    ${g.state === 'unlocked' || g.state === 'redeemed' ? '' : `<h1>${intro}</h1>`}
+    <p class="gwhere">📍 <b translate="no">${esc(g.business)}</b>${g.address ? ` · ${esc(g.address)}` : ''}</p>
+    ${from && g.state !== 'unlocked' && g.state !== 'redeemed' ? `<p class="gfrom">💌 ${T2('Un regalo da', 'A gift from')} <b>${from}</b>${g.has_message ? T2(': dentro c\'è un messaggio per te', ': there is a message for you inside') : ''}</p>` : ''}`;
+  let body = '';
+  if (g.state === 'unlocked' || g.state === 'redeemed') {
+    body = `<h1>🎉 ${T2('Hai trovato', 'You found')}: <span class="gprizebig">${esc(g.prize || '')}</span></h1>
+      ${g.prize_image ? `<img class="gimg" src="${esc(g.prize_image)}" alt="">` : ''}
+      ${g.prize_meaning ? `<p class="gmeaning">🌿 ${esc(g.prize_meaning)}</p>` : ''}
+      ${g.message ? `<div class="card gmsg"><p>${esc(g.message).replace(/\n/g, '<br>')}</p><p class="gsign">— ${from || T2('qualcuno che ti vuole bene', 'someone who cares about you')}</p></div>` : ''}
+      ${g.state === 'redeemed' ? `<div class="msg ok">✓ ${T2('Ritirato il', 'Collected on')} ${dLong(g.redeemed_at)}</div>`
+        : `<div class="card center gcodebox"><p class="small">${T2('Mostra questo codice in cassa', 'Show this code at the till')}</p><div class="gcode">${esc(g.redeem_code || '')}</div>
+          <p class="small muted">${T2('Ritiralo entro il', 'Collect it by')} <b>${dLong(g.expires_at)}</b></p></div>`}`;
+  } else if (g.state === 'expired') {
+    body = `<div class="msg warn">⏰ ${T2('Questo regalo è scaduto il', 'This gift expired on')} ${dLong(g.expires_at)}.</div>`;
+  } else if (g.state === 'hidden') {
+    body = `<div class="msg info">${T2('Questo regalo non è più disponibile.', 'This gift is no longer available.')}</div>`;
+  } else {
+    body = `${g.prize ? `<p class="gprize">🎁 <b>${esc(g.prize)}</b></p>` : `<p class="gprize">🎁 ${T2('Cosa c\'è dentro? Lo scopri solo lì.', "What's inside? You'll only find out there.")}</p>`}
+      <p class="gdates">🗓️ ${notYet ? `${T2('Si apre dal', 'Opens from')} <b>${dLong(g.opens_at)}</b> · ` : ''}${T2('fino al', 'until')} <b>${dLong(g.expires_at)}</b></p>
+      <div id="gmap" class="map" style="height:260px"></div>
+      <p class="center" id="gdist"></p>
+      ${g.gifted ? '' : `<button class="full accent" id="gunlock" type="button" ${notYet ? 'disabled' : ''}>🔓 ${notYet ? T2('Si apre dal', 'Opens from') + ' ' + dLong(g.opens_at) : T2('Sblocca qui', 'Unlock here')}</button>`}
+      <div id="gum"></div>
+      <div class="card" id="gsend"></div>`;
+  }
+  app.innerHTML = `<div class="giftpage th-${esc(g.theme)}" style="--gc:${th.c}">${head}${body}
+    <p class="center small" style="margin-top:16px"><a href="#/doni">${T2('I miei regali', 'My gifts')}</a> · <a href="#/">${T2('Mappa', 'Map')}</a></p></div>`;
+  if (fresh && (open || notYet)) huntToast(T2('🎁 Il regalo è tuo!', '🎁 The gift is yours!'));
+  if (!(open || notYet)) return;
+  let lastPos = null;
+  giftSendPanel(g);
+  // mappa dell'area: cadono gli alberi, il mio si illumina
+  waitLeaflet().then(async () => {
+    const el = $('#gmap'); if (!el) return;
+    const map = makeMap(el, g.area_lat, g.area_lng, 17); if (!map) return;
+    L.circle([g.area_lat, g.area_lng], { radius: g.radius_m, color: th.c, weight: 2, fillOpacity: 0.06, dashArray: '6 6' }).addTo(map);
+    const d = 0.004;
+    let trees = [];
+    try { trees = await B.giftTrees({ s: g.area_lat - d, w: g.area_lng - d * 1.4, n: g.area_lat + d, e: g.area_lng + d * 1.4 }); } catch { /* solo il mio */ }
+    if (!trees.some((t) => t.gift_id === g.id)) trees.push({ lat: g.lat, lng: g.lng, theme: g.theme, mine: true, gift_id: g.id });
+    trees.sort((a, b) => a.mine - b.mine);   // il mio cade per ultimo
+    drawGiftTrees(map, trees, { fall: true, onMine: () => $('#gunlock') && $('#gunlock').scrollIntoView({ behavior: 'smooth', block: 'center' }) });
+    let meM = null;
+    const upd = (p) => {
+      if (!document.body.contains(el)) { stopWatch(); return; }
+      lastPos = { ...p, at: Date.now() };
+      if (!meM) meM = L.circleMarker([p.lat, p.lng], { radius: 7, color: '#1f3a5f', fillOpacity: 0.9 }).addTo(map); else meM.setLatLng([p.lat, p.lng]);
+      const dm = distanceM(p.lat, p.lng, g.area_lat, g.area_lng);
+      $('#gdist').innerHTML = dm <= g.radius_m ? `<b class="ok">✓ ${T2('Sei nell\'area: puoi sbloccare!', "You're in the area: you can unlock!")}</b>`
+        : `📍 ${T2('Ti mancano', 'You are')} <b>${fmtDist(dm - g.radius_m)}</b>${LANG === 'en' ? ' away' : ''}`;
+    };
+    if (navigator.geolocation) { stopWatch(); watchId = navigator.geolocation.watchPosition((p) => upd({ lat: p.coords.latitude, lng: p.coords.longitude }), () => {}, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 }); }
+  });
+  const ub = $('#gunlock');
+  if (ub) ub.onclick = async () => {
+    ub.disabled = true; msg($('#gum'), T2('Controllo dove sei…', 'Checking where you are…'), 'info');
+    let pos = lastPos && Date.now() - lastPos.at < 15000 ? lastPos : null;   // posizione appena letta dalla mappa: niente attesa
+    if (!pos) { try { pos = await getPos(); } catch (err) { msg($('#gum'), errText(err)); ub.disabled = false; return; } }
+    try {
+      const r = await B.giftUnlock(g.id, pos);
+      if (r.status === 'ok') {
+        stopWatch();
+        huntOverlay({ kind: 'ok', icon: '🎁', title: T2('Regalo sbloccato!', 'Gift unlocked!'), sub: g.has_message ? T2('Dentro c\'è anche un messaggio per te 💌', 'There is a message for you inside 💌') : '',
+          button: T2('🎉 Guarda cosa hai trovato', '🎉 See what you found'), onClose: () => { const c = $('.gcodebox'); if (c) c.classList.add('flash'); } });
+        return viewGift(g.id);
+      }
+      const M = { too_far: T2(`📍 Ti mancano ${fmtDist(Math.max(1, (r.distance_m || 0) - (r.radius_m || 0)))}: entra nell'area del negozio.`, `📍 ${fmtDist(Math.max(1, (r.distance_m || 0) - (r.radius_m || 0)))} to go: get into the shop's area.`),
+        not_yet: T2('Non è ancora il giorno giusto: si apre dal', 'Not the right day yet: it opens from') + ' ' + dLong(g.opens_at) + '.',
+        expired: T2('Questo regalo è scaduto.', 'This gift has expired.'), gifting: T2('Hai creato un link per regalarlo: annullalo qui sotto se vuoi aprirlo tu.', 'You created a link to give it away: cancel it below if you want to open it yourself.'),
+        no_position: T2('Posizione non disponibile.', 'Location not available.') };
+      msg($('#gum'), M[r.status] || esc(r.status), r.status === 'too_far' ? 'warn' : 'err');
+    } catch (err) { msg($('#gum'), errText(err)); }
+    ub.disabled = false;
+  };
+}
+
+// «Regalalo a chi vuoi tu»: pensiero guidato + link da mandare (vale una volta)
+function giftSendPanel(g) {
+  const box = $('#gsend'); if (!box) return;
+  const draw = () => {
+    box.innerHTML = g.gifted
+      ? `<h2>🎁 ${T2('Link del regalo inviato', 'Gift link sent')}</h2><p class="small">${T2('Quando la persona lo accetta, il regalo passa a lei e sparisce da qui. Il link vale una volta sola.', 'When the person accepts it, the gift moves to them and disappears from here. The link works only once.')}</p>
+         <div class="row"><button class="ghost" type="button" id="gnew">${T2('Crea un nuovo link', 'Create a new link')}</button><button class="danger" type="button" id="gcancel">${T2('Annulla: lo tengo io', 'Cancel: I keep it')}</button></div><div id="gsm"></div>`
+      : `<button class="full giftbtn" type="button" id="gopen">🎁 ${T2('Regalalo a chi vuoi tu', 'Give it to someone you love')}</button>
+         <p class="muted small center" style="margin:6px 0 0">${T2('Un\'amica, tuo figlio, la nonna: il regalo passa a loro, con un tuo pensiero.', 'A friend, your child, your grandma: the gift goes to them, with a note from you.')}</p>`;
+    if ($('#gopen')) $('#gopen').onclick = compose;
+    if ($('#gnew')) $('#gnew').onclick = compose;
+    if ($('#gcancel')) $('#gcancel').onclick = async () => { try { await B.giftSendCancel(g.id); g.gifted = false; draw(); viewGift(g.id); } catch (err) { msg($('#gsm'), errText(err)); } };
+  };
+  const compose = async () => {
+    const ideas = GIFT_IDEAS();
+    const groups = [...(g.theme === 'natale' ? ['natale'] : []), 'piante', 'amici', 'amore', 'grazie'];
+    const prof = await B.profile().catch(() => null);
+    const ph = (ideas[groups[0]] || [])[0] || '';
+    box.innerHTML = `<h2>✍️ ${T2('Scrivi un pensiero per chi lo riceverà', 'Write a note for whoever receives it')}</h2>
+      <p class="muted small">${T2('Lo leggerà solo quando aprirà il regalo, sul posto.', 'They will read it only when they open the gift, on the spot.')}</p>
+      <div class="chips" id="gst">${GIFT_STARTERS().map((x) => `<button type="button" class="chip" data-s="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+      <textarea id="gtxt" rows="5" maxlength="500" placeholder="${esc(ph)}"></textarea>
+      <p class="muted small"><span id="gtn">0</span>/500</p>
+      <details class="gideas"><summary>💡 ${T2('Non sai cosa scrivere? Prendi un\'idea', "Don't know what to write? Take an idea")}</summary>
+        ${groups.map((k) => `<p class="small gk">${{ natale: T2('Natale', 'Christmas'), piante: T2('Piante e fiori', 'Plants and flowers'), amici: T2('Amici', 'Friends'), amore: T2('Amore', 'Love'), grazie: T2('Grazie', 'Thank you') }[k]}</p>
+          ${(ideas[k] || []).map((x) => `<button type="button" class="gidea" data-i="${esc(x)}">${esc(x)}</button>`).join('')}`).join('')}</details>
+      <label for="gfrom">${T2('Firma', 'Signature')}</label><input id="gfrom" maxlength="60" value="${esc(prof?.display_name || '')}">
+      <label class="check"><input type="checkbox" id="ganon"> ${T2('Resta anonimo: «da qualcuno che ti vuole bene»', 'Stay anonymous: «from someone who cares about you»')}</label>
+      <button class="full giftbtn" type="button" id="gmake">🎁 ${T2('Crea il link del regalo', 'Create the gift link')}</button><div id="gsm"></div>`;
+    const ta = $('#gtxt');
+    ta.oninput = () => { $('#gtn').textContent = ta.value.length; };
+    $('#gst').onclick = (e) => { const b = e.target.closest('[data-s]'); if (!b) return; const s0 = b.dataset.s.replace(/…$/, ' ');
+      ta.value = ta.value ? `${ta.value.trim()}\n${s0}` : s0; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); ta.oninput(); };
+    box.querySelectorAll('.gidea').forEach((b) => { b.onclick = () => { ta.value = b.dataset.i; ta.oninput(); ta.scrollIntoView({ behavior: 'smooth', block: 'center' }); }; });
+    $('#ganon').onchange = () => { $('#gfrom').disabled = $('#ganon').checked; };
+    $('#gmake').onclick = async () => {
+      const b = $('#gmake'); b.disabled = true;
+      try {
+        const r = await B.giftSend(g.id, ta.value, $('#ganon').checked ? '' : $('#gfrom').value);
+        if (r.status !== 'ok') { msg($('#gsm'), esc(r.status)); b.disabled = false; return; }
+        g.gifted = true;
+        const url = giftUrl('regalo', r.token);
+        const text = T2(`🎁 Ti ho fatto un regalo da ${g.business}! Aprilo entro il ${dLong(g.expires_at)}:`, `🎁 I got you a gift at ${g.business}! Open it by ${dLong(g.expires_at)}:`);
+        box.innerHTML = `<h2>🎁 ${T2('Ecco il link del regalo', 'Here is the gift link')}</h2>
+          <p class="small">${T2('Mandalo alla persona a cui vuoi regalarlo. Vale una volta sola: quando lo accetta, il regalo passa a lei.', 'Send it to the person you want to give it to. It works only once: when they accept it, the gift moves to them.')}</p>
+          <p class="linkbox">${esc(url)}</p>
+          <div class="row"><a class="btn" style="background:#25d366" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}">WhatsApp</a>
+          <button type="button" id="gshare">${T2('Condividi…', 'Share…')}</button><button type="button" class="ghost" id="gcopy">${T2('Copia', 'Copy')}</button></div>
+          <div id="gsm"></div><p class="small center"><a href="#" id="gback">${T2('Ci ho ripensato: annulla', 'Changed my mind: cancel')}</a></p>`;
+        $('#gcopy').onclick = async () => { try { await navigator.clipboard.writeText(`${text} ${url}`); $('#gcopy').textContent = T2('Copiato ✓', 'Copied ✓'); } catch { /* copia a mano */ } };
+        $('#gshare').onclick = async () => { try { if (navigator.share) await navigator.share({ text: `${text} ${url}` }); else $('#gcopy').click(); } catch { /* annullato */ } };
+        $('#gback').onclick = async (e) => { e.preventDefault(); await B.giftSendCancel(g.id); g.gifted = false; viewGift(g.id); };
+        const u = $('#gunlock'); if (u) u.remove();
+      } catch (err) { msg($('#gsm'), errText(err)); b.disabled = false; }
+    };
+  };
+  draw();
+}
+
+// ======================= CASSA del negozio (#/cassa/<token>) =======================
+async function viewCashier(token) {
+  const KEY = `ubi_cassa_${token}`;
+  let pin = null; try { pin = sessionStorage.getItem(KEY); } catch { /* niente */ }
+  const askPin = (err = '') => {
+    app.innerHTML = `<div class="card cassa"><h1>🧾 Cassa</h1><p class="muted">${T2('Scrivi il PIN del negozio per controllare i regali dei clienti.', "Enter the shop PIN to check customers' gifts.")}</p>
+      <input id="cpin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN">
+      <button class="full" id="cgo" type="button">${T2('Entra', 'Enter')}</button><div id="cm"></div></div>`;
+    if (err) msg($('#cm'), esc(err));
+    $('#cpin').focus();
+    const go = () => { pin = $('#cpin').value.trim(); try { sessionStorage.setItem(KEY, pin); } catch { /* niente */ } load(); };
+    $('#cgo').onclick = go; $('#cpin').onkeydown = (e) => { if (e.key === 'Enter') go(); };
+  };
+  const fail = (r) => { if (r && r.status === 'error') { try { sessionStorage.removeItem(KEY); } catch { /* niente */ } askPin(r.message); return true; } return false; };
+  const load = async () => {
+    if (!pin) return askPin();
+    let info;
+    try { info = await B.cashierInfo(token, pin); } catch (err) { return askPin(err.message); }
+    if (fail(info)) return;
+    app.innerHTML = `<div class="cassa"><h1>🧾 ${T2('Cassa', 'Till')} · <span translate="no">${esc(info.business)}</span></h1>
+      <div class="card"><h2>${T2('Controlla un regalo', 'Check a gift')}</h2>
+        <p class="muted small">${T2('Scrivi il codice che il cliente ti mostra sul telefono (o quello del biglietto).', 'Type the code the customer shows on their phone (or the one on the card).')}</p>
+        <div class="row"><input id="ccode" autocapitalize="characters" autocomplete="off" placeholder="ABC123"><button id="cchk" type="button" style="flex:0 0 auto">${T2('Verifica', 'Check')}</button></div>
+        <div id="cres"></div></div>
+      ${info.items.length ? `<div class="card"><h2>🎁 ${T2('Vendi un regalo', 'Sell a gift')}</h2>
+        <p class="muted small">${T2('Il cliente paga qui, tu tocchi l\'articolo: nasce un regalo con il suo QR da mandare a chi vuole.', 'The customer pays here, you tap the item: a gift is created with a QR to send to anyone.')}</p>
+        <div class="citems">${info.items.map((i) => `<button type="button" class="ghost" data-item="${esc(i.id)}">🎁 ${esc(i.name)}${i.value ? ` <span class="muted small">${esc(i.value)}</span>` : ''}</button>`).join('')}</div>
+        <div id="cissue"></div></div>` : ''}
+      ${info.campaigns.length ? `<div class="card"><h2>📊 ${T2('Numeri', 'Numbers')}</h2>${info.campaigns.map((c) => `<p><b>${themeOf(c.theme).e} ${esc(c.title)}</b><br>
+        <span class="small">${c.kind === 'omaggio' ? `${T2('Biglietti', 'Cards')}: ${c.total} · ${T2('attivati', 'activated')}: ${c.claimed} · ` : `${T2('Venduti', 'Sold')}: ${c.total} · `}${T2('regalati ad altri', 'given to others')}: ${c.gifted} · ${T2('aperti', 'opened')}: ${c.unlocked} · ${T2('ritirati', 'collected')}: <b>${c.redeemed}</b>${c.redeemed_gifted ? ` (${c.redeemed_gifted} ${T2('da chi l\'ha ricevuto in regalo', 'by gift recipients')})` : ''}</span></p>`).join('')}</div>` : ''}
+      <p class="center small"><a href="#" id="cexit">${T2('Esci dalla cassa', 'Leave the till')}</a></p></div>`;
+    $('#cexit').onclick = (e) => { e.preventDefault(); try { sessionStorage.removeItem(KEY); } catch { /* niente */ } pin = null; askPin(); };
+    const check = async (redeem = false) => {
+      const code = $('#ccode').value.trim(); if (!code) return;
+      const out = $('#cres');
+      try {
+        const r = await B.cashierCheck(token, pin, code, redeem);
+        if (fail(r)) return;
+        const prize = esc(r.prize || '');
+        if (r.status === 'valid') {
+          out.innerHTML = `<div class="cbig ok">✓ ${T2('Valido', 'Valid')}<br><b>${prize}</b>${r.gifted ? `<br><span class="small">🎁 ${T2('ricevuto in regalo', 'received as a gift')}</span>` : ''}</div>
+            <button class="full accent" type="button" id="cred">✓ ${T2('Segna come ritirato', 'Mark as collected')}</button>`;
+          $('#cred').onclick = () => { const b = $('#cred'); if (b.dataset.c !== '1') { b.dataset.c = '1'; b.textContent = T2('Tocca ancora per confermare', 'Tap again to confirm'); return; } check(true); };
+        } else if (r.status === 'redeemed') {
+          out.innerHTML = `<div class="cbig ok">✓ ${T2('Ritirato', 'Collected')}: <b>${prize}</b></div>`; buzz([60, 40, 120]); $('#ccode').value = '';
+        } else if (r.status === 'already') {
+          out.innerHTML = `<div class="cbig bad">⚠️ ${T2('Già ritirato il', 'Already collected on')} ${new Date(r.redeemed_at).toLocaleString(LOC)}<br><b>${prize}</b></div>`;
+        } else if (r.status === 'locked') {
+          out.innerHTML = `<div class="cbig warn">🔒 ${T2('Non ancora aperto', 'Not opened yet')}<br><span class="small">${T2('Il cliente deve aprirlo sul telefono stando qui nel negozio.', 'The customer has to open it on the phone while here in the shop.')}</span></div>`;
+        } else if (r.status === 'expired') {
+          out.innerHTML = `<div class="cbig warn">⏰ ${T2('Scaduto il', 'Expired on')} ${dLong(r.expires_at)}<br><b>${prize}</b></div>
+            <button class="ghost full" type="button" id="cext">${T2('Proroga di 7 giorni', 'Extend by 7 days')}</button>`;
+          $('#cext').onclick = async () => { const x = await B.cashierExtend(token, pin, code, 7); if (fail(x)) return; out.innerHTML = `<div class="cbig ok">${T2('Prorogato fino al', 'Extended until')} ${dLong(x.expires_at)}</div>`; };
+        } else out.innerHTML = `<div class="cbig bad">✗ ${T2('Codice non trovato', 'Code not found')}</div>`;
+      } catch (err) { msg(out, errText(err)); }
+    };
+    $('#cchk').onclick = () => check(false);
+    $('#ccode').onkeydown = (e) => { if (e.key === 'Enter') check(false); };
+    app.querySelectorAll('[data-item]').forEach((b) => {
+      b.onclick = async () => {
+        if (b.dataset.c !== '1') { app.querySelectorAll('[data-item]').forEach((x) => { x.dataset.c = ''; x.classList.remove('accent'); }); b.dataset.c = '1'; b.classList.add('accent'); msg($('#cissue'), T2('Tocca ancora per creare il regalo (dopo che il cliente ha pagato).', 'Tap again to create the gift (after the customer has paid).'), 'info'); return; }
+        b.dataset.c = ''; b.classList.remove('accent');
+        try {
+          const r = await B.cashierIssue(token, pin, b.dataset.item);
+          if (fail(r)) return;
+          const url = giftUrl('dono', r.token);
+          $('#cissue').innerHTML = `<div class="card center cqr"><p><b>🎁 ${esc(r.prize)}</b> · ${T2('valido fino al', 'valid until')} ${dLong(r.expires_at)}</p>
+            ${qrSvg(url, 220)}<p class="small">${T2('Il cliente inquadra il QR con la fotocamera: il regalo diventa suo e poi può regalarlo a chi vuole.', 'The customer scans the QR with the camera: the gift becomes theirs and then they can give it to anyone.')}</p>
+            <p class="small muted">${T2('Codice', 'Code')}: <b>${esc(r.code)}</b></p>
+            <a class="btn" style="background:#25d366" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`🎁 ${r.prize} – ${url}`)}">${T2('Manda su WhatsApp', 'Send on WhatsApp')}</a></div>`;
+        } catch (err) { msg($('#cissue'), errText(err)); }
+      };
+    });
+  };
+  load();
+}
+const qrSvg = (text, size = 200) => {
+  const m = qrMatrix(text), n = m.length, q = 2;
+  let d = ''; m.forEach((row, y) => row.forEach((v, x) => { if (v) d += `M${x + q} ${y + q}h1v1h-1z`; }));
+  return `<svg class="qr" width="${size}" height="${size}" viewBox="0 0 ${n + 2 * q} ${n + 2 * q}" shape-rendering="crispEdges" role="img" aria-label="QR"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+};
+
+// ======================= ADMIN: negozi, campagne, biglietti =======================
+async function adminShopsTab(box) {
+  let list;
+  try { list = await B.adminBusinesses(); } catch (err) { box.innerHTML = `<div class="card">${errText(err)}</div>`; return; }
+  const today = new Date().toISOString().slice(0, 10);
+  box.innerHTML = `<p class="muted small">${T2('Ogni negozio ha la sua spunta: togliendola sparisce il pannello e la Cassa, ma non si cancella niente. «Nascondi anche i doni» li toglie pure dalla mappa dei clienti.', '')}</p>
+    <button type="button" class="full" id="bnew">＋ Nuovo negozio</button><div id="bform"></div>
+    ${list.map((b, i) => `<div class="card shop" data-i="${i}">
+      <div class="row" style="align-items:center"><h2 style="margin:0;flex:1">${esc(b.name)}</h2>
+        <span class="pill ${b.active ? 'on' : 'off'}">${b.active ? 'attivo' : 'sospeso'}</span></div>
+      <p class="small muted">${esc(b.address || '')}</p>
+      <label class="check"><input type="checkbox" data-a="en" ${b.enabled ? 'checked' : ''}> <b>Area riservata attiva</b></label>
+      <label class="check"><input type="checkbox" data-a="hide" ${b.hide_campaigns ? 'checked' : ''}> Nascondi anche i doni dalla mappa (casi gravi)</label>
+      <div class="row" style="align-items:center"><label style="flex:0 0 auto;margin:0">Attivo fino al</label><input type="date" data-a="until" value="${esc(b.active_until || '')}" min="${today}"><button type="button" class="ghost" data-a="nountil" style="flex:0 0 auto">✕</button></div>
+      ${b.active_until && b.active_until < today ? '<div class="msg warn small">Scaduto: il servizio è sospeso da solo.</div>' : ''}
+      <details><summary>🧾 Cassa ${b.has_pin ? '' : '<span class="pill off">manca il PIN</span>'}</summary>
+        <p class="linkbox small">${esc(`${location.origin}${location.pathname}#/cassa/${b.cashier_token}`)}</p>
+        <div class="row"><button type="button" class="ghost" data-a="copycassa">Copia link</button><input data-a="pin" inputmode="numeric" maxlength="8" placeholder="Nuovo PIN (4-8 cifre)"><button type="button" data-a="savepin" style="flex:0 0 auto">Salva PIN</button></div></details>
+      <details><summary>🛍️ Catalogo (${b.items.length})</summary>
+        ${b.items.map((it) => `<div class="row small citem"><span style="flex:1">${it.active ? '' : '🚫 '}<b>${esc(it.name)}</b> ${esc(it.value_label || '')}${it.meaning ? `<br><span class="muted">${esc(it.meaning)}</span>` : ''}</span>
+          <button type="button" class="ghost" data-a="itemtoggle" data-id="${esc(it.id)}" data-on="${it.active ? 1 : 0}" style="flex:0 0 auto">${it.active ? 'Togli' : 'Rimetti'}</button></div>`).join('')}
+        <input data-a="iname" placeholder="Nome (es. Birra media, Stella di Natale mignon)"><input data-a="ivalue" placeholder="Valore indicativo (es. 5 €)">
+        <input data-a="imeaning" placeholder="Significato / descrizione (facoltativo)"><input data-a="iimage" placeholder="Foto: link https (facoltativo)">
+        <button type="button" data-a="additem">＋ Aggiungi al catalogo</button></details>
+      <details ${b.campaigns.length ? 'open' : ''}><summary>🎄 Campagne (${b.campaigns.length})</summary>
+        ${b.campaigns.map((c) => `<div class="camp"><b>${themeOf(c.theme).e} ${esc(c.title)}</b> <span class="small muted">${c.kind === 'vendita' ? 'vendite dalla cassa' : `${dLong(c.opens_at)} → ${dLong(c.expires_at)}`}</span><br>
+          <span class="small">Doni ${c.total} · attivati ${c.claimed} · regalati ${c.gifted} · aperti ${c.unlocked} · ritirati <b>${c.redeemed}</b></span>
+          ${c.kind === 'omaggio' ? `<div class="row"><a class="btn ghost" href="#/admin/biglietti/${esc(c.id)}">🖨️ Biglietti</a><button type="button" class="ghost" data-a="prolong" data-id="${esc(c.id)}" data-exp="${esc(c.expires_at)}">⏰ Cambia scadenza</button></div>` : ''}</div>`).join('')}
+        <button type="button" class="full" data-a="newcamp">＋ Nuova campagna</button><div class="campform"></div></details>
+      <div class="row" style="margin-top:8px"><button type="button" class="ghost" data-a="edit">✏️ Modifica dati</button></div>
+      <div class="bm"></div></div>`).join('')}`;
+  $('#bnew').onclick = () => shopForm($('#bform'), {});
+  box.querySelectorAll('.shop').forEach((card) => {
+    const b = list[+card.dataset.i], q = (a) => card.querySelector(`[data-a="${a}"]`), out = card.querySelector('.bm');
+    const reload = () => adminShopsTab(box);
+    q('en').onchange = async () => { try { await B.adminBusinessToggle(b.id, q('en').checked, q('hide').checked); reload(); } catch (err) { msg(out, errText(err)); } };
+    q('hide').onchange = q('en').onchange;
+    q('until').onchange = async () => { try { await B.adminBusinessSave({ ...b, pin: '', active_until: q('until').value }); reload(); } catch (err) { msg(out, errText(err)); } };
+    q('nountil').onclick = async () => { q('until').value = ''; q('until').onchange(); };
+    q('copycassa').onclick = async () => { try { await navigator.clipboard.writeText(`${location.origin}${location.pathname}#/cassa/${b.cashier_token}`); q('copycassa').textContent = 'Copiato ✓'; } catch { /* a mano */ } };
+    q('savepin').onclick = async () => { const p = q('pin').value.trim(); if (!/^[0-9]{4,8}$/.test(p)) return msg(out, 'Il PIN deve avere da 4 a 8 cifre.'); try { await B.adminBusinessSave({ ...b, pin: p }); msg(out, 'PIN salvato ✓ Comunicalo al negozio a voce, non per email.', 'ok'); q('pin').value = ''; } catch (err) { msg(out, errText(err)); } };
+    q('additem').onclick = async () => {
+      if (!q('iname').value.trim()) return msg(out, 'Scrivi il nome dell\'articolo.');
+      try { await B.adminItemSave({ business_id: b.id, name: q('iname').value.trim(), value_label: q('ivalue').value.trim(), meaning: q('imeaning').value.trim(), image_url: q('iimage').value.trim() }); reload(); } catch (err) { msg(out, errText(err)); }
+    };
+    card.querySelectorAll('[data-a="itemtoggle"]').forEach((x) => { x.onclick = async () => { try { await B.adminItemSave({ id: x.dataset.id, active: x.dataset.on !== '1' }); reload(); } catch (err) { msg(out, errText(err)); } }; });
+    card.querySelectorAll('[data-a="prolong"]').forEach((x) => { x.onclick = async () => {
+      const v = prompt('Nuova scadenza (AAAA-MM-GG): dopo questa data i doni spariscono', x.dataset.exp.slice(0, 10)); if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+      try { await B.adminCampaignDates(x.dataset.id, null, new Date(`${v}T23:59:00`).toISOString()); reload(); } catch (err) { msg(out, errText(err)); } }; });
+    q('newcamp').onclick = () => campaignForm(card.querySelector('.campform'), b, reload);
+    q('edit').onclick = () => shopForm(out, b);
+  });
+}
+
+function shopForm(box, b) {
+  box.innerHTML = `<div class="card"><h2>${b.id ? 'Modifica negozio' : 'Nuovo negozio'}</h2>
+    <label>Nome</label><input id="sname" maxlength="80" value="${esc(b.name || '')}">
+    <label>Indirizzo</label><input id="saddr" maxlength="200" value="${esc(b.address || '')}">
+    <label>Posizione (per i regali venduti in cassa)</label><div class="row"><input id="slat" placeholder="lat" value="${b.lat ?? ''}"><input id="slng" placeholder="lng" value="${b.lng ?? ''}"><button type="button" class="ghost" id="shere" style="flex:0 0 auto">📍 Qui</button></div>
+    <label>Telefono</label><input id="sphone" maxlength="40" value="${esc(b.phone || '')}">
+    <label>Come acquistare (link e-commerce, facoltativo)</label><input id="sbuy" placeholder="https://…" value="${esc(b.buy_url || '')}">
+    <label>Note (solo per te)</label><textarea id="snotes" rows="2" maxlength="1000">${esc(b.notes || '')}</textarea>
+    ${b.id ? '' : '<label>PIN della Cassa (4-8 cifre)</label><input id="spin" inputmode="numeric" maxlength="8">'}
+    <button type="button" class="full" id="ssave">Salva</button><div id="sm"></div></div>`;
+  $('#shere').onclick = async () => { try { const p = await getPos(); $('#slat').value = p.lat.toFixed(6); $('#slng').value = p.lng.toFixed(6); } catch (err) { msg($('#sm'), errText(err)); } };
+  $('#ssave').onclick = async () => {
+    if (!$('#sname').value.trim()) return msg($('#sm'), 'Scrivi il nome del negozio.');
+    try {
+      await B.adminBusinessSave({ ...b, id: b.id || '', name: $('#sname').value.trim(), address: $('#saddr').value.trim(), lat: $('#slat').value.trim(), lng: $('#slng').value.trim(),
+        phone: $('#sphone').value.trim(), buy_url: $('#sbuy').value.trim(), notes: $('#snotes').value.trim(), pin: $('#spin') ? $('#spin').value.trim() : '',
+        enabled: b.id ? b.enabled : true, hide_campaigns: b.hide_campaigns || false, active_until: b.active_until || '' });
+      viewAdmin('negozi');
+    } catch (err) { msg($('#sm'), errText(err)); }
+  };
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function campaignForm(box, b, done) {
+  const y = new Date().getFullYear();
+  box.innerHTML = `<div class="card"><h3>Nuova campagna · ${esc(b.name)}</h3>
+    <label>Titolo</label><input id="ctit" maxlength="80" value="Natale ${y} · ${esc(b.name)}">
+    <label>Tema</label><select id="cthm">${Object.entries(THEMES).map(([k, t]) => `<option value="${k}">${t.e} ${t.n}</option>`).join('')}</select>
+    <label>Frase sul regalo</label><input id="cintro" maxlength="300" value="Vieni a sbloccare il tuo regalo">
+    <div class="row"><div><label>Si apre dal</label><input id="copen" type="date"></div><div><label>Scade (incluso)</label><input id="cexp" type="date" value="${y + 1}-01-08"></div></div>
+    <label>Area: tocca la mappa nel punto dove andranno i clienti (es. zona decorazioni)</label>
+    <div id="cmap" class="map" style="height:260px"></div>
+    <div class="row"><div><label>Raggio di sblocco (m)</label><input id="crad" type="number" min="10" max="2000" value="50"></div><div><label>Alberi sparsi in (m)</label><input id="cspr" type="number" min="5" max="2000" value="30"></div></div>
+    <p class="muted small">Dentro le serre il GPS è impreciso: un raggio di 40–60 m copre tutto il garden.</p>
+    <label>Premi e quantità</label><div id="cpr"></div><button type="button" class="ghost" id="cadd">＋ Altro premio</button>
+    <p id="ctot" class="small"></p>
+    <button type="button" class="full accent" id="cgo">🎄 Crea la campagna</button><div id="cm2"></div></div>`;
+  const today = new Date(); $('#copen').value = today.toISOString().slice(0, 10);
+  const row = (p = {}) => {
+    const d = document.createElement('div'); d.className = 'prow';
+    d.innerHTML = `<select class="pitem"><option value="">— scrivi il premio qui sotto, o scegli dal catalogo —</option>${b.items.filter((i) => i.active).map((i) => `<option value="${esc(i.id)}">${esc(i.name)}</option>`).join('')}</select>
+      <div class="row"><input class="plabel" placeholder="Premio (es. Sconto 10% decorazioni)" value="${esc(p.label || '')}"><input class="pqty" type="number" min="1" max="2000" value="${p.qty || 10}" style="flex:0 0 80px" aria-label="Quantità"></div>`;
+    d.querySelector('.pitem').onchange = (e) => { const it = b.items.find((i) => i.id === e.target.value); if (it) d.querySelector('.plabel').value = it.name; tot(); };
+    d.querySelector('.pqty').oninput = tot;
+    $('#cpr').appendChild(d);
+  };
+  const prizes = () => [...box.querySelectorAll('.prow')].map((d) => { const it = b.items.find((i) => i.id === d.querySelector('.pitem').value);
+    return { item_id: it ? it.id : '', label: d.querySelector('.plabel').value.trim(), qty: +d.querySelector('.pqty').value || 0, image: it?.image_url || '', meaning: it?.meaning || '' }; })
+    .filter((p) => p.label && p.qty > 0);
+  function tot() { const n = prizes().reduce((a, p) => a + p.qty, 0); $('#ctot').textContent = `Totale: ${n} doni (${n} biglietti da stampare)`; }
+  row({ label: 'Sconto 10% sulle decorazioni', qty: 150 }); row({ label: 'Stella di Natale mignon', qty: 40 }); tot();
+  $('#cadd').onclick = () => { row(); tot(); };
+  let center = b.lat != null ? { lat: b.lat, lng: b.lng } : null, mk = null, circ = null;
+  await waitLeaflet();
+  const map = makeMap($('#cmap'), center ? center.lat : 45.69, center ? center.lng : 9.8, center ? 17 : 12);
+  const place = (ll) => {
+    center = ll; if (!map) return;
+    if (mk) { mk.setLatLng([ll.lat, ll.lng]); circ.setLatLng([ll.lat, ll.lng]); } else {
+      mk = L.marker([ll.lat, ll.lng], { icon: L.divIcon({ className: '', iconSize: [40, 40], iconAnchor: [20, 20], html: giftIcon($('#cthm').value, true) }) }).addTo(map);
+      circ = L.circle([ll.lat, ll.lng], { radius: +$('#crad').value || 50, dashArray: '6 6', weight: 2, fillOpacity: 0.06 }).addTo(map);
+    }
+  };
+  if (map) { map.on('click', (e) => place(e.latlng)); if (center) place(center); }
+  $('#crad').oninput = () => circ && circ.setRadius(+$('#crad').value || 50);
+  $('#cgo').onclick = async () => {
+    const pr = prizes(), o = $('#copen').value, x = $('#cexp').value;
+    if (!center) return msg($('#cm2'), 'Tocca la mappa per scegliere l\'area.');
+    if (!pr.length) return msg($('#cm2'), 'Aggiungi almeno un premio.');
+    if (!o || !x || x < o) return msg($('#cm2'), 'Controlla le date.');
+    const b2 = $('#cgo'); b2.disabled = true; b2.textContent = 'Creo i doni…';
+    try {
+      const id = await B.adminCampaignCreate({ business_id: b.id, title: $('#ctit').value.trim() || 'Campagna', theme: $('#cthm').value, intro: $('#cintro').value.trim(),
+        opens_at: new Date(`${o}T00:00:00`).toISOString(), expires_at: new Date(`${x}T23:59:00`).toISOString(),
+        lat: center.lat, lng: center.lng, radius_m: +$('#crad').value || 50, spread_m: +$('#cspr').value || 30, prizes: pr });
+      location.hash = `#/admin/biglietti/${id}`;
+    } catch (err) { b2.disabled = false; b2.textContent = '🎄 Crea la campagna'; msg($('#cm2'), errText(err)); }
+  };
+}
+
+// Biglietti da stampare: 8 per foglio A4 (Stampa → Salva come PDF)
+async function adminCardsPrint(campaignId) {
+  let list, shops;
+  try { [list, shops] = await Promise.all([B.adminCampaignCards(campaignId), B.adminBusinesses()]); } catch (err) { app.innerHTML = `<div class="card">${errText(err)}</div>`; return; }
+  let camp = null, shop = null;
+  shops.forEach((s) => s.campaigns.forEach((c) => { if (c.id === campaignId) { camp = c; shop = s; } }));
+  if (!camp) { app.innerHTML = '<div class="card">Campagna non trovata.</div>'; return; }
+  const th = themeOf(camp.theme);
+  const fmt = (c) => `${c.slice(0, 4)}-${c.slice(4)}`;
+  app.innerHTML = `<div class="noprint"><h1>🖨️ Biglietti · ${esc(camp.title)}</h1>
+      <p class="muted">${list.length} biglietti, 8 per foglio A4. Premi <b>Stampa</b> e scegli «Salva come PDF» per mandarli in tipografia, oppure stampali direttamente. Il premio non è scritto: è una sorpresa.</p>
+      <div class="row"><button type="button" id="pp">🖨️ Stampa / Salva PDF</button><a class="btn ghost" href="#/admin/negozi">Torna ai negozi</a></div></div>
+    <div class="cards">${list.map((c) => `<div class="gcard th-${esc(camp.theme)}" style="--gc:${th.c}">
+      <div class="gch">${camp.theme === 'natale' ? TREE_SVG : `<span class="gce">${th.e}</span>`}<div><b>${T2('Un regalo per te', 'A gift for you')}</b><br><span translate="no">${esc(shop.name)}</span></div></div>
+      ${qrSvg(giftUrl('dono', c.claim_token), 150)}
+      <p class="gcc">${esc(fmt(c.card_code))}</p>
+      <p class="gct">${T2('Inquadra il QR con la fotocamera', 'Scan the QR with your camera')}<br>${T2('Aprilo da', 'Open it at')} ${esc(shop.name)} ${T2('dal', 'from')} ${new Date(camp.opens_at).toLocaleDateString(LOC)} ${T2('al', 'to')} ${new Date(camp.expires_at).toLocaleDateString(LOC)}</p>
+      <p class="gcu">🎁 ${T2('Puoi anche regalarlo a chi vuoi', 'You can also give it to anyone')} · ubipin.it</p></div>`).join('')}</div>`;
+  $('#pp').onclick = () => window.print();
+}
+
+// ---------- Doni in modalità demo: la stessa logica del database, salvata sul telefono ----------
+function demoGifts(getDb, save) {
+  const ALPHA = 'ACDEFGHJKMNPQRTUVWXY34679';
+  const code = (n) => Array.from({ length: n }, () => ALPHA[Math.floor(Math.random() * ALPHA.length)]).join('');
+  const D = () => { const db = getDb(); db.biz = db.biz || []; db.camps = db.camps || []; db.gifts = db.gifts || []; db.items = db.items || []; return db; };
+  const uid = () => getDb().user?.id;
+  const ctx = (g) => { const db = D(); const c = db.camps.find((x) => x.id === g.campaign_id); const b = db.biz.find((x) => x.id === c.business_id); return { c, b }; };
+  const exp = (g, c) => g.expires_at || c.expires_at;
+  const state = (g) => { const { c, b } = ctx(g); const now = Date.now();
+    return g.redeemed_at ? 'redeemed' : b.hide_campaigns ? 'hidden' : now > Date.parse(exp(g, c)) ? 'expired' : g.unlocked_at ? 'unlocked' : now < Date.parse(c.opens_at) ? 'not_yet' : 'open'; };
+  const json = (g) => { const { c, b } = ctx(g); const u = g.unlocked_at;
+    return { id: g.id, state: state(g), mine: g.holder_id === uid(), business: b.name, address: b.address, campaign: c.title, theme: c.theme, kind: c.kind, intro: c.intro,
+      opens_at: c.opens_at, expires_at: exp(g, c), lat: g.lat, lng: g.lng, area_lat: c.lat, area_lng: c.lng, radius_m: c.radius_m,
+      has_message: !!g.message, from: g.giver_id ? (g.giver_name || '') : null, gifted: !!g.transfer_token,
+      prize: u || c.kind === 'vendita' ? g.prize_label : null, prize_image: u ? g.prize_image : null, prize_meaning: u ? g.prize_meaning : null,
+      message: u ? g.message : null, redeem_code: u ? g.redeem_code : null, redeemed_at: g.redeemed_at, unlocked_at: g.unlocked_at }; };
+  const active = (b) => b.enabled && (!b.active_until || b.active_until >= new Date().toISOString().slice(0, 10));
+  const auth = (t, pin) => { const b = D().biz.find((x) => x.cashier_token === String(t).toUpperCase());
+    if (!b) return { err: 'Cassa non trovata: controlla il link.' }; if (b.pin !== pin) return { err: 'PIN sbagliato.' }; if (!active(b)) return { err: 'Il servizio per questo negozio è sospeso.' }; return { b }; };
+  const byCode = (b, k) => { k = String(k).toUpperCase().replace(/[^A-Z0-9]/g, ''); const ids = D().camps.filter((c) => c.business_id === b.id).map((c) => c.id);
+    return D().gifts.find((g) => ids.includes(g.campaign_id) && (g.redeem_code === k || g.card_code === k)); };
+  const stats = (c) => { const gs = D().gifts.filter((g) => g.campaign_id === c.id);
+    return { id: c.id, title: c.title, theme: c.theme, kind: c.kind, opens_at: c.opens_at, expires_at: c.expires_at, lat: c.lat, lng: c.lng, radius_m: c.radius_m,
+      total: gs.length, claimed: gs.filter((g) => g.holder_id).length, gifted: gs.filter((g) => g.gifted_at).length, unlocked: gs.filter((g) => g.unlocked_at).length,
+      redeemed: gs.filter((g) => g.redeemed_at).length, redeemed_gifted: gs.filter((g) => g.redeemed_at && g.gifted_at).length }; };
+  const newGift = (c, p, lat, lng, expires = null) => { const g = { id: crypto.randomUUID(), campaign_id: c.id, item_id: p.item_id || null, prize_label: p.label, prize_image: p.image || null,
+    prize_meaning: p.meaning || null, card_code: code(8), claim_token: code(16), lat, lng, holder_id: null, expires_at: expires, created_at: new Date().toISOString() }; D().gifts.push(g); return g; };
+  return {
+    async myGifts() { return D().gifts.filter((g) => g.holder_id === uid() && state(g) !== 'hidden').map(json); },
+    async giftClaim(t) { if (!uid()) return { status: 'login' }; const k = String(t).toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const g = D().gifts.find((x) => x.claim_token === k || x.card_code === k); if (!g) return { status: 'not_found' };
+      if (!g.holder_id) { g.holder_id = uid(); g.claimed_at = new Date().toISOString(); save(); } else if (g.holder_id !== uid()) return { status: 'taken' };
+      return { status: 'ok', gift: json(g) }; },
+    async giftGet(id) { const g = D().gifts.find((x) => x.id === id && x.holder_id === uid()); return g ? json(g) : null; },
+    async giftUnlock(id, pos) { const g = D().gifts.find((x) => x.id === id && x.holder_id === uid()); if (!g) return { status: 'not_found' };
+      const st = state(g); if (st === 'unlocked' || st === 'redeemed') return { status: 'ok', gift: json(g) }; if (st !== 'open') return { status: st };
+      if (g.transfer_token) return { status: 'gifting' }; if (!pos) return { status: 'no_position' };
+      const { c } = ctx(g); const d = distanceM(pos.lat, pos.lng, c.lat, c.lng);
+      if (d > c.radius_m) return { status: 'too_far', distance_m: Math.round(d), radius_m: c.radius_m };
+      g.unlocked_at = new Date().toISOString(); g.redeem_code = code(6); save(); return { status: 'ok', gift: json(g) }; },
+    async giftSend(id, message, from) { const g = D().gifts.find((x) => x.id === id && x.holder_id === uid()); if (!g) return { status: 'not_found' };
+      if (!['open', 'not_yet'].includes(state(g))) return { status: state(g) };
+      g.transfer_token = code(16); g.message = (message || '').trim().slice(0, 500) || null; g.giver_name = (from || '').trim().slice(0, 60) || null; save();
+      return { status: 'ok', token: g.transfer_token }; },
+    async giftSendCancel(id) { const g = D().gifts.find((x) => x.id === id && x.holder_id === uid() && !x.unlocked_at); if (g) { g.transfer_token = null; save(); } },
+    async giftPeek(t) { const g = D().gifts.find((x) => x.transfer_token === String(t).toUpperCase()); if (!g || g.unlocked_at) return null; const { c, b } = ctx(g);
+      if (b.hide_campaigns || Date.now() > Date.parse(exp(g, c))) return null;
+      return { business: b.name, address: b.address, theme: c.theme, kind: c.kind, campaign: c.title, opens_at: c.opens_at, expires_at: exp(g, c), from: g.giver_name, prize: c.kind === 'vendita' ? g.prize_label : null, has_message: !!g.message }; },
+    async giftAccept(t) { if (!uid()) return { status: 'login' }; const g = D().gifts.find((x) => x.transfer_token === String(t).toUpperCase()); if (!g) return { status: 'used' };
+      if (!['open', 'not_yet'].includes(state(g))) return { status: 'expired' }; if (g.holder_id === uid()) return { status: 'own' };
+      Object.assign(g, { giver_id: g.holder_id, holder_id: uid(), claimed_at: new Date().toISOString(), gifted_at: new Date().toISOString(), transfer_token: null }); save();
+      return { status: 'ok', gift: json(g) }; },
+    async giftTrees(bb) { return D().gifts.filter((g) => { const { c, b } = ctx(g); return !b.hide_campaigns && !g.redeemed_at && Date.now() <= Date.parse(exp(g, c))
+        && (c.kind === 'omaggio' ? g.lat >= bb.s && g.lat <= bb.n && g.lng >= bb.w && g.lng <= bb.e : g.holder_id === uid()); })
+      .map((g) => ({ lat: g.lat, lng: g.lng, theme: ctx(g).c.theme, mine: g.holder_id === uid() && !!uid(), gift_id: g.holder_id === uid() ? g.id : null })); },
+    async cashierInfo(t, pin) { const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err };
+      return { business: a.b.name, items: D().items.filter((i) => i.business_id === a.b.id && i.active).map((i) => ({ id: i.id, name: i.name, value: i.value_label })),
+        campaigns: D().camps.filter((c) => c.business_id === a.b.id).map(stats) }; },
+    async cashierCheck(t, pin, k, redeem = false) { const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err };
+      const g = byCode(a.b, k); if (!g) return { status: 'not_found' }; const { c } = ctx(g);
+      if (g.redeemed_at) return { status: 'already', prize: g.prize_label, redeemed_at: g.redeemed_at };
+      if (!g.unlocked_at) return { status: 'locked', prize: g.prize_label };
+      if (Date.now() > Date.parse(exp(g, c))) return { status: 'expired', prize: g.prize_label, expires_at: exp(g, c) };
+      if (redeem) { g.redeemed_at = new Date().toISOString(); save(); return { status: 'redeemed', prize: g.prize_label, gifted: !!g.gifted_at }; }
+      return { status: 'valid', prize: g.prize_label, gifted: !!g.gifted_at, expires_at: exp(g, c) }; },
+    async cashierExtend(t, pin, k, days) { const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err }; const g = byCode(a.b, k); if (!g) return { status: 'not_found' };
+      const { c } = ctx(g); g.expires_at = new Date(Math.max(Date.now(), Date.parse(exp(g, c))) + days * 864e5).toISOString(); save(); return { status: 'ok', expires_at: g.expires_at }; },
+    async cashierIssue(t, pin, itemId, days = 180) { const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err };
+      const it = D().items.find((i) => i.id === itemId && i.business_id === a.b.id); if (!it) throw new Error('Articolo non trovato.');
+      if (a.b.lat == null) throw new Error('Manca la posizione del negozio.');
+      let c = D().camps.find((x) => x.business_id === a.b.id && x.kind === 'vendita');
+      if (!c) { c = { id: crypto.randomUUID(), business_id: a.b.id, title: a.b.name, theme: 'regalo', kind: 'vendita', opens_at: new Date().toISOString(), expires_at: new Date(Date.now() + 20 * 365 * 864e5).toISOString(), lat: a.b.lat, lng: a.b.lng, radius_m: 60, created_at: new Date().toISOString() }; D().camps.push(c); }
+      const g = newGift(c, { item_id: it.id, label: it.name, image: it.image_url, meaning: it.meaning }, a.b.lat, a.b.lng, new Date(Date.now() + days * 864e5).toISOString()); save();
+      return { status: 'ok', token: g.claim_token, code: g.card_code, prize: g.prize_label, expires_at: g.expires_at }; },
+    async adminBusinesses() { return D().biz.map((b) => ({ ...b, active: active(b), has_pin: !!b.pin, items: D().items.filter((i) => i.business_id === b.id),
+      campaigns: D().camps.filter((c) => c.business_id === b.id).map(stats) })); },
+    async adminBusinessSave(p) { const db = D(); let b = db.biz.find((x) => x.id === p.id);
+      if (!b) { b = { id: crypto.randomUUID(), cashier_token: code(14), enabled: true, hide_campaigns: false, created_at: new Date().toISOString() }; db.biz.unshift(b); }
+      Object.assign(b, { name: p.name || b.name, address: p.address || null, lat: p.lat === '' || p.lat == null ? null : +p.lat, lng: p.lng === '' || p.lng == null ? null : +p.lng,
+        phone: p.phone || null, buy_url: p.buy_url || null, notes: p.notes || null, active_until: p.active_until || null,
+        enabled: p.enabled ?? b.enabled, hide_campaigns: p.hide_campaigns ?? b.hide_campaigns });
+      if (/^[0-9]{4,8}$/.test(p.pin || '')) b.pin = p.pin; save(); return b.id; },
+    async adminBusinessToggle(id, en, hide) { const b = D().biz.find((x) => x.id === id); if (b) { b.enabled = en; b.hide_campaigns = hide; save(); } },
+    async adminItemSave(p) { const db = D(); let i = db.items.find((x) => x.id === p.id);
+      if (!i) { i = { id: crypto.randomUUID(), business_id: p.business_id, active: true, sort: 0 }; db.items.push(i); }
+      Object.assign(i, { name: p.name || i.name, meaning: p.meaning ?? i.meaning ?? null, value_label: p.value_label ?? i.value_label ?? null, image_url: p.image_url ?? i.image_url ?? null, active: p.active ?? i.active }); save(); return i.id; },
+    async adminCampaignCreate(o) { const db = D(); const c = { id: crypto.randomUUID(), business_id: o.business_id, title: o.title, theme: o.theme, kind: 'omaggio', opens_at: o.opens_at, expires_at: o.expires_at,
+        lat: o.lat, lng: o.lng, radius_m: o.radius_m, intro: o.intro || null, created_at: new Date().toISOString() }; db.camps.unshift(c);
+      o.prizes.forEach((p) => { for (let k = 0; k < p.qty; k++) { const r = o.spread_m * Math.sqrt(Math.random()), a = 2 * Math.PI * Math.random();
+        newGift(c, p, o.lat + r * Math.cos(a) / 111320, o.lng + r * Math.sin(a) / (111320 * Math.cos(o.lat * Math.PI / 180))); } });
+      save(); return c.id; },
+    async adminCampaignCards(id) { return D().gifts.filter((g) => g.campaign_id === id).map((g) => ({ card_code: g.card_code, claim_token: g.claim_token, claimed: !!g.holder_id })); },
+    async adminCampaignDates(id, o, x) { const c = D().camps.find((y) => y.id === id); if (c) { if (o) c.opens_at = o; if (x) c.expires_at = x; save(); } },
+  };
+}
+
 // ======================= BANNER PUBBLICITARI =======================
 let adTimer = null;
 async function drawAdSlot(box) {
@@ -2184,14 +2849,16 @@ async function drawAdSlot(box) {
 // ======================= AMMINISTRATORE =======================
 async function viewAdmin(tab) {
   if (!(await B.isAdmin())) { app.innerHTML = '<div class="card center">Pagina riservata all\'amministratore. <a href="#/">Torna a Ubi</a></div>'; return; }
-  const t = ['iscritti', 'curiosita', 'pin'].includes(tab) ? tab : 'banner';
+  if (tab === 'biglietti') return adminCardsPrint(location.hash.split('/')[3]);
+  const t = ['iscritti', 'curiosita', 'pin', 'negozi'].includes(tab) ? tab : 'banner';
   app.innerHTML = `<h1>⚙️ Amministrazione</h1>
-    <div class="seg"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'pin' ? 'on' : 'ghost'}" href="#/admin/pin">📊 Pin</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a></div>
+    <div class="seg"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'pin' ? 'on' : 'ghost'}" href="#/admin/pin">📊 Pin</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a><a class="btn ${t === 'negozi' ? 'on' : 'ghost'}" href="#/admin/negozi">🏪 Negozi</a></div>
     <div id="adm" style="margin-top:12px"><p class="muted center">Carico…</p></div>
     <p class="center"><a href="#/">Torna a Ubi</a></p>`;
   if (t === 'iscritti') return adminUsersTab($('#adm'));
   if (t === 'pin') return adminPinTab($('#adm'));
   if (t === 'curiosita') return adminSeedTab($('#adm'));
+  if (t === 'negozi') return adminShopsTab($('#adm'));
   return adminAdsTab($('#adm'));
 }
 // ---------- Curiosità: pin pronti (testo nostro + foto libere da Wikimedia Commons) ----------
