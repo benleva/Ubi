@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210045';
+import { CONFIG } from './config.js?v=202611210112';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210045';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210112';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.75';
+const APP_VERSION = 'v.76';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -541,7 +541,7 @@ function demoBackend() {
         visibility: d.visibility, recipients: d.recipients, password_hash: d.password ? await sha(d.password) : null,
         text_body: d.text_body || null, tags: d.tags || [], created_at: new Date().toISOString(),
         unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
-        hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null, replies_enabled: d.replies_enabled !== false,
+        hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null, replies_enabled: d.replies_enabled !== false, is_dating: !!d.is_dating,
       });
       save(); return slug;
     },
@@ -552,17 +552,20 @@ function demoBackend() {
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
     _book() { db.book = db.book || {}; db.book[db.user.id] = db.book[db.user.id] || []; return db.book[db.user.id]; },
     async notifyRecipients() { return { sent: 0, skipped: 0, demo: true }; },
-    async joinDating() { throw new Error('La sezione dating non è disponibile nella demo.'); },
-    async leaveDating() {},
+    async joinDating(d) { Object.assign(db.profiles[db.user.id], { dating_gender: d.gender, dating_birth_date: d.birth, dating_consent_version: CONFIG.DATING_CONSENT_VERSION }); save(); },
+    async leaveDating() { db.profiles[db.user.id].dating_consent_version = null; save(); },
     // risposte nella demo: solo testo, salvate sul telefono
     async addReply(slug, d) {
       const c = db.contents.find((x) => x.share_slug === slug); if (!c || !db.user) throw new Error('Pin non trovato.');
       if (d.file) throw new Error('Nella demo si può rispondere solo con un messaggio scritto.');
       (db.replies = db.replies || []).push({ id: crypto.randomUUID(), content_id: c.id, author_id: db.user.id, author_name: db.profiles[db.user.id]?.display_name || 'Utente',
-        media_type: 'text', text_body: d.text, created_at: new Date().toISOString(), revealed: true }); save(); return { mailed: false };
+        author_gender: db.profiles[db.user.id]?.dating_gender || null, media_type: 'text', text_body: d.text, created_at: new Date().toISOString(), revealed: !c.is_dating }); save(); return { mailed: false };
     },
-    async repliesFor(slug) { const c = db.contents.find((x) => x.share_slug === slug); return c ? (db.replies || []).filter((r) => r.content_id === c.id).reverse() : []; },
-    async myReplies() { return (db.replies || []).filter((r) => r.author_id === db.user?.id).map((r) => ({ ...r, share_slug: db.contents.find((c) => c.id === r.content_id)?.share_slug })); },
+    // nel dating: anonimi finché non scelgono entrambi «Voglio conoscerti»
+    async repliesFor(slug) { const c = db.contents.find((x) => x.share_slug === slug); return c ? (db.replies || []).filter((r) => r.content_id === c.id).reverse()
+      .map((r) => (r.revealed ? r : { ...r, author_name: null, author_id: null })) : []; },
+    async myReplies() { return (db.replies || []).filter((r) => r.author_id === db.user?.id).map((r) => { const c = db.contents.find((x) => x.id === r.content_id) || {};
+      return { ...r, share_slug: c.share_slug, title: c.title, is_dating: !!c.is_dating, owner_id: r.revealed ? c.owner_id : null, owner_name: r.revealed ? db.profiles[c.owner_id]?.display_name : null }; }); },
     async myDatingPhotos() { return []; },
     async listHunts() { return (db.hunts || []).filter((h) => h.owner_id === db.user?.id); },
     async getHunt(id) { return (db.hunts || []).find((h) => h.id === id) || null; },
@@ -605,7 +608,12 @@ function demoBackend() {
     async addDatingPhoto() { throw new Error('Le foto dating non sono disponibili nella demo.'); },
     async removeDatingPhoto() {},
     async datingPhotosOf() { return []; },
-    async replyWant() { return false; },
+    async replyWant(id) {
+      const r = (db.replies || []).find((x) => x.id === id); if (!r) return false;
+      const c = db.contents.find((x) => x.id === r.content_id);
+      if (c && c.owner_id === db.user.id) r.owner_wants = true; else r.author_wants = true;
+      r.revealed = !!(r.owner_wants && r.author_wants); save(); return r.revealed;
+    },
     async replyRemove() {},
     async listContacts() { return [...B._book()].sort((a, b) => a.name.localeCompare(b.name)); },
     async saveContact(c) {
@@ -685,7 +693,8 @@ function demoBackend() {
       const u = db.user;
       return db.contents.filter((c) => canAccess(c, u) && c.lat >= b.s && c.lat <= b.n && c.lng >= b.w && c.lng <= b.e)
         .map((c) => ({ share_slug: c.share_slug, title: c.title, media_type: c.media_type, lat: c.lat, lng: c.lng,
-          is_owner: c.owner_id === u.id, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u.id), tags: c.tags || [], hunt_step: c.hunt_step || null }));
+          is_owner: c.owner_id === u.id, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u.id), tags: c.tags || [], hunt_step: c.hunt_step || null,
+          is_dating: !!c.is_dating, gender: c.is_dating ? db.profiles[c.owner_id]?.dating_gender || null : null }));
     },
     async teaser(slug) {
       const u = db.user; const c = db.contents.find((x) => x.share_slug === slug);
@@ -699,6 +708,8 @@ function demoBackend() {
         unlock_at: c.unlock_at || null, open_anywhere: !!c.open_anywhere, hunt_id: c.hunt_id || null,
         hunt_step: c.hunt_step || null, hunt_steps: c.hunt_id ? db.contents.filter((x) => x.hunt_id === c.hunt_id).length : null,
         hunt_title: c.hunt_title || null, hunt_locked: false,
+        is_dating: !!c.is_dating, gender: c.is_dating ? db.profiles[c.owner_id]?.dating_gender || null : null,
+        i_am_dating: !!u && isDating(db.profiles[u.id]),
         replies_enabled: c.replies_enabled !== false, i_replied: (db.replies || []).some((r) => r.content_id === c.id && r.author_id === db.user?.id),
       };
     },
@@ -2539,8 +2550,11 @@ const VIDEOS = {
   a_campagna: { f: 'video/Ubi-admin-campagna.mp4', s: 19 },
   a_banner: { f: 'video/Ubi-admin-banner.mp4', s: 18 },
   a_caccia: { f: 'video/Ubi-admin-caccia.mp4', s: 21 },
+  social: { f: 'video/Ubi-tutorial-social-in-un-pin.mp4', s: 26 },
+  dating: { f: 'video/Ubi-tutorial-dating-entra.mp4', s: 30, n: 'Entra e lascia un biglietto' },
+  dating2: { f: 'video/Ubi-tutorial-dating-conoscersi.mp4', s: 33, n: 'Rispondi e conoscetevi' },
 };
-const videoBtn = (k, short = false) => { const v = VIDEOS[k]; return v ? `<a class="btn full vidbtn" href="${v.f}" target="_blank" rel="noopener">▶️ ${short ? 'Video' : 'Guarda come funziona'} <span class="small">(${v.s} s)</span></a>` : ''; };
+const videoBtn = (k, short = false) => { const v = VIDEOS[k]; return v ? `<a class="btn full vidbtn" href="${v.f}" target="_blank" rel="noopener">▶️ ${short ? 'Video' : v.n ? 'Video: ' + v.n : 'Guarda come funziona'} <span class="small">(${v.s} s)</span></a>` : ''; };
 const pdfShort = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica PDF</span></a>` : ''; };
 const pdfBtn = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica il PDF: ${esc(x.t)}</span></a>` : ''; };
 const PARTNER_CATS = {
@@ -3736,7 +3750,7 @@ function viewDatingJoin(prof) {
       <ul class="small"><li>Lasci un <b>biglietto</b> (un video dal vivo, una foto, un testo) in un posto che ami: una vetta, un sentiero, una spiaggia, un rifugio.</li>
       <li>Lo può aprire solo chi è iscritto e <b>arriva fin lì</b>: avrete già una passione in comune.</li>
       <li>Chi lo apre può risponderti con un videomessaggio, una foto o un testo: ti arriva un'email.</li>
-      <li>Restate <b>anonimi</b> finché non scegliete entrambi «Voglio conoscerti». Poi potete scrivervi.</li></ul></div>
+      <li>Restate <b>anonimi</b> finché non scegliete entrambi «Voglio conoscerti». Poi potete scrivervi.</li></ul>${videoBtn('dating')}${videoBtn('dating2')}</div>
     <div class="card"><form id="f">
       <label>Sono</label>
       <div class="seg" id="gen"><button type="button" data-g="f" class="${gender === 'f' ? 'on' : ''}">${datingBadge('f', 'sm')}Donna</button><button type="button" data-g="m" class="${gender === 'm' ? 'on' : ''}">${datingBadge('m', 'sm')}Uomo</button></div>
@@ -4218,8 +4232,9 @@ const FAQ_GUIDE = [
 ];
 // video tutorial in fondo alle voci della guida
 { const FV = { '3 · Lascia un contenuto': 'lascia', '4 · Condividi': 'condividi', '5 · Sblocca un contenuto': 'pin', '6 · Gestisci i tuoi contenuti': 'gestisci',
-  '6c · Rispondere a un pin': 'rispondi', '👥 Gruppi: mandare un pin a più persone insieme': 'gruppi', '📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram': 'whatsapp' };
-  FAQ_GUIDE.forEach((x) => { const k = FV[x[0]]; if (k && Array.isArray(x) && x.length === 2) x[1] += videoBtn(k); }); }
+  '6c · Rispondere a un pin': 'rispondi', '👥 Gruppi: mandare un pin a più persone insieme': 'gruppi', '📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram': 'whatsapp',
+  '📸 Mettere un post o un reel di Instagram in un pin': 'social', '💗 Ubi Dating': ['dating', 'dating2'] };
+  FAQ_GUIDE.forEach((x) => { const k = FV[x[0]]; if (k && Array.isArray(x) && x.length === 2) x[1] += [].concat(k).map((y) => videoBtn(y)).join(''); }); }
 
 
 const FAQ_IDEAS = [

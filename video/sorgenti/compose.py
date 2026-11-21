@@ -194,12 +194,49 @@ def card_wachat(e):
     im.paste(scr, (PX, PY), phone_mask())
     return im
 
+
+def card_social(e):
+    """post di un social generico + foglio «Condividi» con «Copia link». Ritorna (immagine, punto del tocco)."""
+    im = frame_bg_with_caption(e['cap'])
+    ImageDraw.Draw(im).rounded_rectangle([PX - BZ, PY - BZ, PX + SW + BZ, PY + SH + BZ], 66, fill=(12, 12, 14))
+    scr = Image.new('RGB', (SW, SH), 'white'); sd = ImageDraw.Draw(scr)
+    sd.ellipse([28, 50, 98, 120], fill=(232, 116, 59)); sd.ellipse([36, 58, 90, 112], fill='white'); sd.ellipse([42, 64, 84, 106], fill=(120, 150, 190))
+    sd.text((116, 66), e.get('who', 'rifugio.belvedere'), font=font('b', 32), fill=(20, 20, 20))
+    sd.text((SW - 70, 56), '⋯'.replace('⋯', '...'), font=font('k', 40), fill=(20, 20, 20))
+    ph = Image.open('/home/claude/video/assets/tramonto.jpg').convert('RGB'); side = min(ph.size)
+    ph = ph.crop(((ph.width - side) // 2, (ph.height - side) // 2, (ph.width + side) // 2, (ph.height + side) // 2)).resize((SW, SW))
+    scr.paste(ph, (0, 150)); y = 150 + SW + 22
+    # icone: cuore, fumetto, aeroplanino (evidenziato)
+    sd.text((28, y - 8), '♡', font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 58), fill=(20, 20, 20))
+    sd.ellipse([108, y, 156, y + 44], outline=(20, 20, 20), width=5); sd.polygon([(112, y + 34), (104, y + 52), (126, y + 42)], fill=(20, 20, 20))
+    plane = [(190, y + 22), (246, y), (230, y + 48), (214, y + 28)]
+    sd.ellipse([174, y - 16, 262, y + 64], fill=(255, 226, 205)); sd.polygon(plane, outline=(20, 20, 20), width=5)
+    sd.text((28, y + 70), 'Tramonto dal belvedere stasera 🧡'.replace(' 🧡', ''), font=font('s', 30), fill=(30, 30, 30))
+    # foglio Condividi
+    sheet_y = SH - 470
+    dim = Image.new('RGBA', (SW, SH), (0, 0, 0, 0)); ImageDraw.Draw(dim).rectangle([0, 0, SW, sheet_y], fill=(0, 0, 0, 90))
+    scr.paste(dim, (0, 0), dim); sd = ImageDraw.Draw(scr)
+    sd.rounded_rectangle([0, sheet_y, SW, SH + 40], 36, fill=(248, 248, 248)); sd.rounded_rectangle([SW // 2 - 40, sheet_y + 16, SW // 2 + 40, sheet_y + 24], 4, fill=(200, 200, 200))
+    sd.text((SW // 2 - sd.textlength('Condividi', font=font('x', 34)) / 2, sheet_y + 44), 'Condividi', font=font('x', 34), fill=(20, 20, 20))
+    opts = [('Copia link', (232, 116, 59)), ('Condividi su...', (130, 130, 130)), ('Aggiungi alla storia', (130, 130, 130))]
+    yy = sheet_y + 120; tap = None
+    for i, (lab, col) in enumerate(opts):
+        sd.rounded_rectangle([30, yy, SW - 30, yy + 88], 22, fill='white', outline=(255, 200, 170) if i == 0 else (230, 230, 230), width=4 if i == 0 else 2)
+        sd.ellipse([52, yy + 18, 104, yy + 70], fill=col)
+        if i == 0:   # icona catena
+            sd.rounded_rectangle([62, yy + 36, 86, yy + 52], 8, outline='white', width=4); sd.rounded_rectangle([72, yy + 36, 96, yy + 52], 8, outline='white', width=4)
+        sd.text((128, yy + 24), lab, font=font('b' if i == 0 else 's', 34), fill=(20, 20, 20)); 
+        if i == 0: tap = (PX + SW * 0.42, PY + yy + 44)
+        yy += 108
+    im.paste(scr, (PX, PY), phone_mask())
+    return im, tap
+
 # ---------- scene ----------
 def scenes(tl):
     out, cur = [], None
     for e in tl:
         key = json.dumps(e.get('cap')) if e['t'] in ('still', 'tap', 'seq') else None
-        if e['t'] in ('title', 'ticket', 'outro', 'wachat') or cur is None or key != cur['key']:
+        if e['t'] in ('title', 'ticket', 'outro', 'wachat', 'social') or cur is None or key != cur['key']:
             cur = {'key': key, 'ev': []}; out.append(cur)
         cur['ev'].append(e)
     return out
@@ -227,6 +264,12 @@ def render_scene(sc, path):
         elif e['t'] == 'wachat':
             im = card_wachat(e); fade_in(im, 6 if prev is not None else 0)
             for k in range(int(e['dur'] * FPS)): emit(im)
+        elif e['t'] == 'social':
+            im, (x, y) = card_social(e); fade_in(im, 6 if prev is not None else 0)
+            for k in range(int(e['dur'] * FPS)):
+                fr = im.copy()
+                if k / FPS > 0.6: draw_touch(fr, x, y, k / FPS - 0.6)
+                emit(fr)
         elif e['t'] == 'ticket':
             bg, card, (x0, y0) = card_ticket(e); n = int(e['dur'] * FPS)
             for k in range(n):
