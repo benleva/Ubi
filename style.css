@@ -170,9 +170,19 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 #faq-posizione { scroll-margin-top: 80px; }
 
 /* banner pubblicitari: stessa misura del pulsante Ubi Dating */
-.adbanner { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px; border-radius: 14px; color: #fff; text-decoration: none; position: relative; transition: opacity .6s; }
+.adbanner { display: block; min-height: 52px; padding: 8px 14px; border-radius: 14px; color: #fff; text-decoration: none; position: relative; transition: opacity .6s; overflow: hidden; }
+.adbanner .adrow { display: flex; align-items: center; gap: 12px; min-height: 36px; }
 .adbanner.fade { opacity: 0; }
-.adbanner img { height: 42px; width: 42px; object-fit: contain; border-radius: 8px; background: #fff; flex: 0 0 auto; }
+.adbanner .adlogo { height: 42px; width: 42px; object-fit: contain; border-radius: 8px; background: #fff; flex: 0 0 auto; display: block; }
+.adbanner.wide { padding-top: 0; }
+.adbanner .admedia { display: block; width: calc(100% + 32px); margin: 0 -18px 8px -14px; aspect-ratio: 3 / 1; object-fit: cover; background: rgba(0,0,0,.15); }
+.adbanner .adtxt .advet { font-weight: 700; opacity: 1; }
+.adplanrow { display: flex; gap: 8px; align-items: stretch; }
+.adplanrow .seg { flex: 1; margin: 0; }
+.adplanrow #avetb { flex: 0 0 auto; margin: 0; }
+#avetb.on { background: #e8743b !important; color: #fff !important; border-color: #e8743b !important; }
+.adprev { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.adprev .adthumb { max-height: 70px; max-width: 70%; border-radius: 8px; }
 .adbanner .adtxt { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
 .adbanner .adtxt b { font-size: 16px; }
 .adbanner .adtxt span { font-size: 13px; opacity: .92; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

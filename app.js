@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210117';
+import { CONFIG } from './config.js?v=202611210134';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210117';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210134';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.77';
+const APP_VERSION = 'v.78';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -32,7 +32,9 @@ const isLit = (c) => (c.tags || []).includes('letteratura');
 const CHEST_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5C3 6.9 5.9 4 9.5 4h5C18.1 4 21 6.9 21 10.5V11H3z" fill="#8a4b12"/><path d="M3 11h18v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="#a85d1a"/><path d="M3 11h18v2.2H3z" fill="#5e3209"/><path d="M7 4.6v15.4M17 4.6v15.4" stroke="#ffd96a" stroke-width="1.6"/><rect x="10" y="10" width="4" height="5" rx="1" fill="#ffd96a" stroke="#5e3209" stroke-width=".8"/></svg>';
 const chestBadge = (step, extra = '') => `<span class="tico chest ${extra}" title="Caccia al tesoro${step ? ` · tappa ${step}` : ''}">${CHEST_SVG}${step ? `<b class="cnum">${step}</b>` : ''}</span>`;
 const litBadge = (extra = '') => `<span class="tico ${extra}" style="background:#1f6f5c;font-size:.8em" title="Luogo di uno scrittore">📖</span>`;
-const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
+// Vetrina di un negozio (tag #vetrina): pallino con la bottega
+const isVetrina = (c) => (c.tags || []).includes('vetrina');
+const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : isVetrina(c) && !c.is_dating ? iconBadge('🏪', '#e8743b', 'Vetrina di un negozio', extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
   : c.unlock_at && Date.parse(c.unlock_at) > Date.now() ? iconBadge('⏳', '#8a6d3b', 'Capsula del tempo', extra)
   : badge(c.media_type, extra));
 const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
@@ -315,7 +317,8 @@ async function supabaseBackend() {
     async isAdmin() { try { return !!must(await sb.rpc('is_admin')); } catch { return false; } },
     async listAds() { return must(await sb.from('ads').select('*').order('sort').order('created_at')) || []; },
     async saveAd(a) {
-      const row = { title: a.title, body: a.body || null, link_url: a.link_url || null, image_url: a.image_url || null, color: a.color, active: a.active, sort: a.sort || 0 };
+      const row = { title: a.title, body: a.body || null, link_url: a.link_url || null, image_url: a.image_url || null, color: a.color, active: a.active, sort: a.sort || 0,
+        plan: a.plan || 'base', copies: a.copies || 1, seconds: a.seconds || 9, media_url: a.media_url || null, vetrina_slug: a.vetrina_slug || null, ends_on: a.ends_on || null };
       if (a.id) must(await sb.from('ads').update(row).eq('id', a.id)); else must(await sb.from('ads').insert(row));
     },
     async deleteAd(id) { must(await sb.from('ads').delete().eq('id', id)); },
@@ -324,6 +327,13 @@ async function supabaseBackend() {
       const path = `${u.id}/ads/${crypto.randomUUID()}.jpg`;
       must(await sb.storage.from('avatars').upload(path, blob, { contentType: 'image/jpeg', upsert: false }));
       return sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+    },
+    // loghi, foto e video dei banner: archivio pubblico "ads" (solo l'amministratore carica)
+    async uploadAdMedia(blob) {
+      const type = blob.type || 'image/jpeg'; const ext = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'image/png': 'png', 'image/webp': 'webp' }[type] || 'jpg';
+      const path = `${crypto.randomUUID()}.${ext}`;
+      must(await sb.storage.from('ads').upload(path, blob, { contentType: type, upsert: false }));
+      return sb.storage.from('ads').getPublicUrl(path).data.publicUrl;
     },
     async adminUsers() { return must(await sb.rpc('admin_users')) || []; },
     async adminPinStats() { return must(await sb.rpc('admin_pin_stats')) || []; },
@@ -598,6 +608,7 @@ function demoBackend() {
       if (o) Object.assign(o, a); else db.ads.push({ ...a, id: crypto.randomUUID(), created_at: new Date().toISOString() }); save(); },
     async deleteAd(id) { db.ads = (db.ads || []).filter((x) => x.id !== id); save(); },
     async uploadAdImage(blob) { return new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); }); },
+    async uploadAdMedia(blob) { return B.uploadAdImage(blob); },
     async adminUsers() { return []; },
     async adminPinStats() { return []; },
     async huntStats() { return null; },
@@ -2964,33 +2975,55 @@ function demoGifts(getDb, save) {
 
 // ======================= BANNER PUBBLICITARI =======================
 let adTimer = null;
+const ADPLANS = { base: { n: 'Base', copies: 1, seconds: 9 }, plus: { n: 'Plus', copies: 2, seconds: 15 }, top: { n: 'Top', copies: 3, seconds: 20 } };
+const adCopies = (a) => Math.max(1, Math.min(5, +a.copies || 1));
+const adSecs = (a) => Math.max(5, Math.min(30, +a.seconds || 9));
+const adLive = (a) => a.active && (!a.ends_on || a.ends_on >= new Date().toISOString().slice(0, 10));
+const isVidUrl = (u) => /^data:video\//.test(u || '') || /\.(mp4|webm|mov)(\?|#|$)/i.test(u || '');
+const adMedia = (u, cls) => (!u ? '' : isVidUrl(u) ? `<video class="${cls}" src="${esc(u)}" autoplay muted loop playsinline preload="auto"></video>` : `<img class="${cls}" src="${esc(u)}" alt="">`);
+const vetrinaSlug = (v) => { const x = String(v || '').trim(); const m = x.match(/#\/c\/([A-Za-z0-9_-]{4,40})/); return m ? m[1] : /^[A-Za-z0-9_-]{4,40}$/.test(x) ? x : ''; };
+// Un banner: logo (foto o video) + testo; se ha l'immagine grande, sta sopra a tutta larghezza.
+// Con la vetrina il tocco apre il pin del negozio (offerta che si sblocca sul posto), altrimenti il link.
+function adCard(a, tag = 'Sponsor', live = true) {
+  const href = !live ? '' : a.vetrina_slug ? `href="#/c/${esc(a.vetrina_slug)}"` : a.link_url ? `href="${esc(a.link_url)}" target="_blank" rel="noopener sponsored"` : '';
+  const el = live ? 'a' : 'div';
+  return `<${el} class="adbanner${a.media_url ? ' wide' : ''}" style="background:${esc(a.color)}" ${href}>${a.media_url ? adMedia(a.media_url, 'admedia') : ''}
+    <span class="adrow">${adMedia(a.image_url, 'adlogo')}<span class="adtxt"><b>${esc(a.title)}</b>${a.body ? `<span>${esc(a.body)}</span>` : ''}${a.vetrina_slug ? '<span class="advet">📍 Vetrina · scopri l\'offerta sul posto</span>' : ''}</span></span>
+    <span class="adtag">${tag}</span></${el}>`;
+}
 async function drawAdSlot(box) {
   if (!box) return;
   let ads = [];
-  try { ads = (await B.listAds()).filter((a) => a.active); } catch { return; }
+  try { ads = (await B.listAds()).filter(adLive); } catch { return; }
   if (!ads.length || !document.body.contains(box)) return;
-  const card = (a) => `<a class="adbanner" style="background:${esc(a.color)}" ${a.link_url ? `href="${esc(a.link_url)}" target="_blank" rel="noopener sponsored"` : ''}>
-      ${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}<span class="adtxt"><b>${esc(a.title)}</b>${a.body ? `<span>${esc(a.body)}</span>` : ''}</span><span class="adtag">Sponsor</span></a>`;
-  // Banner raggruppati per sito del link (es. tutti i libri su amazon.it = un gruppo, Calma Chiara = un altro):
-  // si alternano i gruppi e dentro ogni gruppo l'ordine è casuale, così nessun prodotto ne copre un altro.
-  const grpOf = (a) => { try { return new URL(a.link_url).hostname.replace(/^www\./, ''); } catch { return 'nolink:' + a.id; } };
+  // Banner raggruppati per sito del link (es. tutti i libri su amazon.it = un gruppo): i gruppi si alternano.
+  // Ogni giro: ogni gruppo compare tante volte quante le copie del suo pacchetto (Plus 2, Top 3), sparse nel giro.
+  const grpOf = (a) => { if (a.vetrina_slug) return 'vet:' + a.id; try { return new URL(a.link_url).hostname.replace(/^www\./, ''); } catch { return 'nolink:' + a.id; } };
   const groups = {}; ads.forEach((a) => { (groups[grpOf(a)] = groups[grpOf(a)] || []).push(a); });
-  const keys = Object.keys(groups).sort(() => Math.random() - 0.5);
-  const bags = {}; let g = 0;
+  const keys = Object.keys(groups);
+  const weight = {}; keys.forEach((k) => { weight[k] = Math.max(...groups[k].map(adCopies)); });
   const shuffle = (arr) => { const b = arr.slice(); for (let k = b.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [b[k], b[j]] = [b[j], b[k]]; } return b; };
+  const bags = {}; let queue = [], last = null;
+  // copie distribuite in modo uniforme nel giro (non una dopo l'altra), con un inizio casuale per ognuno
+  const round = () => {
+    const slots = []; keys.forEach((k) => { const w = weight[k], r = Math.random() / w; for (let c = 0; c < w; c++) slots.push([r + c / w, k]); });
+    const out = slots.sort((x, y) => x[0] - y[0]).map((x) => x[1]);
+    for (let i = 1; i < out.length; i++) if (out[i] === out[i - 1]) { const j = out.findIndex((k, n) => n > i && k !== out[i] && out[n - 1] !== k && out[n + 1] !== out[i]); if (j > 0) [out[i], out[j]] = [out[j], out[i]]; }
+    return out;
+  };
   const next = () => {
-    const key = keys[g % keys.length]; g++;
+    if (!queue.length) { queue = round(); if (queue.length > 1 && queue[0] === last) queue.push(queue.shift()); }
+    const key = queue.shift(); last = key;
     if (!bags[key] || !bags[key].length) bags[key] = shuffle(groups[key]);
     return bags[key].pop();
   };
-  box.innerHTML = card(next());
-  clearInterval(adTimer);
-  if (ads.length > 1) adTimer = setInterval(() => {
-    if (!document.body.contains(box)) { clearInterval(adTimer); return; }
-    const a = next();
-    box.firstElementChild.classList.add('fade');
-    setTimeout(() => { if (document.body.contains(box)) box.innerHTML = card(a); }, 600);
-  }, 9000);   // rotazione lenta: un banner ogni 9 secondi
+  clearTimeout(adTimer);
+  const show = (a, fade) => {
+    const put = () => { if (!document.body.contains(box)) return; box.innerHTML = adCard(a); if (ads.length > 1) adTimer = setTimeout(step, adSecs(a) * 1000); };
+    if (fade && box.firstElementChild) { box.firstElementChild.classList.add('fade'); setTimeout(put, 600); } else put();
+  };
+  const step = () => { if (!document.body.contains(box)) return; show(next(), true); };
+  show(next(), false);
 }
 
 // ======================= AMMINISTRATORE =======================
@@ -3263,33 +3296,96 @@ async function adminUsersTab(box) {
     ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati', 'File', 'Piano', 'Arrivato dal pin', 'Pin sbloccati'],
     rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati, r.file_caricati ?? '', r.piano || 'free', r.arrivato_da_pin || '', r.pin_sbloccati ?? '']));
 }
+async function checkAdVideo(f) {
+  if (f.size > 5 * 1024 * 1024) throw new Error('Il video è troppo pesante: massimo 5 MB (meglio 2–3 MB).');
+  const d = await new Promise((res) => { const v = document.createElement('video'); v.preload = 'metadata'; v.muted = true;
+    v.onloadedmetadata = () => res(v.duration); v.onerror = () => res(NaN); v.src = URL.createObjectURL(f); });
+  if (!Number.isFinite(d)) throw new Error('Video non leggibile: usa un MP4.');
+  if (d > 15.5) throw new Error(`Il video dura ${Math.round(d)} secondi: massimo 15 (meglio 5–10, gira a ripetizione).`);
+  return f;
+}
 async function adminAdsTab(box) {
   const ads = await B.listAds();
-  let editing = null, img = null;
+  let editing = null;
+  const st = { plan: 'base', copies: 1, seconds: 9, vet: false, logo: undefined, wide: undefined };   // undefined = non cambiato, null = tolto
+  const seg = (id, items, key) => `<div class="seg" id="${id}">${items.map(([v, l]) => `<button type="button" data-v="${v}">${l}</button>`).join('')}</div>`;
+  const shareOf = (a) => adCopies(a) * adSecs(a);
+  const liveOthers = () => ads.filter((a) => adLive(a) && a.id !== editing);
   box.innerHTML = `<div class="card"><form id="af"><h2 id="aft">Nuovo banner</h2>
       <label for="at">Nome</label><input id="at" maxlength="60" required placeholder="Es. Kymera">
       <label for="ab">Testo breve</label><input id="ab" maxlength="120" placeholder="Es. Birre artigianali in centro">
       <label for="al">Link (sito, Instagram, mappa…)</label><input id="al" type="url" placeholder="https://…">
       <label for="ac">Colore di sfondo</label><input id="ac" type="color" value="#1f3a5f">
-      <label>Logo o immagine (facoltativo)</label><input id="ai" type="file" accept="image/*"><div id="aprev"></div>
+      <h2 style="margin-top:18px">Pacchetto</h2>
+      <div class="adplanrow">${seg('aplan', Object.entries(ADPLANS).map(([k, x]) => [k, x.n]))}<button type="button" class="ghost" id="avetb">📍 Vetrina</button></div>
+      <label>Tempo a schermo per passaggio</label>${seg('asec', [9, 15, 20, 30].map((x) => [x, x + ' s']))}
+      <label>Copie nel giro (quante volte compare per ogni giro)</label>${seg('acop', [1, 2, 3].map((x) => [x, x === 1 ? '1 copia' : x + ' copie']))}
+      <p class="msg info small" id="ashare"></p>
+      <div id="avet" hidden class="card datingtips" style="background:#fff6ef;border-color:#f3cfb4"><b>📍 Vetrina</b>
+        <p class="small">Il tocco sul banner apre il <b>pin vetrina</b> del negozio invece del link: l'offerta si sblocca solo dentro il negozio.</p>
+        <label for="avs">Link del pin vetrina</label><input id="avs" placeholder="https://ubipin.it/#/c/…">
+        <p class="muted small">Crea prima il pin con «Lascia un contenuto», nel negozio, con il tag <b>vetrina</b> (sulla mappa avrà l'icona 🏪). Poi incolla qui il suo link.</p></div>
+      <h2 style="margin-top:18px">Immagini</h2>
+      <label>Logo (quadrato): foto o video corto</label><input id="ai" type="file" accept="image/*,video/mp4,video/webm"><div id="aprev" class="adprev"></div>
+      <label>Immagine grande sopra il testo (facoltativa, consigliata per Top): foto o video, formato 3:1</label><input id="aw" type="file" accept="image/*,video/mp4,video/webm"><div id="awprev" class="adprev"></div>
+      <p class="muted small">Video: MP4 senza audio, 5–10 secondi (massimo 15), sotto i 3 MB. Gira da solo, a ripetizione.</p>
+      <label for="ae">Scade il (facoltativo: il giorno dopo sparisce da solo)</label><input id="ae" type="date">
       <label class="inline"><input type="checkbox" id="aa" checked><span>Attivo (compare in home a rotazione)</span></label>
+      <h2 style="margin-top:14px">Anteprima</h2><div id="aprevcard"></div>
       <div id="am"></div><div class="row"><button class="accent" type="submit" id="asave">Salva banner</button><button class="ghost" type="button" id="acancel" hidden>Annulla</button></div></form></div>
-    <p class="muted small">Anteprima: il banner ha la stessa larghezza del pulsante Ubi Dating e ruota lentamente (uno ogni 9 secondi).</p>
-    <div id="alist">${ads.map((a) => `<div class="card" data-id="${esc(a.id)}"><div class="adbanner" style="background:${esc(a.color)}">${a.image_url ? `<img src="${esc(a.image_url)}" alt="">` : ''}<span class="adtxt"><b>${esc(a.title)}</b>${a.body ? `<span>${esc(a.body)}</span>` : ''}</span><span class="adtag">${a.active ? 'Attivo' : 'Spento'}</span></div>
-      <div class="actions"><button class="ghost" data-a="edit">✏️ Modifica</button><button class="ghost" data-a="toggle">${a.active ? '⏸ Spegni' : '▶️ Accendi'}</button><button class="danger" data-a="del">🗑</button></div></div>`).join('') || '<div class="card center muted">Nessun banner. Crea il primo qui sopra (es. Chiara, Kymera).</div>'}</div>`;
-  $('#ai').onchange = async () => {
-    const f = $('#ai').files[0]; if (!f) return;
-    try { img = await fitImage(f, 400); $('#aprev').innerHTML = `<img src="${URL.createObjectURL(img)}" style="max-height:60px;margin-top:8px">`; } catch (err) { msg($('#am'), errText(err)); }
+    <div id="alist">${ads.map((a) => {
+      const tot = ads.filter(adLive).reduce((n, x) => n + shareOf(x), 0);
+      const info = `${ADPLANS[a.plan]?.n || 'Base'} · ${adCopies(a)}× ${adSecs(a)} s${a.vetrina_slug ? ' · 📍 vetrina' : ''}${a.ends_on ? ` · scade il ${new Date(a.ends_on).toLocaleDateString(LOC)}` : ''}${adLive(a) && tot ? ` · ${Math.round(shareOf(a) / tot * 100)}% del tempo` : ''}`;
+      return `<div class="card" data-id="${esc(a.id)}">${adCard(a, !a.active ? 'Spento' : adLive(a) ? 'Attivo' : 'Scaduto', false)}
+      <p class="small muted" style="margin:6px 2px 0">${esc(info)}</p>
+      <div class="actions"><button class="ghost" data-a="edit">✏️ Modifica</button><button class="ghost" data-a="toggle">${a.active ? '⏸ Spegni' : '▶️ Accendi'}</button><button class="danger" data-a="del">🗑</button></div></div>`; }).join('') || '<div class="card center muted">Nessun banner. Crea il primo qui sopra (es. Chiara, Kymera).</div>'}</div>`;
+  const old = () => ads.find((a) => a.id === editing);
+  const cur = () => ({ title: $('#at').value.trim() || 'Nome del negozio', body: $('#ab').value.trim(), link_url: $('#al').value.trim(), color: $('#ac').value,
+    plan: st.plan, copies: st.copies, seconds: st.seconds, vetrina_slug: st.vet ? vetrinaSlug($('#avs').value) || 'xxxx' : null,
+    image_url: st.logo === undefined ? old()?.image_url || null : st.logo && st.logo.url, media_url: st.wide === undefined ? old()?.media_url || null : st.wide && st.wide.url });
+  const refresh = () => {
+    [['#aplan', st.plan], ['#asec', st.seconds], ['#acop', st.copies]].forEach(([id, v]) => [...$(id).children].forEach((b) => b.classList.toggle('on', b.dataset.v === String(v))));
+    $('#avetb').classList.toggle('on', st.vet); $('#avet').hidden = !st.vet;
+    const others = liveOthers(), mine = st.copies * st.seconds, tot = others.reduce((n, x) => n + shareOf(x), 0) + mine;
+    $('#ashare').innerHTML = `Compare <b>${st.copies} ${st.copies === 1 ? 'volta' : 'volte'}</b> per giro, <b>${st.seconds} secondi</b> ogni volta. Con ${others.length ? `gli altri ${others.length} banner attivi` : 'nessun altro banner attivo'}: visibile circa il <b>${Math.round(mine / tot * 100)}%</b> del tempo${others.length ? `, ritorna ogni ~${Math.max(st.seconds, Math.round(tot / st.copies))} s` : ''}.`;
+    $('#aprevcard').innerHTML = adCard(cur(), 'Sponsor', false);
+  };
+  $('#aplan').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; st.plan = b.dataset.v; Object.assign(st, { copies: ADPLANS[st.plan].copies, seconds: ADPLANS[st.plan].seconds }); refresh(); };
+  $('#asec').onclick = (e) => { const b = e.target.closest('button'); if (b) { st.seconds = +b.dataset.v; refresh(); } };
+  $('#acop').onclick = (e) => { const b = e.target.closest('button'); if (b) { st.copies = +b.dataset.v; refresh(); } };
+  $('#avetb').onclick = () => { st.vet = !st.vet; refresh(); };
+  ['#at', '#ab', '#ac', '#avs'].forEach((id) => { $(id).oninput = refresh; });
+  const pickMedia = (inp, key, prev, maxSide) => async () => {
+    const f = inp.files[0]; if (!f) return; msg($('#am'), '');
+    try {
+      const blob = f.type.startsWith('video/') ? await checkAdVideo(f) : await fitImage(f, maxSide);
+      st[key] = { blob, url: URL.createObjectURL(blob) + (f.type.startsWith('video/') ? '#.mp4' : '') };
+      prev.innerHTML = `${adMedia(st[key].url, 'adthumb')}<button type="button" class="ghost small-btn">✕ Togli</button>`;
+      prev.querySelector('button').onclick = () => { st[key] = null; inp.value = ''; prev.innerHTML = ''; refresh(); };
+      refresh();
+    } catch (err) { inp.value = ''; msg($('#am'), errText(err)); }
+  };
+  $('#ai').onchange = pickMedia($('#ai'), 'logo', $('#aprev'), 400);
+  $('#aw').onchange = pickMedia($('#aw'), 'wide', $('#awprev'), 1200);
+  const showOld = (a) => {
+    [['#aprev', a?.image_url, 'logo', '#ai'], ['#awprev', a?.media_url, 'wide', '#aw']].forEach(([id, u, key, inp]) => {
+      $(id).innerHTML = u ? `${adMedia(u, 'adthumb')}<button type="button" class="ghost small-btn">✕ Togli</button>` : '';
+      if (u) $(id).querySelector('button').onclick = () => { st[key] = null; $(inp).value = ''; $(id).innerHTML = ''; refresh(); };
+    });
   };
   $('#acancel').onclick = () => adminAdsTab(box);
   $('#af').onsubmit = async (e) => {
     e.preventDefault();
+    const slug = st.vet ? vetrinaSlug($('#avs').value) : null;
+    if (st.vet && !slug) return msg($('#am'), 'Incolla il link del pin vetrina (es. https://ubipin.it/#/c/abc123) oppure togli la spunta Vetrina.');
+    const btn = $('#asave'); btn.disabled = true; btn.textContent = 'Salvo…';
     try {
-      const old = ads.find((a) => a.id === editing);
-      const image_url = img ? await B.uploadAdImage(img) : (old?.image_url || null);
-      await B.saveAd({ id: editing, title: $('#at').value.trim(), body: $('#ab').value.trim(), link_url: $('#al').value.trim(), color: $('#ac').value, active: $('#aa').checked, image_url, sort: old?.sort || 0 });
+      const up = async (key, field) => (st[key] === undefined ? old()?.[field] || null : st[key] ? await B.uploadAdMedia(st[key].blob) : null);
+      const image_url = await up('logo', 'image_url'), media_url = await up('wide', 'media_url');
+      await B.saveAd({ id: editing, title: $('#at').value.trim(), body: $('#ab').value.trim(), link_url: $('#al').value.trim(), color: $('#ac').value, active: $('#aa').checked,
+        image_url, media_url, plan: st.plan, copies: st.copies, seconds: st.seconds, vetrina_slug: slug, ends_on: $('#ae').value || null, sort: old()?.sort || 0 });
       adminAdsTab(box);
-    } catch (err) { msg($('#am'), errText(err)); }
+    } catch (err) { msg($('#am'), errText(err)); btn.disabled = false; btn.textContent = 'Salva banner'; }
   };
   $('#alist').onclick = async (e) => {
     const b = e.target.closest('button'); if (!b) return;
@@ -3297,6 +3393,9 @@ async function adminAdsTab(box) {
     try {
       if (b.dataset.a === 'edit') {
         editing = a.id; $('#at').value = a.title; $('#ab').value = a.body || ''; $('#al').value = a.link_url || ''; $('#ac').value = a.color; $('#aa').checked = a.active;
+        $('#ae').value = a.ends_on || ''; $('#avs').value = a.vetrina_slug ? `https://ubipin.it/#/c/${a.vetrina_slug}` : '';
+        Object.assign(st, { plan: ADPLANS[a.plan] ? a.plan : 'base', copies: adCopies(a), seconds: adSecs(a), vet: !!a.vetrina_slug, logo: undefined, wide: undefined });
+        showOld(a); refresh();
         $('#aft').textContent = 'Modifica banner'; $('#acancel').hidden = false; window.scrollTo(0, 0); return;
       }
       if (b.dataset.a === 'toggle') { await B.saveAd({ ...a, active: !a.active }); return adminAdsTab(box); }
@@ -3306,6 +3405,7 @@ async function adminAdsTab(box) {
       }
     } catch (err) { alertIn(b.closest('.card'), errText(err)); }
   };
+  refresh();
 }
 
 
@@ -3357,8 +3457,13 @@ const ADMIN_GUIDE = `<div class="aguide">
 
 <details><summary>5 · Banner pubblicitari</summary>
 <ol><li><b>📣 Banner</b>: nome e testo breve.</li><li>Link: sito, Instagram, Maps, WhatsApp o Vinted.</li>
-<li>Colore di sfondo e, se vuoi, logo o immagine.</li><li>Lascia <b>Attivo</b> e premi <b>Salva banner</b>.</li></ol>
-<p>Ogni banner: <b>✏️ Modifica</b>, <b>⏸ Spegni / ▶️ Accendi</b>, <b>Elimina</b> (due tocchi). Ruotano uno ogni 9 secondi, alternando i gruppi per sito del link (libri, Vinted, negozi…).</p>
+<li>Colore di sfondo e, se vuoi, <b>logo</b> (foto o video corto) e <b>immagine grande</b> 3:1 (foto o video, consigliata per Top).</li>
+<li><b>Pacchetto</b>: Base (1 copia, 9 s), Plus (2 copie, 15 s), Top (3 copie, 20 s). Tempo e copie si cambiano anche a mano: sotto vedi la % di tempo che avrà.</li>
+<li><b>📍 Vetrina</b> (facoltativa): incolla il link del pin vetrina del negozio; il tocco sul banner apre quel pin invece del link.</li>
+<li><b>Scade il</b>: la fine del periodo pagato; il giorno dopo il banner sparisce da solo.</li>
+<li>Lascia <b>Attivo</b> e premi <b>Salva banner</b>.</li></ol>
+<p>Ogni banner: <b>✏️ Modifica</b>, <b>⏸ Spegni / ▶️ Accendi</b>, <b>Elimina</b> (due tocchi). Nell'elenco vedi pacchetto, scadenza e % del tempo. I banner con lo stesso sito del link (es. libri su Amazon) fanno gruppo e si alternano tra loro.</p>
+<p><b>Il pin vetrina</b>: nel negozio crea un pin con «Lascia un contenuto» (foto o video dell'offerta, es. «mostra questo pin alla cassa: caffè omaggio»), pubblico, con il tag <b>vetrina</b>: sulla mappa ha l'icona 🏪. Si sblocca solo dentro il negozio; in <b>📊 Pin</b> vedi quante persone l'hanno sbloccato, cioè quante sono entrate.</p>
 <p class="small">Tanti banner insieme: chiedimi il comando SQL unico.</p>${videoBtn('a_banner')}</details>
 
 <details><summary>6 · Cacce al tesoro</summary>
