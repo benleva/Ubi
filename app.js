@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210134';
+import { CONFIG } from './config.js?v=202611210153';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210134';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210153';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.78';
+const APP_VERSION = 'v.79';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -3463,8 +3463,19 @@ const ADMIN_GUIDE = `<div class="aguide">
 <li><b>Scade il</b>: la fine del periodo pagato; il giorno dopo il banner sparisce da solo.</li>
 <li>Lascia <b>Attivo</b> e premi <b>Salva banner</b>.</li></ol>
 <p>Ogni banner: <b>✏️ Modifica</b>, <b>⏸ Spegni / ▶️ Accendi</b>, <b>Elimina</b> (due tocchi). Nell'elenco vedi pacchetto, scadenza e % del tempo. I banner con lo stesso sito del link (es. libri su Amazon) fanno gruppo e si alternano tra loro.</p>
-<p><b>Il pin vetrina</b>: nel negozio crea un pin con «Lascia un contenuto» (foto o video dell'offerta, es. «mostra questo pin alla cassa: caffè omaggio»), pubblico, con il tag <b>vetrina</b>: sulla mappa ha l'icona 🏪. Si sblocca solo dentro il negozio; in <b>📊 Pin</b> vedi quante persone l'hanno sbloccato, cioè quante sono entrate.</p>
+
 <p class="small">Tanti banner insieme: chiedimi il comando SQL unico.</p>${videoBtn('a_banner')}</details>
+
+<details><summary>5b · La vetrina del negozio</summary>
+<p>Un <b>pin dentro il negozio</b>, collegato al suo banner: il banner fa venire voglia, la vetrina porta la persona sul posto. Esempio: Bar Smile.</p>
+<ol><li><b>Al bar</b>, dentro il locale: «Lascia un contenuto» → foto o video dell'offerta (es. «Mostra questo pin alla cassa: il secondo caffè è offerto da noi»).</li>
+<li>Titolo «Caffè offerto al Bar Smile», indizio «In piazza, di fronte alla chiesa», tag <b>vetrina</b>, visibile a <b>tutti</b>. Fissa nel luogo.</li>
+<li>Copia il link del pin.</li>
+<li><b>📣 Banner</b> → ✏️ Modifica il banner del Bar Smile → accendi <b>📍 Vetrina</b> → incolla il link → Salva.</li></ol>
+<p><b>Cosa vede l'utente</b>: il banner con «📍 Vetrina · scopri l'offerta sul posto»; il tocco apre la pagina del pin (mappa e indicazioni, offerta chiusa); sulla mappa l'icona 🏪; quando entra nel bar il pin si sblocca e mostra l'offerta alla cassa.</p>
+<p><b>Cosa dici al negozio</b>: «Ogni mese ti dico quante persone sono entrate grazie a Ubi». Il numero è in <b>📊 Pin</b>: gli sblocchi della vetrina. L'offerta si cambia modificando il pin, il banner resta uguale.</p>
+<p><b>Limite</b>: funziona sulla fiducia (alla cassa guardano il pin aperto; non c'è un controllo contro screenshot o ripetizioni). Va bene per offerte piccole. Per regali di valore usa le <b>campagne regalo</b> con codice unico e 🧾 Cassa.</p>
+<p><b>Il percorso da proporre</b>: banner → vetrina per farli entrare → campagna regalo per Natale e le occasioni.</p></details>
 
 <details><summary>6 · Cacce al tesoro</summary>
 <ol><li><b>Profilo → Le mie cacce</b>: nome, premio, numero massimo di vincitori.</li>
@@ -4300,11 +4311,21 @@ const FAQ_GUIDE = [
     <li>Hai un'<b>attività</b>, un <b>negozio</b>, un <b>ristorante</b>, un <b>evento</b> o un <b>prodotto</b> da far conoscere? Su Ubi puoi comparire con un <b>banner</b> nella pagina principale, quella che tutti vedono quando aprono l'app.</li>
     <li>Il banner mostra il tuo <b>logo o una foto</b>, un titolo, una breve descrizione e porta al tuo sito, alla tua pagina social o al tuo negozio online. È segnato come <b>Sponsor</b>.</li>
     <li>I banner girano uno alla volta e si alternano tra i diversi inserzionisti, così ognuno ha il suo spazio.</li>
+    <li>Tre pacchetti: <b>Base</b> (compare una volta per giro, 9 secondi), <b>Plus</b> (2 volte per giro, 15 secondi) e <b>Top</b> (3 volte per giro, 20 secondi, con immagine grande o <b>video animato</b>). Più copie e più tempo = più visibilità anche quando i banner aumentano.</li>
+    <li>Con la <b>📍 Vetrina</b> il banner porta i clienti direttamente nel negozio (vedi la voce qui sotto).</li>
     <li>Puoi anche usare Ubi per portare gente da te: un <b>pin pubblico</b> davanti al locale, una <b>caccia al tesoro</b> con premio ritirabile in negozio, una <b>capsula del tempo</b> per un evento.</li>
     <li>Per informazioni e condizioni scrivi a <a href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">info@ubipin.it</a>: indica il nome dell'attività, la città, cosa vuoi promuovere e per quanto tempo. Ti risponderemo con le proposte.</li></ol>
     ${pdfBtn('banner')}${pdfBtn('attivita')}
     ${bizContacts('la pubblicità su Ubi')}
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">✉️ Contattaci per la pubblicità</a>`],
+  ['🏪 La vetrina: porta i clienti dentro il negozio', `<p>La vetrina è un <b>pin lasciato dentro il negozio</b>, collegato al suo banner. Il banner fa venire voglia, la vetrina porta la persona sul posto.</p>
+    <ol><li><b>L'offerta</b>: nel pin c'è una foto o un video con un'offerta, per esempio «Mostra questo pin alla cassa: il secondo caffè è offerto da noi».</li>
+    <li><b>Il banner</b>: in home compare con la scritta «📍 Vetrina · scopri l'offerta sul posto». Toccandolo si apre la pagina del pin con la mappa e «Indicazioni per arrivarci», ma l'offerta resta chiusa.</li>
+    <li><b>La mappa</b>: il pin ha l'icona 🏪, così lo nota anche chi passa in zona.</li>
+    <li><b>In negozio</b>: appena entri il pin si sblocca e compare l'offerta. La mostri alla cassa.</li></ol>
+    <p><b>Per il negozio</b>: arrivano clienti veri, non solo click, e si sa quanti sono, perché Ubi conta quante persone hanno sbloccato la vetrina. L'offerta si può cambiare quando si vuole, senza rifare il banner.</p>
+    <p class="small muted">La vetrina è pensata per offerte piccole (un caffè, uno sconto, un assaggio): alla cassa si guarda il pin aperto sul telefono. Per regali di valore, con un codice unico convalidato una sola volta, ci sono le <b>campagne regalo</b>.</p>
+    ${bizContacts('la vetrina su Ubi')}`],
   ['📸 Mettere un post o un reel di Instagram in un pin', `<ol>
     <li>Su Instagram apri il post o il reel e tocca l'icona <b>Condividi</b> (l'aeroplanino ✈️) → <b>Copia link</b>. Per un profilo: ⋯ in alto → <b>Copia URL del profilo</b>.</li>
     <li>In Ubi crea un nuovo pin, scegli il tipo <b>Link</b> e <b>incolla</b> (va bene anche tutto il testo copiato: il link lo troviamo noi).</li>
