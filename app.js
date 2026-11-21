@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211828';
+import { CONFIG } from './config.js?v=202611211840';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211828';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211840';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.106';
+const APP_VERSION = 'v.107';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2238,13 +2238,13 @@ async function huntPrizeBox(t, slug, box) {
 async function viewHunts() {
   app.innerHTML = `<h1>🗺️ Caccia al tesoro</h1>
     <div class="card datingtips" style="background:#fff8ee;border-color:#f3d9b8"><b>Una promo da giocare in città.</b>
-      <ul class="small"><li>Crei la caccia e scegli il <b>regalo per chi completa</b> (es. «una birra media») e quanti regali hai a disposizione. Meglio dare il regalo a tutti quelli che completano entro una data, non «ai primi» (vedi FAQ ⚖️).</li>
+      <ul class="small"><li>Crei la caccia e scegli il <b>regalo per chi completa</b> (es. «una merenda» o «un caffè») e quanti regali hai a disposizione. Meglio dare il regalo a tutti quelli che completano entro una data, non «ai primi» (vedi FAQ ⚖️).</li>
       <li>Aggiungi le <b>tappe</b> (es. 3): ognuna è un pin con un indizio. La tappa successiva compare solo dopo aver trovato la precedente.</li>
       <li>Chi sblocca l'ultima riceve un <b>codice unico</b>: lo verifichi qui e lo segni come ritirato.</li>
       <li><b>Offerta in negozio</b> (es. «−20% ai primi 30»): crea una caccia con <b>una sola tappa</b> davanti al prodotto. I primi che la sbloccano ricevono ognuno un codice diverso; finiti i codici, gli altri vedono «Offerta esaurita».</li></ul></div>
     <div class="card"><form id="hf"><h2>Nuova caccia</h2>
       <label for="ht">Nome</label><input id="ht" maxlength="80" required placeholder="Es. La caccia della Lanterna">
-      <label for="hp">Regalo per chi completa</label><input id="hp" maxlength="200" required placeholder="Es. Una birra media, a chi completa entro il 31/12">
+      <label for="hp">Regalo per chi completa</label><input id="hp" maxlength="200" required placeholder="Es. Una merenda, a chi completa entro il 31/12">
       <label for="hm">Regali disponibili (massimo)</label><input id="hm" type="number" min="1" max="10000" value="30">
       <div id="hm2"></div><button class="full accent" type="submit">Crea la caccia</button></form></div>
     <h2 style="margin-top:22px">Le mie cacce</h2><div id="hl"><p class="muted center">Carico…</p></div>
@@ -4684,7 +4684,7 @@ const FAQ_GUIDE = [
     <li>Idee: una lettera per i 18 anni di tuo figlio, un video per il decimo anniversario, un messaggio da riaprire tra un anno nello stesso posto.</li></ol>
     ${videoBtn('capsula')}${pdfBtn('capsula')}`],
   ['🗺️ Caccia al tesoro (anche per locali e pub)', `<ol>
-    <li>Da home tocca <b>🗺️ Caccia al tesoro</b>, dai un nome, scrivi il <b>regalo per chi completa</b> (es. «una birra media») e quanti regali hai a disposizione.</li>
+    <li>Da home tocca <b>🗺️ Caccia al tesoro</b>, dai un nome, scrivi il <b>regalo per chi completa</b> (es. «una merenda» o «un caffè») e quanti regali hai a disposizione.</li>
     <li>Aggiungi le <b>tappe</b> (es. 3). In ognuna: nel campo <i>Indizio</i> cosa si vede prima, nel contenuto l'indizio per la tappa successiva.</li>
     <li>La tappa 2 compare sulla mappa solo dopo aver trovato la 1, la 3 dopo la 2.</li>
     <li>Chi sblocca l'ultima vede «Caccia completata!» e riceve un <b>codice unico</b>. Il gestore lo scrive in <i>Verifica un codice premio</i>: se è valido viene segnato come ritirato e non si può riusare.</li>

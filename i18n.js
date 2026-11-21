@@ -555,7 +555,7 @@ const D = [
   ['Decidi se, arrivata la data, bisogna essere', 'Decide whether, once the date comes, people need to be'], ['sul posto', 'on the spot'], ['oppure si apre', 'or it opens'],
   ['Idee: una lettera per i 18 anni di tuo figlio, un video per il decimo anniversario, un messaggio da riaprire tra un anno nello stesso posto.', 'Ideas: a letter for your child\'s 18th birthday, a video for a tenth anniversary, a message to reopen in a year in the same place.'],
   ['🗺️ Caccia al tesoro (anche per locali e pub)', '🗺️ Treasure hunt (also for venues and pubs)'], [', dai un nome, scrivi il', ', give it a name, write the'], ['premio', 'prize'],
-  ['(es. «una birra media o una maglietta») e quanti vincitori al massimo.', '(e.g. «a medium beer or a T-shirt») and the maximum number of winners.'],
+  ['(es. «una merenda o una maglietta») e quanti regali al massimo.', '(e.g. «a snack or a T-shirt») and the maximum number of gifts.'],
   ['Aggiungi le', 'Add the'], ['tappe', 'stages'], ['(es. 3). In ognuna: nel campo', '(e.g. 3). In each one: in the'],
   ['cosa si vede prima, nel contenuto l\'indizio per la tappa successiva.', 'field, what you see beforehand; in the content, the clue for the next stage.'],
   ['La tappa 2 compare sulla mappa solo dopo aver trovato la 1, la 3 dopo la 2.', 'Stage 2 appears on the map only after finding stage 1, stage 3 after stage 2.'],
