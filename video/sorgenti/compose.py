@@ -231,12 +231,52 @@ def card_social(e):
     im.paste(scr, (PX, PY), phone_mask())
     return im, tap
 
+
+@functools.lru_cache(None)
+def nfc_base(cap_n, cap_t):
+    im = frame_bg_with_caption([cap_n, cap_t]); d = ImageDraw.Draw(im)
+    d.rectangle([0, 1560, W, H], fill=(120, 78, 48)); d.rectangle([0, 1560, W, 1590], fill=(150, 100, 64))
+    ex = Image.open('/home/claude/video/assets/espositore.png').convert('RGB')
+    h = 1150; ex = ex.resize((int(ex.width * h / ex.height), h), Image.LANCZOS)
+    x0 = (W - ex.width) // 2; y0 = 1575 - h
+    sh = Image.new('RGBA', (ex.width + 60, ex.height + 60), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle([30, 30, ex.width + 30, ex.height + 30], 18, fill=(0, 0, 0, 110))
+    sh = sh.filter(ImageFilter.GaussianBlur(14)); im.paste(sh, (x0 - 30 + 14, y0 - 30 + 18), sh)
+    im.paste(ex, (x0, y0))
+    cx, cy = x0 + ex.width * 0.5, y0 + ex.height * 0.455
+    return im, cx, cy
+def card_nfc(e, t):
+    im, cx, cy = nfc_base(e['cap'][0], e['cap'][1]); im = im.copy()
+    ease = lambda u: 1 - (1 - u) ** 3
+    k = ease(max(0, min(1, (t - 0.3) / 1.0)))
+    pw, ph = 330, 640
+    px = cx - pw / 2 + (1 - k) * 520; py = cy - 90 + (1 - k) * -420
+    if t > 1.35:
+        ov = Image.new('RGBA', im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(ov)
+        for j in range(3):
+            u = ((t - 1.35) * 0.9 + j / 3) % 1
+            r = 120 + u * 260; a = int(200 * (1 - u))
+            d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(232, 116, 59, a), width=10)
+        im.paste(ov, (0, 0), ov)
+    ph_im = Image.new('RGBA', (pw, ph), (0, 0, 0, 0)); d = ImageDraw.Draw(ph_im)
+    d.rounded_rectangle([0, 0, pw - 1, ph - 1], 54, fill=(14, 14, 18, 245))
+    d.rounded_rectangle([14, 14, pw - 15, ph - 15], 42, fill=NAVY)
+    d.rounded_rectangle([pw / 2 - 50, 26, pw / 2 + 50, 50], 12, fill=(14, 14, 18))
+    if t > 1.6:
+        a = min(1, (t - 1.6) / 0.3)
+        d.rounded_rectangle([34, 90, pw - 35, 220], 26, fill=(255, 255, 255, int(235 * a)))
+        d.text((58, 112), 'ubipin.it', font=font('k', 34), fill=(232, 116, 59, int(255 * a)))
+        d.text((58, 160), 'Apri il link', font=font('s', 28), fill=(31, 58, 95, int(255 * a)))
+    sh = Image.new('RGBA', (pw + 60, ph + 60), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle([30, 30, pw + 30, ph + 30], 54, fill=(0, 0, 0, 120))
+    sh = sh.filter(ImageFilter.GaussianBlur(16)); im.paste(sh, (int(px) - 30 + 20, int(py) - 30 + 26), sh)
+    im.paste(ph_im, (int(px), int(py)), ph_im)
+    return im
+
 # ---------- scene ----------
 def scenes(tl):
     out, cur = [], None
     for e in tl:
         key = json.dumps(e.get('cap')) if e['t'] in ('still', 'tap', 'seq') else None
-        if e['t'] in ('title', 'ticket', 'outro', 'wachat', 'social') or cur is None or key != cur['key']:
+        if e['t'] in ('title', 'ticket', 'outro', 'wachat', 'social', 'nfc') or cur is None or key != cur['key']:
             cur = {'key': key, 'ev': []}; out.append(cur)
         cur['ev'].append(e)
     return out
@@ -264,6 +304,8 @@ def render_scene(sc, path):
         elif e['t'] == 'wachat':
             im = card_wachat(e); fade_in(im, 6 if prev is not None else 0)
             for k in range(int(e['dur'] * FPS)): emit(im)
+        elif e['t'] == 'nfc':
+            for k in range(int(e['dur'] * FPS)): emit(card_nfc(e, k / FPS))
         elif e['t'] == 'social':
             im, (x, y) = card_social(e); fade_in(im, 6 if prev is not None else 0)
             for k in range(int(e['dur'] * FPS)):

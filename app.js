@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211147';
+import { CONFIG } from './config.js?v=202611211257';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211147';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211257';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.91';
+const APP_VERSION = 'v.92';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2129,14 +2129,14 @@ async function huntPrizeBox(t, slug, box) {
 async function viewHunts() {
   app.innerHTML = `<h1>🗺️ Caccia al tesoro</h1>
     <div class="card datingtips" style="background:#fff8ee;border-color:#f3d9b8"><b>Una promo da giocare in città.</b>
-      <ul class="small"><li>Crei la caccia e scegli il <b>premio</b> (es. «una birra media o una maglietta») e quanti vincitori al massimo.</li>
+      <ul class="small"><li>Crei la caccia e scegli il <b>regalo per chi completa</b> (es. «una birra media») e quanti regali hai a disposizione. Meglio dare il regalo a tutti quelli che completano entro una data, non «ai primi» (vedi FAQ ⚖️).</li>
       <li>Aggiungi le <b>tappe</b> (es. 3): ognuna è un pin con un indizio. La tappa successiva compare solo dopo aver trovato la precedente.</li>
       <li>Chi sblocca l'ultima riceve un <b>codice unico</b>: lo verifichi qui e lo segni come ritirato.</li>
       <li><b>Offerta in negozio</b> (es. «−20% ai primi 30»): crea una caccia con <b>una sola tappa</b> davanti al prodotto. I primi che la sbloccano ricevono ognuno un codice diverso; finiti i codici, gli altri vedono «Offerta esaurita».</li></ul></div>
     <div class="card"><form id="hf"><h2>Nuova caccia</h2>
       <label for="ht">Nome</label><input id="ht" maxlength="80" required placeholder="Es. La caccia del Kymera">
-      <label for="hp">Premio</label><input id="hp" maxlength="200" required placeholder="Es. Una birra media o una maglietta">
-      <label for="hm">Numero massimo di vincitori</label><input id="hm" type="number" min="1" max="10000" value="30">
+      <label for="hp">Regalo per chi completa</label><input id="hp" maxlength="200" required placeholder="Es. Una birra media, a chi completa entro il 31/12">
+      <label for="hm">Regali disponibili (massimo)</label><input id="hm" type="number" min="1" max="10000" value="30">
       <div id="hm2"></div><button class="full accent" type="submit">Crea la caccia</button></form></div>
     <h2 style="margin-top:22px">Le mie cacce</h2><div id="hl"><p class="muted center">Carico…</p></div>
     <p class="center"><a href="#/">Torna a Ubi</a></p>`;
@@ -2566,7 +2566,8 @@ const VIDEOS = {
   pin: { f: 'video/Ubi-tutorial-come-si-apre-un-pin.mp4', s: 20 },
   campagne: { f: 'video/Ubi-tutorial-campagne-regalo.mp4', s: 42 },
   consumazione: { f: 'video/Ubi-tutorial-regala-una-consumazione.mp4', s: 36 },
-  caccia: { f: 'video/Ubi-tutorial-caccia-al-tesoro.mp4', s: 39 },
+  caccia: { f: 'video/Ubi-tutorial-caccia-al-tesoro-v2.mp4', s: 39 },
+  nfc: { f: 'video/Ubi-tutorial-nfc.mp4', s: 15 },
   capsula: { f: 'video/Ubi-tutorial-capsula-del-tempo.mp4', s: 31 },
   lascia: { f: 'video/Ubi-tutorial-lascia.mp4', s: 21 },
   condividi: { f: 'video/Ubi-tutorial-condividi.mp4', s: 18 },
@@ -2577,8 +2578,9 @@ const VIDEOS = {
   a_negozio: { f: 'video/Ubi-admin-negozio-v3.mp4', s: 25 },
   cassa: { f: 'video/Ubi-tutorial-cassa-negozio.mp4', s: 25, n: 'Come si usa la Cassa' },
   a_campagna: { f: 'video/Ubi-admin-campagna.mp4', s: 19 },
-  a_banner: { f: 'video/Ubi-admin-banner.mp4', s: 18 },
-  a_caccia: { f: 'video/Ubi-admin-caccia.mp4', s: 21 },
+  a_banner: { f: 'video/Ubi-admin-banner-v2.mp4', s: 22 },
+  a_nfc: { f: 'video/Ubi-admin-nfc.mp4', s: 22 },
+  a_caccia: { f: 'video/Ubi-admin-caccia-v2.mp4', s: 21 },
   social: { f: 'video/Ubi-tutorial-social-in-un-pin.mp4', s: 26 },
   dating: { f: 'video/Ubi-tutorial-dating-entra.mp4', s: 30, n: 'Entra e lascia un biglietto' },
   dating2: { f: 'video/Ubi-tutorial-dating-conoscersi.mp4', s: 33, n: 'Rispondi e conoscetevi' },
@@ -3687,7 +3689,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <li><b>Proteggere</b>: NFC Tools → Altro → <b>Imposta password</b> (annotala). Mai «Blocca»: è per sempre.</li>
 <li><b>Destinazione</b>: 🏷️ NFC → «✏️ Destinazione»: 📍 pin/vetrina del negozio (per gli adesivi), 🧾 Cassa del negozio (per le card), 🔗 link, oppure ⚪ spento.</li>
 <li><b>Tocchi</b>: per ogni NFC vedi quelli degli ultimi 30 giorni e i totali. Da dire al negozio: «Questo mese 47 clienti hanno avvicinato il telefono al tuo bancone».</li></ol>
-<p class="small">L'adesivo sul bancone porta alla <b>vetrina</b>: il cliente è già nel negozio, quindi la sblocca subito. Sull'espositore metti anche un QR con lo stesso link, per chi non ha l'NFC. iPhone: schermo sbloccato, avvicinare la parte alta del telefono.</p></details>
+<p class="small">L'adesivo sul bancone porta alla <b>vetrina</b>: il cliente è già nel negozio, quindi la sblocca subito. Sull'espositore metti anche un QR con lo stesso link, per chi non ha l'NFC. iPhone: schermo sbloccato, avvicinare la parte alta del telefono.</p>${videoBtn('a_nfc')}${videoBtn('nfc')}</details>
 
 <details><summary>6 · Cacce al tesoro</summary>
 <ol><li><b>Profilo → Le mie cacce</b>: nome, premio, numero massimo di vincitori.</li>
@@ -4499,10 +4501,11 @@ const FAQ_GUIDE = [
     <li>Idee: una lettera per i 18 anni di tuo figlio, un video per il decimo anniversario, un messaggio da riaprire tra un anno nello stesso posto.</li></ol>
     ${videoBtn('capsula')}${pdfBtn('capsula')}`],
   ['🗺️ Caccia al tesoro (anche per locali e pub)', `<ol>
-    <li>Da home tocca <b>🗺️ Caccia al tesoro</b>, dai un nome, scrivi il <b>premio</b> (es. «una birra media o una maglietta») e quanti vincitori al massimo.</li>
+    <li>Da home tocca <b>🗺️ Caccia al tesoro</b>, dai un nome, scrivi il <b>regalo per chi completa</b> (es. «una birra media») e quanti regali hai a disposizione.</li>
     <li>Aggiungi le <b>tappe</b> (es. 3). In ognuna: nel campo <i>Indizio</i> cosa si vede prima, nel contenuto l'indizio per la tappa successiva.</li>
     <li>La tappa 2 compare sulla mappa solo dopo aver trovato la 1, la 3 dopo la 2.</li>
-    <li>Chi sblocca l'ultima riceve un <b>codice unico</b>. Il gestore lo scrive in <i>Verifica un codice premio</i>: se è valido viene segnato come ritirato e non si può riusare.</li>
+    <li>Chi sblocca l'ultima vede «Caccia completata!» e riceve un <b>codice unico</b>. Il gestore lo scrive in <i>Verifica un codice premio</i>: se è valido viene segnato come ritirato e non si può riusare.</li>
+    <li><b>Per i locali</b>: il regalo va a <b>tutti quelli che completano entro una data</b>, non «ai primi»; nei testi scrivi «ricevi in regalo», non «vinci». Il perché è nella voce ⚖️ qui sotto.</li>
     <li>Pubblicizza il link della tappa 1 sui social o con un QR nel locale.</li></ol>
     ${videoBtn('caccia')}${pdfBtn('caccia')}`],
   ['📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram', `<ol>
@@ -4550,6 +4553,14 @@ const FAQ_GUIDE = [
     ${pdfBtn('banner')}${pdfBtn('tutto')}
     ${bizContacts('la pubblicità su Ubi')}
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">✉️ Contattaci per la pubblicità</a>`],
+  ['📱 «Avvicina il telefono qui»: gli NFC nei locali', `<p>Su alcuni banconi trovi un cartoncino Ubi con un cerchio: dentro c'è un piccolo chip <b>NFC</b>.</p>
+    <ol><li><b>Sblocca lo schermo</b> e avvicina il telefono al cerchio. Su iPhone usa la <b>parte alta</b> del telefono; su Android l'NFC dev'essere acceso (Impostazioni → Connessioni → NFC).</li>
+    <li>Compare un avviso con il link di Ubi: toccalo.</li>
+    <li>Si apre la <b>vetrina</b> del locale. Sei già lì, quindi tocca <b>«Sblocca qui»</b> e scopri l'offerta.</li>
+    <li>Mostrala al banco.</li></ol>
+    <p><b>Niente NFC?</b> Sotto il cerchio c'è un QR con lo stesso link: inquadralo con la fotocamera.</p>
+    <p class="small"><b>Per le attività</b>: il cartoncino lo prepariamo noi. Dove porta l'adesivo si può cambiare in qualsiasi momento, e ogni mese ti diciamo quante persone hanno avvicinato il telefono al tuo bancone.</p>
+    ${videoBtn('nfc')}`],
   ['🏪 La vetrina: porta i clienti dentro il negozio', `<p>La vetrina è un <b>pin lasciato dentro il negozio</b>, collegato al suo banner. Il banner fa venire voglia, la vetrina porta la persona sul posto.</p>
     <ol><li><b>L'offerta</b>: nel pin c'è una foto o un video con un'offerta, per esempio «Mostra questo pin alla cassa: il secondo caffè è offerto da noi».</li>
     <li><b>Il banner</b>: in home compare con la scritta «📍 Vetrina · scopri l'offerta sul posto». Toccandolo si apre la pagina del pin con la mappa e «Indicazioni per arrivarci», ma l'offerta resta chiusa.</li>
