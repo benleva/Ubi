@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210255';
+import { CONFIG } from './config.js?v=202611210303';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210255';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210303';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.86';
+const APP_VERSION = 'v.87';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2568,7 +2568,7 @@ const VIDEOS = {
   rispondi: { f: 'video/Ubi-tutorial-rispondi.mp4', s: 19 },
   gruppi: { f: 'video/Ubi-tutorial-gruppi.mp4', s: 21 },
   whatsapp: { f: 'video/Ubi-tutorial-whatsapp.mp4', s: 16 },
-  a_negozio: { f: 'video/Ubi-admin-negozio.mp4', s: 23 },
+  a_negozio: { f: 'video/Ubi-admin-negozio-v2.mp4', s: 32 },
   a_campagna: { f: 'video/Ubi-admin-campagna.mp4', s: 19 },
   a_banner: { f: 'video/Ubi-admin-banner.mp4', s: 18 },
   a_caccia: { f: 'video/Ubi-admin-caccia.mp4', s: 21 },
