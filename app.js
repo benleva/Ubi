@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211743';
+import { CONFIG } from './config.js?v=202611211750';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211743';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211750';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.104';
+const APP_VERSION = 'v.105';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2706,6 +2706,9 @@ const VIDEOS = {
   consumazione: { f: 'video/Ubi-tutorial-regala-una-consumazione.mp4', s: 36 },
   caccia: { f: 'video/Ubi-tutorial-caccia-al-tesoro-v2.mp4', s: 39 },
   nfc: { f: 'video/Ubi-tutorial-nfc.mp4', s: 15 },
+  icona: { f: 'video/Ubi-tutorial-icona-del-pin.mp4', s: 16, n: "Scegli l'icona del pin" },
+  pinnegozi: { f: 'video/Ubi-tutorial-pin-dei-negozi.mp4', s: 22, n: 'I pin dei negozi' },
+  a_clienti: { f: 'video/Ubi-admin-pin-negozio-clienti.mp4', s: 17, n: 'Pin del negozio e clienti' },
   capsula: { f: 'video/Ubi-tutorial-capsula-del-tempo.mp4', s: 31 },
   lascia: { f: 'video/Ubi-tutorial-lascia.mp4', s: 21 },
   condividi: { f: 'video/Ubi-tutorial-condividi.mp4', s: 18 },
@@ -3814,7 +3817,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <tr><td>Nascondi anche i doni</td><td>Casi gravi: i regali spariscono anche dalla mappa</td></tr>
 <tr><td>Nuovo PIN → Salva PIN</td><td>Cambia il PIN (es. se un dipendente se ne va)</td></tr>
 <tr><td>✏️ Modifica dati</td><td>Nome, indirizzo, posizione, telefono, note</td></tr></table>
-<p><b>📍 Pin del negozio e clienti</b>: apri il negozio, sezione «📍 Pin del negozio e clienti», incolla il link del pin e tocca <b>Collega</b>. Da quel momento il pin mostra il logo del negozio (lo carichi nella sezione Partner), chi non è iscritto vede l'iscrizione personalizzata e chi lo sblocca risponde una volta a «Sei già cliente?». Nella stessa sezione vedi i totali: abituali, occasionali, nuovi. Nessun nome passa al negozio.</p>
+<p><b>📍 Pin del negozio e clienti</b>: apri il negozio, sezione «📍 Pin del negozio e clienti», incolla il link del pin e tocca <b>Collega</b>. Da quel momento il pin mostra il logo del negozio (lo carichi nella sezione Partner), chi non è iscritto vede l'iscrizione personalizzata e chi lo sblocca risponde una volta a «Sei già cliente?». Nella stessa sezione vedi i totali: abituali, occasionali, nuovi. Nessun nome passa al negozio.</p>${videoBtn('a_clienti')}
 <p><b>🎨 Colori e icone</b>: la <b>categoria</b> scelta nella sezione Partner decide i colori dei pin del negozio (Bar, Pub, Ristorante = giallo e nero; Garden, Fiorista = verde; Negozio = arancione). L'icona di ogni pin si sceglie nel pin stesso, «Icona sulla mappa». Il titolare vede i suoi numeri nella Cassa, riquadro «👥 I vostri clienti su Ubi».</p>
 <p><b>⭐ Partner</b>: spunta «Mostra tra i partner» solo con il consenso del negozio, poi categoria, paese, frase, logo e sito → Salva. Compare in ubipin.it/#/business; se lo sospendi, sparisce da solo.</p>
 <p class="small">Dopo 8 PIN sbagliati in 15 minuti la Cassa si blocca per 15 minuti.</p>${videoBtn('a_negozio')}</details>
@@ -4739,16 +4742,20 @@ const FAQ_GUIDE = [
     <li>Tocca <b>«Fissa nel luogo»</b> o <b>«Salva le modifiche»</b>.</li></ol>
     <p>Con <b>«Automatica»</b> il pin torna all'icona del suo tipo (foto, video, testo…). L'icona usa uno degli 8 tag del pin, ma non si vede tra i tag.</p>
     <p class="small">Esempio per un garden: pin di testo o foto con i consigli per la Stella di Natale, icona Stella di Natale, raggio 15 m, risposte attive.</p>
-    <p class="small">Se stai seguendo una <b>caccia al tesoro</b>, gli altri pin sulla mappa si vedono sbiaditi: è voluto, così risalta la prossima tappa. Tocca «Esci dalla caccia» per rivederli a colori.</p>`],
+    <p class="small">Se stai seguendo una <b>caccia al tesoro</b>, gli altri pin sulla mappa si vedono sbiaditi: è voluto, così risalta la prossima tappa. Tocca «Esci dalla caccia» per rivederli a colori.</p>
+    <p class="small"><b>Pin uno sopra l'altro?</b> Toccandoli, Ubi ti chiede quale aprire.</p>
+    ${videoBtn('icona')}`],
   ['🌈 Perché i pin di alcuni negozi hanno colori diversi?', `<p>Quando apri un pin che appartiene a un'attività partner di Ubi, in alto compare <b>«Un pin di…»</b> con il logo, e i colori cambiano a seconda dell'attività:</p>
     <ul><li><b>Giallo e nero</b>: bar, pub e ristoranti.</li>
     <li><b>Verde</b>: garden e fioristi.</li>
     <li><b>Arancione</b>: negozi.</li></ul>
-    <p>Tornando alla mappa, Ubi riprende i suoi colori.</p>`],
+    <p>Tornando alla mappa, Ubi riprende i suoi colori.</p>
+    ${videoBtn('pinnegozi')}`],
   ['🙋 «Sei già cliente?»: la domanda dei negozi', `<p>Quando sblocchi per la prima volta un pin di un negozio, o ti iscrivi partendo da un suo pin, Ubi ti chiede una cosa sola: <b>«Sei già cliente?»</b>. Puoi rispondere «Sì, vengo spesso», «Ogni tanto», «No, è la prima volta» oppure «Preferisco non dirlo».</p>
     <ul><li>È <b>facoltativa</b> e te la chiediamo <b>una volta sola</b> per negozio.</li>
     <li>Il negozio vede solo i <b>totali</b> (per esempio «20 clienti nuovi»), <b>mai</b> il tuo nome o la tua email.</li>
-    <li>Serve al negozio per capire se Ubi gli porta clienti nuovi: è il modo con cui sostieni i locali che ti piacciono.</li></ul>`],
+    <li>Serve al negozio per capire se Ubi gli porta clienti nuovi: è il modo con cui sostieni i locali che ti piacciono.</li></ul>
+    ${videoBtn('pinnegozi')}`],
   ['📱 «Avvicina il telefono qui»: gli NFC nei locali', `<p>Su alcuni banconi trovi un cartoncino Ubi con un cerchio: dentro c'è un piccolo chip <b>NFC</b>.</p>
     <ol><li><b>Sblocca lo schermo</b> e avvicina il telefono al cerchio. Su iPhone usa la <b>parte alta</b> del telefono; su Android l'NFC dev'essere acceso (Impostazioni → Connessioni → NFC).</li>
     <li>Compare un avviso con il link di Ubi: toccalo.</li>
