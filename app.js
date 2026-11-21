@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210112';
+import { CONFIG } from './config.js?v=202611210117';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210112';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210117';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.76';
+const APP_VERSION = 'v.77';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1176,7 +1176,7 @@ async function viewHome(user, prof) {
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
-    <div id="adminrow" class="row" style="margin-top:10px" hidden><a href="#/admin/banner" class="btn ghost">📣 Banner pubblicitari</a><a href="#/admin/iscritti" class="btn ghost">👥 Iscritti (Excel)</a><a href="#/admin/curiosita" class="btn ghost">🗺️ Curiosità</a><a href="#/admin/negozi" class="btn ghost">🏪 Negozi</a></div>
+    <div id="adminrow" hidden>${ADMIN_LINKS}</div>
     <div id="adslot" style="margin-top:10px"></div>
     <a href="#/dating" class="btn full datingbtn" style="margin-top:10px">💗 Ubi Dating · incontra chi ama i tuoi luoghi</a>
     ${inviteBox(false)}
@@ -2534,6 +2534,8 @@ const bizContacts = (topic = 'Ubi per la mia attività') => `<div class="bizcont
   <div class="row"><a class="btn ghost" href="tel:+39${BIZ_PHONE.replace(/ /g, '')}">📞 ${BIZ_PHONE}</a><a class="btn ghost" href="mailto:info@ubipin.it?subject=${encodeURIComponent(topic)}">✉️ Email</a></div></div>`;
 const PDF_ICON = '<svg class="pdfi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" fill="#e53935"/><path d="M15 2v5h5" fill="#ffcdd2"/><text x="13" y="18" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff" font-family="sans-serif">PDF</text></svg>';
 // Video tutorial (cartella /video): un pulsante «▶️ Guarda come funziona» per servizio
+const ADMIN_LINKS = `<div class="card adminbox"><b>🛠️ Area amministratore</b> <span class="muted small">(la vedi solo tu)</span>
+  <div class="admtabs" style="margin-top:8px"><a class="btn ghost" href="#/admin/guida">📘 Guida</a><a class="btn ghost" href="#/admin/negozi">🏪 Negozi</a><a class="btn ghost" href="#/admin/banner">📣 Banner</a><a class="btn ghost" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ghost" href="#/admin/pin">📊 Pin</a><a class="btn ghost" href="#/admin/curiosita">🗺️ Curiosità</a></div></div>`;
 const VIDEOS = {
   pin: { f: 'video/Ubi-tutorial-come-si-apre-un-pin.mp4', s: 20 },
   campagne: { f: 'video/Ubi-tutorial-campagne-regalo.mp4', s: 42 },
@@ -3878,11 +3880,13 @@ function normPhone(v) {
 }
 
 async function viewMyProfile(prof) {
+  B.isAdmin().then((ok) => { if (ok && $('#adminrow')) $('#adminrow').hidden = false; });
   const st = { blob: null, remove: false };
   const p = prof || {};
   app.innerHTML = `
     <h1>Il mio profilo</h1>
     ${topTools()}
+    <div id="adminrow" hidden>${ADMIN_LINKS}</div>
     <p class="muted">Foto, presentazione e contatti sono visibili a chi può vedere i tuoi pin. I contatti sono tutti facoltativi.</p>
     <div class="card center">
       <div id="av">${avatarHtml(p.avatar_path, p.display_name, 110)}</div>
