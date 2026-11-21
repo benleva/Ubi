@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210307';
+import { CONFIG } from './config.js?v=202611210433';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210307';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210433';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.88';
+const APP_VERSION = 'v.89';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -3563,6 +3563,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <li><b>Vendi un regalo</b> (bar, pub): il cliente paga al banco, il barista tocca l'articolo due volte → QR da inquadrare (vale 6 mesi) o «Manda su WhatsApp».</li>
 <li><b>Numeri</b>: attivati, regalati, aperti, ritirati. <b>Esci dalla cassa</b> richiede di nuovo il PIN.</li></ul>
 <p class="small">Per vendere servono posizione del negozio e almeno un articolo in catalogo. Ubi non incassa nulla.</p>
+<p class="small">⚖️ <b>Concorsi a premio</b>: stesso regalo per tutti = omaggio; premi diversi a caso o «primi N» = concorso (DPR 430/2001, art. 2). Compendio completo con leggi, articoli e sanzioni: <a href="https://claude.ai/artifact/PJGBUdbAd17oGDmAuCmBFX" target="_blank" rel="noopener">documento normativo</a>. Spiegazione per i negozi: FAQ «⚖️ Regali, cacce al tesoro e concorsi a premio».</p>
 <p class="small"><b>Video da mandare al negozio</b> (solo schermate della Cassa, niente amministrazione): collegarsi, vendere un regalo, controllare un codice. Link: <b>ubipin.it/video/Ubi-tutorial-cassa-negozio.mp4</b></p>${videoBtn('cassa')}</details>
 
 <details><summary>5 · Banner pubblicitari</summary>
@@ -4427,6 +4428,16 @@ const FAQ_GUIDE = [
     ${bizContacts('una campagna regalo')}
     <a class="btn full ghost" href="#/business">⭐ Scopri la pagina per le attività e i nostri partner</a>
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">✉️ Voglio una campagna regalo</a>`],
+  ['⚖️ Regali, cacce al tesoro e concorsi a premio: cosa dice la legge', `<p>In Italia i premi promessi al pubblico da un'attività per farsi pubblicità sono regolati dal <b>DPR 430/2001</b> («manifestazioni a premio»). Ecco come si collocano i servizi di Ubi. È un orientamento, non un parere legale.</p>
+    <ul>
+    <li><b>Stesso regalo per tutti</b> (ogni biglietto dà la stessa birretta o lo stesso fiore), senza sorteggio e senza obbligo d'acquisto: è un <b>omaggio</b>, non un concorso.</li>
+    <li><b>Sconti o una quantità in più dello stesso prodotto</b> («il secondo caffè è offerto», come nella 🏪 Vetrina) e <b>piccoli oggetti di minimo valore</b>: esclusi dalla norma (art. 6).</li>
+    <li><b>Regala una consumazione</b>: il cliente la paga, quindi è una vendita, non un premio.</li>
+    <li><b>Premi diversi assegnati a caso</b>, oppure un premio solo <b>ai primi che completano</b> una caccia al tesoro: è un <b>concorso a premio</b> (art. 2). Lo può fare solo un'impresa, con regolamento, cauzione pari al valore dei premi, comunicazione al Ministero almeno 15 giorni prima e notaio o funzionario della Camera di Commercio.</li>
+    <li><b>Regalo legato a un acquisto</b> («compra e ricevi»): è un'<b>operazione a premio</b> (art. 3), con regole più leggere.</li>
+    <li><b>Cacce al tesoro tra amici, in famiglia o per una festa</b>, senza scopo commerciale: la norma non si applica.</li></ul>
+    <p><b>Come lavoriamo noi</b>: nelle campagne Ubi usiamo lo <b>stesso regalo per tutti</b>; nei testi scriviamo «ricevi in regalo» e non «vinci»; il <b>promotore è sempre il negozio</b>, Ubi fornisce lo strumento. Se un'attività vuole un concorso vero, con sorteggio o classifica, la aiutiamo a impostarlo ma la procedura spetta a lei.</p>
+    <p class="small">Fonti: <a href="https://www.normattiva.it/eli/id/2001/12/13/001G0490/CONSOLIDATED" target="_blank" rel="noopener">DPR 430/2001 su Normattiva</a> · <a href="https://www.mimit.gov.it/it/mercato-e-consumatori/concorrenza-e-commercio/manifestazioni-a-premio/concorsi-a-premio" target="_blank" rel="noopener">Ministero (MIMIT): concorsi a premio</a> · <a href="https://www.mimit.gov.it/it/mercato-e-consumatori/concorrenza-e-commercio/manifestazioni-a-premio/manifestazioni-escluse" target="_blank" rel="noopener">casi esclusi</a>. Per casi particolari chiedi alla Camera di Commercio della tua provincia o al tuo consulente.</p>`],
   ['📣 Pubblicità su Ubi: fai conoscere la tua attività', `<ol>
     <li>Hai un'<b>attività</b>, un <b>negozio</b>, un <b>ristorante</b>, un <b>evento</b> o un <b>prodotto</b> da far conoscere? Su Ubi puoi comparire con un <b>banner</b> nella pagina principale, quella che tutti vedono quando aprono l'app.</li>
     <li>Il banner mostra il tuo <b>logo o una foto</b>, un titolo, una breve descrizione e porta al tuo sito, alla tua pagina social o al tuo negozio online. È segnato come <b>Sponsor</b>.</li>
