@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211257';
+import { CONFIG } from './config.js?v=202611211556';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211257';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211556';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.92';
+const APP_VERSION = 'v.93';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -350,6 +350,13 @@ async function supabaseBackend() {
     async adminPinStats() { return must(await sb.rpc('admin_pin_stats')) || []; },
     async huntStats(id) { try { return must(await sb.rpc('hunt_stats', { p_hunt: id })) || []; } catch { return null; } },   // null se il database non è aggiornato
     async setSignupSource(slug) { try { must(await sb.rpc('set_signup_source', { p_slug: slug })); } catch { /* database non aggiornato */ } },
+    // --- clienti dei negozi: pin collegati e domanda «Sei già nostro cliente?»
+    async pinBusiness(slug) { try { return (must(await sb.rpc('pin_business', { p_slug: slug })) || [])[0] || null; } catch { return null; } },
+    async myCustomerAnswer(bid) { try { return must(await sb.rpc('my_customer_answer', { p_business: bid })); } catch { return 'nd'; } },
+    async setCustomerAnswer(bid, a) { must(await sb.rpc('set_customer_answer', { p_business: bid, p_answer: a })); },
+    async adminSetPinBusiness(slug, bid) { must(await sb.rpc('admin_set_pin_business', { p_slug: slug, p_business: bid || null })); },
+    async adminBusinessPins(bid) { return must(await sb.rpc('admin_business_pins', { p_business: bid })) || []; },
+    async adminCustomerStats() { try { return must(await sb.rpc('admin_customer_stats')) || []; } catch { return []; } },
     async adminSetPlan(id, plan) { must(await sb.rpc('admin_set_plan', { p_user: id, p_plan: plan })); },
     async myQuota() { try { return (must(await sb.rpc('my_quota')) || [])[0] || null; } catch { return null; } },   // null se il database non è ancora aggiornato
     async adminId() { try { return must(await sb.rpc('ubi_admin_id')); } catch { return null; } },
@@ -624,6 +631,13 @@ function demoBackend() {
     async adminPinStats() { return []; },
     async huntStats() { return null; },
     async setSignupSource() {},
+    async pinBusiness(slug) { const c = db.contents.find((x) => x.share_slug === slug); const b = c && c.business_id && (db.biz || []).find((x) => x.id === c.business_id && x.enabled !== false);
+      return b ? { business_id: b.id, name: b.name, logo_url: b.logo_url || null } : null; },
+    async myCustomerAnswer(bid) { return ((db.cust || {})[db.user?.id] || {})[bid] || null; },
+    async setCustomerAnswer(bid, a) { if (!db.user) throw new Error('Accesso richiesto'); db.cust = db.cust || {}; const m = (db.cust[db.user.id] = db.cust[db.user.id] || {}); if (!m[bid]) m[bid] = a; save(); },
+    async adminSetPinBusiness(slug, bid) { const c = db.contents.find((x) => x.share_slug === slug); if (!c) throw new Error('Pin non trovato'); c.business_id = bid || null; save(); },
+    async adminBusinessPins(bid) { return db.contents.filter((c) => c.business_id === bid).map((c) => ({ slug: c.share_slug, titolo: c.title, sblocchi: (db.unlocks || []).filter((u) => u.c === c.id).length })); },
+    async adminCustomerStats() { const out = {}; Object.values(db.cust || {}).forEach((m) => Object.entries(m).forEach(([bid, a]) => { const o = (out[bid] = out[bid] || { business_id: bid, abituali: 0, occasionali: 0, nuovi: 0, non_detto: 0 }); o[{ abituale: 'abituali', occasionale: 'occasionali', nuovo: 'nuovi', nd: 'non_detto' }[a]]++; })); return Object.values(out); },
     async adminSetPlan() {},
     async myQuota() { return null; },
     async adminId() { return null; },
@@ -802,6 +816,7 @@ async function routeInner() {
   if (page === 'nfc' && arg) return viewNfc(arg);
   if (page === 'business') return viewBusiness();
   const user = await B.user();
+  if (user && store.get('ubi_cust_pending')) flushCustPending();
   if (page === 'regalo' && arg && !user) { setPending(location.hash); return viewGiftReceive(arg, null); }
   if (page === 'dono' && arg && !user) {
     setPending(location.hash);
@@ -891,10 +906,39 @@ const bindShow = () => document.querySelectorAll('[data-show]').forEach((b) => {
   b.onclick = () => { const i = $('#' + b.dataset.show); i.type = i.type === 'password' ? 'text' : 'password'; };
 });
 
+// --- Negozi: chi arriva da un pin collegato a un negozio vede l'iscrizione con il suo logo
+// e una sola domanda facoltativa «Sei già cliente?» (ai negozi arrivano solo conteggi anonimi).
+const CUST_Q = [['abituale', 'Sì, vengo spesso'], ['occasionale', 'Ogni tanto'], ['nuovo', 'No, è la prima volta'], ['nd', 'Preferisco non dirlo']];
+const bizSrc = () => { try { const b = JSON.parse(store.get('ubi_biz_src') || 'null'); return b && Date.now() - (b.t || 0) < 3 * 864e5 ? b : null; } catch { return null; } };
+const bizLogo = (b, cls = 'bizlogo') => (b.logo_url ? `<img class="${cls}" src="${esc(b.logo_url)}" alt="">` : `<span class="${cls} bizlogo0">🌿</span>`);
+const bizBar = (b) => `<div class="bizbar">${bizLogo(b, 'bizlogo sm')}<span>${T2('Un pin di', 'A pin by')} <b>${esc(b.name)}</b></span></div>`;
+async function custBox(b, box) {
+  if (!box || !b) return;
+  if (await B.myCustomerAnswer(b.business_id)) return;   // già risposto (una volta per negozio)
+  box.innerHTML = `<div class="card custq"><div class="custhead">${bizLogo(b)}<div><b>${T2('Sei già cliente di', 'Are you already a customer of')} ${esc(b.name)}?</b>
+    <p class="muted small">${T2('Una sola domanda, facoltativa. Al negozio arrivano solo numeri, mai il tuo nome.', 'One optional question. The shop only gets numbers, never your name.')}</p></div></div>
+    <div class="custopts">${CUST_Q.map(([k, l]) => `<button type="button" class="ghost" data-cq="${k}">${l}</button>`).join('')}</div><div class="cqm"></div></div>`;
+  box.querySelectorAll('[data-cq]').forEach((btn) => {
+    btn.onclick = async () => {
+      try { await B.setCustomerAnswer(b.business_id, btn.dataset.cq); box.innerHTML = `<div class="msg ok">${T2('Grazie! 🌿', 'Thank you! 🌿')}</div>`; }
+      catch (err) { msg(box.querySelector('.cqm'), errText(err)); }
+    };
+  });
+}
+// Risposta data in fase di iscrizione: si salva appena l'account è attivo
+async function flushCustPending() {
+  let p = null; try { p = JSON.parse(store.get('ubi_cust_pending') || 'null'); } catch { /* niente */ }
+  if (!p || !p.id || !p.a) return;
+  try { await B.setCustomerAnswer(p.id, p.a); store.set('ubi_cust_pending', null); } catch { /* riprova al prossimo avvio */ }
+}
+
 function viewLogin(note = '', tab = 'login') {
+  const bs = bizSrc();
   app.innerHTML = `
-    <div class="hero"><span class="pin"></span><h1>Lascia un ricordo dove è nato</h1>
-      <p class="muted">Foto, video e audio fissati in un luogo. Si aprono solo quando ci arrivi.</p></div>
+    ${bs ? `<div class="hero bizhero">${bizLogo(bs, 'bizlogo lg')}<h1>${T2('Benvenuto da', 'Welcome to')} ${esc(bs.name)}</h1>
+      <p class="muted">${T2('Iscriviti a Ubi, è gratis: apri i pin nascosti nel negozio, scopri consigli e regali.', 'Join Ubi, it is free: open the pins hidden in the shop, find tips and gifts.')}</p></div>`
+    : `<div class="hero"><span class="pin"></span><h1>Lascia un ricordo dove è nato</h1>
+      <p class="muted">Foto, video e audio fissati in un luogo. Si aprono solo quando ci arrivi.</p></div>`}
     ${note ? `<div class="msg info">${note}</div>` : ''}
     <div class="seg" id="tabs"><button data-t="login" class="${tab === 'login' ? 'on' : ''}">Accedi</button><button data-t="signup" class="${tab === 'signup' ? 'on' : ''}">Registrati</button></div>
     <div class="card" id="box"></div>
@@ -932,6 +976,9 @@ function signupForm() {
       <label for="name">Come vuoi farti chiamare?</label>
       <input id="name" required maxlength="60" autocomplete="nickname" placeholder="Es. Andrea">
       <p class="muted small">Il nome è visibile a chi apre i tuoi contenuti.</p>
+      ${bizSrc() ? `<label>Sei già cliente di ${esc(bizSrc().name)}? <span class="muted small">(facoltativo)</span></label>
+      <div class="custopts" id="cq">${CUST_Q.map(([k, l]) => `<button type="button" class="ghost" data-cq="${k}">${l}</button>`).join('')}</div>
+      <p class="muted small">Al negozio arrivano solo numeri, mai il tuo nome o la tua email.</p>` : ''}
       <label for="email">Email</label>
       <input id="email" type="email" autocomplete="username" required placeholder="nome@esempio.it">
       ${pwdField('pwd', 'new-password', 'Scegli una password (almeno 8 caratteri)')}
@@ -940,9 +987,12 @@ function signupForm() {
       <button class="full accent" type="submit">Crea il mio account</button>
     </form>`;
   bindShow();
+  let cq = null;
+  if ($('#cq')) $('#cq').onclick = (e) => { const b = e.target.closest('[data-cq]'); if (!b) return; cq = b.dataset.cq; $('#cq').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); };
   $('#f').onsubmit = async (e) => {
     e.preventDefault(); const btn = $('#f button[type=submit]'); btn.disabled = true;
     const email = $('#email').value.trim().toLowerCase();
+    if (cq && bizSrc()) store.set('ubi_cust_pending', JSON.stringify({ id: bizSrc().business_id, a: cq }));
     store.set('ubi_consent', JSON.stringify({ name: $('#name').value.trim(), v: CONFIG.PRIVACY_VERSION }));
     try {
       const r = await withTimeout(B.signUp(email, $('#pwd').value));
@@ -1815,6 +1865,8 @@ async function viewContent(slug, user) {
     return;
   }
   setDatingTheme(t.is_dating);
+  const biz = t.is_dating ? null : await B.pinBusiness(slug);
+  if (biz && !user) store.set('ubi_biz_src', JSON.stringify({ ...biz, t: Date.now() }));
   if (t.hunt_locked && !t.is_owner) {
     app.innerHTML = `<h1>🗺️ <span translate="no">${esc(t.title)}</span></h1><div class="card center"><p style="font-size:42px;margin:0">🔒</p>
       <p>Questa è la <b>tappa ${t.hunt_step}</b> della caccia al tesoro «${esc(t.hunt_title || '')}».</p>
@@ -1830,7 +1882,8 @@ async function viewContent(slug, user) {
   const header0 = t.is_dating
     ? `<h1>${datingBadge(t.gender)} <span translate="no">${esc(t.title)}</span></h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
     : `<h1>${badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
-  const header = header0 + huntLine + capLine;
+  const bb = biz ? bizBar(biz) : '';
+  const header = bb + header0 + huntLine + capLine;
   const player = t.hunt_id && !t.is_owner;
   const isLast = player && t.hunt_step >= t.hunt_steps;
   const huntNext = !player ? '' : isLast ? ''
@@ -1838,9 +1891,10 @@ async function viewContent(slug, user) {
   const showUnlocked = (r, d) => {
     stopWatch();
     if (player) { huntRecord(t, slug); if (isLast && huntFocus()?.hunt_id === t.hunt_id) store.set('ubi_hunt_focus', null); }
-    const hdr = player && t.hunt_steps > 1 ? header0 + huntLine.replace(/<div class="hprog">[\s\S]*$/, `<div class="hprog">${stepBar(t.hunt_step, t.hunt_steps, true)}</div>`) + capLine : header;
+    const hdr = player && t.hunt_steps > 1 ? bb + header0 + huntLine.replace(/<div class="hprog">[\s\S]*$/, `<div class="hprog">${stepBar(t.hunt_step, t.hunt_steps, true)}</div>`) + capLine : header;
     app.innerHTML = `${hdr}<div class="msg ok">Sbloccato${d != null ? ` a ${d} m dal punto` : ''} ✓</div>
       <div class="card media">${renderMedia(t.media_type, r)}</div>
+      <div id="custbox"></div>
       ${huntNext}<div id="prizebox"></div>
       ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica o sostituisci il contenuto</a>
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
@@ -1854,6 +1908,7 @@ async function viewContent(slug, user) {
       lastView = null; location.hash = '#/';
     };
     if (user) replySection(t, slug, $('#replybox')).catch((err) => msg($('#replybox'), errText(err)));
+    if (user && biz && !t.is_owner) custBox(biz, $('#custbox')).catch(() => {});
     if (user && t.hunt_id) huntPrizeBox(t, slug, $('#prizebox')).catch(() => {});
     if ($('#delpin')) $('#delpin').onclick = async () => {
       const b = $('#delpin');
@@ -2765,6 +2820,8 @@ async function adminShopsTab(box) {
   try { const pd = await B.adminPartnerData(); list.forEach((b) => { b.p = pd.find((x) => x.id === b.id) || null; }); } catch { /* SQL partner non ancora lanciato */ }
   const members = B.adminCashierMembers ? await B.adminCashierMembers() : [];
   list.forEach((b) => { b.members = members.filter((m) => m.business_id === b.id); });
+  const cstats = B.adminCustomerStats ? await B.adminCustomerStats() : [];
+  list.forEach((b) => { b.cs = cstats.find((x) => x.business_id === b.id) || null; });
   const today = new Date().toISOString().slice(0, 10);
   box.innerHTML = `<p class="muted small">${T2('Ogni negozio ha la sua spunta: togliendola sparisce il pannello e la Cassa, ma non si cancella niente. «Nascondi anche i doni» li toglie pure dalla mappa dei clienti.', '')}</p>
     <button type="button" class="full" id="bnew">＋ Nuovo negozio</button><div id="bform"></div>
@@ -2781,6 +2838,12 @@ async function adminShopsTab(box) {
         <div class="row"><button type="button" class="ghost" data-a="copycassa">Copia link</button><input data-a="pin" inputmode="numeric" maxlength="8" placeholder="Nuovo PIN (4-8 cifre)"><button type="button" data-a="savepin" style="flex:0 0 auto">Salva PIN</button></div><div class="cmembers"><p class="small" style="margin:10px 0 4px"><b>🔗 Account collegati</b> (entrano senza PIN dalla loro home)</p>
           ${b.members.length ? b.members.map((m) => `<div class="row small" style="align-items:center"><span style="flex:1">👤 ${esc(m.name || '')}${m.email ? ` · ${esc(m.email)}` : ''}<br><span class="muted">dal ${new Date(m.since).toLocaleDateString(LOC)}</span></span><button type="button" class="ghost" data-a="munlink" data-u="${esc(m.user_id)}" style="flex:0 0 auto">✕ Scollega</button></div>`).join('')
             : '<p class="muted small">Nessuno. Quando il titolare entra con il PIN dal suo account Ubi, può collegarsi.</p>'}</div></details>
+      <details data-a="pinsbox"><summary>📍 Pin del negozio e clienti</summary>
+        <p class="small muted">I pin collegati mostrano il logo del negozio; chi li apre risponde a «Sei già cliente?». Qui vedi solo numeri.</p>
+        <div class="msg info small">👥 ${b.cs ? `<b>${+b.cs.abituali + +b.cs.occasionali + +b.cs.nuovi + +b.cs.non_detto}</b> risposte · ${b.cs.abituali} clienti abituali · ${b.cs.occasionali} occasionali · <b>${b.cs.nuovi} nuovi</b> · ${b.cs.non_detto} non detto` : 'Ancora nessuna risposta.'}</div>
+        <div data-a="pinlist"><p class="muted small">…</p></div>
+        <div class="row"><input data-a="pinslug" placeholder="Link o codice del pin (es. ubipin.it/#/c/abc123)"><button type="button" data-a="pinlink" style="flex:0 0 auto">Collega</button></div>
+      </details>
       <details><summary>🛍️ Catalogo (${b.items.length})</summary>
         ${b.items.map((it) => `<div class="citem" data-id="${esc(it.id)}"><div class="row small" style="align-items:center">${it.image_url ? `<img class="citthumb" src="${esc(it.image_url)}" alt="">` : ''}<span style="flex:1">${it.active ? '' : '🚫 '}<b>${esc(it.name)}</b> ${esc(it.value_label || '')}${it.meaning ? `<br><span class="muted">${esc(it.meaning)}</span>` : ''}</span></div>
           <div class="row small citacts"><button type="button" class="ghost" data-a="itemtoggle" data-id="${esc(it.id)}" data-on="${it.active ? 1 : 0}">${it.active ? 'Togli' : 'Rimetti'}</button><button type="button" class="ghost" data-a="itemdup" data-id="${esc(it.id)}">⧉ Duplica</button><label class="btn ghost" style="margin:0">📷 Foto<input type="file" accept="image/*" data-a="itemphoto" data-id="${esc(it.id)}" hidden></label></div>
@@ -2806,6 +2869,19 @@ async function adminShopsTab(box) {
   $('#bnew').onclick = () => shopForm($('#bform'), {});
   box.querySelectorAll('.shop').forEach((card) => {
     const b = list[+card.dataset.i], q = (a) => card.querySelector(`[data-a="${a}"]`), out = card.querySelector('.bm');
+    // pin collegati al negozio
+    const drawPins = async () => {
+      let pins = []; try { pins = await B.adminBusinessPins(b.id); } catch (err) { q('pinlist').innerHTML = `<div class="msg err small">${esc(errText(err))}<br>Hai lanciato il codice SQL «clienti negozio»?</div>`; return; }
+      q('pinlist').innerHTML = pins.length ? pins.map((x) => `<div class="row small" style="align-items:center"><a style="flex:1" href="#/c/${esc(x.slug)}">📍 ${esc(x.titolo)}</a><span class="muted">${x.sblocchi} sblocchi</span><button type="button" class="ghost" data-unpin="${esc(x.slug)}" style="flex:0 0 auto">✕</button></div>`).join('')
+        : '<p class="muted small">Nessun pin collegato.</p>';
+      q('pinlist').querySelectorAll('[data-unpin]').forEach((x) => { x.onclick = async () => { try { await B.adminSetPinBusiness(x.dataset.unpin, null); drawPins(); } catch (err) { msg(out, errText(err)); } }; });
+    };
+    q('pinsbox').addEventListener('toggle', () => { if (q('pinsbox').open) drawPins(); });
+    q('pinlink').onclick = async () => {
+      const v = q('pinslug').value.trim(); const m = v.match(/(?:#\/c\/)?([A-Za-z0-9_-]{2,40})\s*$/);
+      if (!m) return msg(out, 'Incolla il link del pin (quello di «Condividi questo pin»).');
+      try { await B.adminSetPinBusiness(m[1], b.id); q('pinslug').value = ''; drawPins(); } catch (err) { msg(out, errText(err)); }
+    };
     const reload = () => adminShopsTab(box);
     q('en').onchange = async () => { try { await B.adminBusinessToggle(b.id, q('en').checked, q('hide').checked); reload(); } catch (err) { msg(out, errText(err)); } };
     q('hide').onchange = q('en').onchange;
@@ -3636,6 +3712,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <tr><td>Nascondi anche i doni</td><td>Casi gravi: i regali spariscono anche dalla mappa</td></tr>
 <tr><td>Nuovo PIN → Salva PIN</td><td>Cambia il PIN (es. se un dipendente se ne va)</td></tr>
 <tr><td>✏️ Modifica dati</td><td>Nome, indirizzo, posizione, telefono, note</td></tr></table>
+<p><b>📍 Pin del negozio e clienti</b>: apri il negozio, sezione «📍 Pin del negozio e clienti», incolla il link del pin e tocca <b>Collega</b>. Da quel momento il pin mostra il logo del negozio (lo carichi nella sezione Partner), chi non è iscritto vede l'iscrizione personalizzata e chi lo sblocca risponde una volta a «Sei già cliente?». Nella stessa sezione vedi i totali: abituali, occasionali, nuovi. Nessun nome passa al negozio.</p>
 <p><b>⭐ Partner</b>: spunta «Mostra tra i partner» solo con il consenso del negozio, poi categoria, paese, frase, logo e sito → Salva. Compare in ubipin.it/#/business; se lo sospendi, sparisce da solo.</p>
 <p class="small">Dopo 8 PIN sbagliati in 15 minuti la Cassa si blocca per 15 minuti.</p>${videoBtn('a_negozio')}</details>
 
