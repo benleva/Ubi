@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210433';
+import { CONFIG } from './config.js?v=202611211015';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210433';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211015';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.89';
+const APP_VERSION = 'v.90';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -270,6 +270,11 @@ async function supabaseBackend() {
     async myCashiers() { try { return must(await sb.rpc('my_cashiers')) || []; } catch { return []; } },   // [] anche se l'SQL non è ancora lanciato
     async adminCashierMembers() { try { return must(await sb.rpc('admin_cashier_members')) || []; } catch { return []; } },
     async adminCashierUnlink(b, u) { must(await sb.rpc('admin_cashier_unlink', { p_business: b, p_user: u })); },
+    // NFC: il codice sull'adesivo resta uguale, la destinazione si cambia qui
+    async nfcResolve(code) { return must(await sb.rpc('nfc_resolve', { p_code: code })); },
+    async adminNfcList() { return must(await sb.rpc('admin_nfc_list')) || []; },
+    async adminNfcSave(t) { must(await sb.rpc('admin_nfc_save', { p: t })); },
+    async adminNfcDelete(code) { must(await sb.rpc('admin_nfc_delete', { p_code: code })); },
     async adminBusinesses() { return (must(await sb.rpc('admin_businesses')) || []).map(unwrapRow('admin_businesses')); },
     async adminBusinessSave(p) { return must(await sb.rpc('admin_business_save', { p })); },
     async adminBusinessToggle(id, enabled, hide) { must(await sb.rpc('admin_business_toggle', { p_id: id, p_enabled: enabled, p_hide: hide })); },
@@ -794,6 +799,7 @@ async function routeInner() {
   if (page === 'invita') return viewInvite();
   if (page === 'avvisi') return viewOptout(arg);
   if (page === 'cassa' && arg) return viewCashier(arg);
+  if (page === 'nfc' && arg) return viewNfc(arg);
   if (page === 'business') return viewBusiness();
   const user = await B.user();
   if (page === 'regalo' && arg && !user) { setPending(location.hash); return viewGiftReceive(arg, null); }
@@ -2555,7 +2561,7 @@ const bizContacts = (topic = 'Ubi per la mia attività') => `<div class="bizcont
 const PDF_ICON = '<svg class="pdfi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" fill="#e53935"/><path d="M15 2v5h5" fill="#ffcdd2"/><text x="13" y="18" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff" font-family="sans-serif">PDF</text></svg>';
 // Video tutorial (cartella /video): un pulsante «▶️ Guarda come funziona» per servizio
 const ADMIN_LINKS = `<div class="card adminbox"><b>🛠️ Area amministratore</b> <span class="muted small">(la vedi solo tu)</span>
-  <div class="admtabs" style="margin-top:8px"><a class="btn ghost" href="#/admin/guida">📘 Guida</a><a class="btn ghost" href="#/admin/negozi">🏪 Negozi</a><a class="btn ghost" href="#/admin/banner">📣 Banner</a><a class="btn ghost" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ghost" href="#/admin/pin">📊 Pin</a><a class="btn ghost" href="#/admin/curiosita">🗺️ Curiosità</a></div></div>`;
+  <div class="admtabs" style="margin-top:8px"><a class="btn ghost" href="#/admin/guida">📘 Guida</a><a class="btn ghost" href="#/admin/negozi">🏪 Negozi</a><a class="btn ghost" href="#/admin/nfc">🏷️ NFC</a><a class="btn ghost" href="#/admin/banner">📣 Banner</a><a class="btn ghost" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ghost" href="#/admin/pin">📊 Pin</a><a class="btn ghost" href="#/admin/curiosita">🗺️ Curiosità</a></div></div>`;
 const VIDEOS = {
   pin: { f: 'video/Ubi-tutorial-come-si-apre-un-pin.mp4', s: 20 },
   campagne: { f: 'video/Ubi-tutorial-campagne-regalo.mp4', s: 42 },
@@ -2634,6 +2640,17 @@ async function viewBusiness() {
 }
 
 // ======================= CASSA del negozio (#/cassa/<token>) =======================
+// Tocco su un adesivo o una card NFC: si conta e si va dove ha deciso l'amministratore
+async function viewNfc(code) {
+  app.innerHTML = `<div class="card center" style="margin-top:30px"><div style="font-size:42px">📱</div><p>${T2('Un attimo…', 'One moment…')}</p></div>`;
+  let target = null;
+  try { target = await B.nfcResolve(code); } catch { /* rete o SQL mancante */ }
+  if (target && /^#\//.test(target)) { location.replace(location.pathname + location.search + target); return; }
+  if (target && /^https:\/\//.test(target)) { location.replace(target); return; }
+  app.innerHTML = `<div class="card center" style="margin-top:30px"><div style="font-size:42px">📍</div><h2>${T2('Benvenuto su Ubi', 'Welcome to Ubi')}</h2>
+    <p>${T2('Ricordi, regali e sorprese nascosti nei luoghi: si aprono solo quando ci arrivi.', 'Memories, gifts and surprises hidden in places: they open only when you get there.')}</p>
+    <a class="btn full" href="#/">${T2('Scopri Ubi', 'Discover Ubi')}</a></div>`;
+}
 async function viewCashier(token) {
   const KEY = `ubi_cassa_${token}`;
   let pin = null; try { pin = sessionStorage.getItem(KEY); } catch { /* niente */ }
@@ -3006,6 +3023,13 @@ function demoGifts(getDb, save) {
     async myCashiers() { return D().members.filter((m) => m.user_id === uid()).map((m) => D().biz.find((b) => b.id === m.business_id)).filter((b) => b && active(b)).map((b) => ({ name: b.name, token: b.cashier_token })); },
     async adminCashierMembers() { const db = getDb(); return D().members.map((m) => ({ ...m, email: m.user_id === db.user?.id ? db.user.email : '', name: db.profiles?.[m.user_id]?.display_name || '' })); },
     async adminCashierUnlink(bid, u) { getDb().members = D().members.filter((m) => !(m.business_id === bid && m.user_id === u)); save(); },
+    async nfcResolve(code) { const db = getDb(); db.nfc = db.nfc || {}; const t = db.nfc[String(code).toUpperCase()]; if (!t) return null; (t.hits = t.hits || []).push(Date.now()); save(); return t.target || null; },
+    async adminNfcList() { const db = getDb(); db.nfc = db.nfc || {};
+      if (!Object.keys(db.nfc).length) { for (let i = 1; i <= 60; i++) db.nfc['P' + String(i).padStart(2, '0')] = { label: 'Adesivo ' + i }; for (let i = 1; i <= 20; i++) db.nfc['C' + String(i).padStart(2, '0')] = { label: 'Card gestore ' + i }; save(); }
+      const m30 = Date.now() - 30 * 864e5;
+      return Object.entries(db.nfc).sort().map(([code, t]) => ({ code, label: t.label, target: t.target || null, business_id: t.business_id || null, taps: (t.hits || []).length, taps30: (t.hits || []).filter((x) => x > m30).length, last_tap: (t.hits || []).length ? new Date(Math.max(...t.hits)).toISOString() : null })); },
+    async adminNfcSave(t) { const db = getDb(); db.nfc = db.nfc || {}; const c = String(t.code).toUpperCase(); db.nfc[c] = { ...(db.nfc[c] || {}), label: t.label, target: t.target || null, business_id: t.business_id || null }; save(); },
+    async adminNfcDelete(code) { const db = getDb(); delete (db.nfc || {})[code]; save(); },
     async cashierInfo(t, pin) { const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err };
       return { business: a.b.name, items: D().items.filter((i) => i.business_id === a.b.id && i.active).map((i) => ({ id: i.id, name: i.name, value: i.value_label })),
         campaigns: D().camps.filter((c) => c.business_id === a.b.id).map(stats) }; },
@@ -3109,9 +3133,9 @@ async function drawAdSlot(box) {
 async function viewAdmin(tab) {
   if (!(await B.isAdmin())) { app.innerHTML = '<div class="card center">Pagina riservata all\'amministratore. <a href="#/">Torna a Ubi</a></div>'; return; }
   if (tab === 'biglietti') return adminCardsPrint(location.hash.split('/')[3]);
-  const t = ['iscritti', 'curiosita', 'pin', 'negozi', 'guida'].includes(tab) ? tab : 'banner';
+  const t = ['iscritti', 'curiosita', 'pin', 'negozi', 'guida', 'nfc'].includes(tab) ? tab : 'banner';
   app.innerHTML = `<h1>⚙️ Amministrazione</h1>
-    <div class="admtabs"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'pin' ? 'on' : 'ghost'}" href="#/admin/pin">📊 Pin</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a><a class="btn ${t === 'negozi' ? 'on' : 'ghost'}" href="#/admin/negozi">🏪 Negozi</a><a class="btn ${t === 'guida' ? 'on' : 'ghost'}" href="#/admin/guida">📘 Guida</a></div>
+    <div class="admtabs"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'pin' ? 'on' : 'ghost'}" href="#/admin/pin">📊 Pin</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a><a class="btn ${t === 'negozi' ? 'on' : 'ghost'}" href="#/admin/negozi">🏪 Negozi</a><a class="btn ${t === 'guida' ? 'on' : 'ghost'}" href="#/admin/guida">📘 Guida</a><a class="btn ${t === 'nfc' ? 'on' : 'ghost'}" href="#/admin/nfc">🏷️ NFC</a></div>
     <div id="adm" style="margin-top:12px"><p class="muted center">Carico…</p></div>
     <p class="center"><a href="#/">Torna a Ubi</a></p>`;
   if (t === 'iscritti') return adminUsersTab($('#adm'));
@@ -3119,8 +3143,77 @@ async function viewAdmin(tab) {
   if (t === 'curiosita') return adminSeedTab($('#adm'));
   if (t === 'negozi') return adminShopsTab($('#adm'));
   if (t === 'guida') { $('#adm').innerHTML = ADMIN_GUIDE; return; }
+  if (t === 'nfc') return adminNfcTab($('#adm'));
   return adminAdsTab($('#adm'));
 }
+// ---------- NFC: adesivi (P..) e card (C..) con destinazione modificabile e tocchi contati ----------
+const NFC_BASE = 'https://ubipin.it/#/nfc/';
+async function adminNfcTab(box) {
+  let list = [], shops = [];
+  try { list = await B.adminNfcList(); } catch (err) { box.innerHTML = `<div class="msg err">${esc(errText(err))}<br>Hai lanciato il codice SQL degli NFC?</div>`; return; }
+  try { shops = await B.adminBusinesses(); } catch { /* nessun negozio */ }
+  const shopName = (id) => shops.find((b) => b.id === id)?.name || '';
+  const dest = (t) => {
+    if (!t.target) return '<span class="muted">⚪ Non ancora attivo</span>';
+    const m = t.target.match(/^#\/cassa\/(.+)$/);
+    if (m) return `🧾 Cassa · ${esc(shops.find((b) => String(b.cashier_token).toUpperCase() === m[1].toUpperCase())?.name || m[1])}`;
+    const c = t.target.match(/^#\/c\/(.+)$/);
+    if (c) return `📍 Pin ${esc(c[1])}`;
+    return `🔗 ${esc(t.target.replace(/^https:\/\//, '').slice(0, 40))}`;
+  };
+  const row = (t) => `<div class="nfcrow" data-code="${esc(t.code)}"><div class="row" style="align-items:center">
+      <b class="nfccode">${esc(t.code)}</b><span style="flex:1"><b>${esc(t.label || '')}</b>${t.business_id ? ` · ${esc(shopName(t.business_id))}` : ''}<br><span class="small">${dest(t)}</span></span>
+      <span class="nfctaps" title="tocchi ultimi 30 giorni / totali"><b>${t.taps30}</b><small>30 gg</small><span class="muted small">${t.taps} tot.</span></span></div>
+      <div class="row small" style="margin-top:6px"><button type="button" class="ghost" data-a="edit">✏️ Destinazione</button><button type="button" class="ghost" data-a="copy">📋 Copia link da scrivere</button></div><div class="nfcedit"></div></div>`;
+  const sum30 = list.reduce((n, t) => n + t.taps30, 0);
+  box.innerHTML = `<div class="card"><h2 style="margin-top:0">🏷️ NFC</h2>
+      <p class="small">Su ogni adesivo o card scrivi <b>una volta sola</b> il suo link (es. <code>${NFC_BASE}P01</code>). Dove porta lo decidi qui e lo cambi quando vuoi. Ogni tocco viene contato.</p>
+      <p class="small"><b>Come si scrive</b>: app <b>NFC Tools</b> → Scrivi → Aggiungi un record → URL → incolla il link → Scrivi → appoggia l'NFC. Poi <b>Altro → Imposta password</b> (così nessuno può riscriverlo). Non usare «Blocca»: è per sempre.</p>
+      <p class="msg info small">Ultimi 30 giorni: <b>${sum30}</b> tocchi su ${list.filter((t) => t.target).length} NFC attivi.</p></div>
+    <details class="card" open><summary><b>📱 Adesivi da bancone (P)</b> · ${list.filter((t) => t.code[0] === 'P').length}</summary>${list.filter((t) => t.code[0] === 'P').map(row).join('')}</details>
+    <details class="card"><summary><b>💳 Card dei gestori (C)</b> · ${list.filter((t) => t.code[0] === 'C').length}</summary>${list.filter((t) => t.code[0] === 'C').map(row).join('')}</details>
+    ${list.some((t) => !/^[PC]/.test(t.code)) ? `<details class="card"><summary><b>Altri</b></summary>${list.filter((t) => !/^[PC]/.test(t.code)).map(row).join('')}</details>` : ''}`;
+  box.onclick = async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const r = b.closest('.nfcrow'); if (!r) return;
+    const t = list.find((x) => x.code === r.dataset.code);
+    if (b.dataset.a === 'copy') { try { await navigator.clipboard.writeText(NFC_BASE + t.code); b.textContent = '✓ Copiato'; } catch { b.textContent = NFC_BASE + t.code; } return; }
+    if (b.dataset.a !== 'edit') return;
+    const ed = r.querySelector('.nfcedit');
+    if (ed.innerHTML) { ed.innerHTML = ''; return; }
+    const isCassa = /^#\/cassa\//.test(t.target || ''), isPin = /^#\/c\//.test(t.target || '');
+    const kind = !t.target ? (t.code[0] === 'C' ? 'cassa' : 'pin') : isCassa ? 'cassa' : isPin ? 'pin' : 'link';
+    ed.innerHTML = `<div class="card" style="margin:8px 0">
+      <label>Nome (per te)</label><input data-k="label" maxlength="60" value="${esc(t.label || '')}" placeholder="Es. Pub Kymera · bancone">
+      <label>Negozio (per sapere di chi sono i tocchi)</label><select data-k="biz"><option value="">—</option>${shops.map((s2) => `<option value="${esc(s2.id)}" ${s2.id === t.business_id ? 'selected' : ''}>${esc(s2.name)}</option>`).join('')}</select>
+      <label>Dove porta</label><div class="seg" data-k="kind"><button type="button" data-v="pin">📍 Pin / vetrina</button><button type="button" data-v="cassa">🧾 Cassa</button><button type="button" data-v="link">🔗 Link</button><button type="button" data-v="off">⚪ Spento</button></div>
+      <div data-k="pinbox"><label>Link del pin (es. la vetrina del negozio)</label><input data-k="pin" placeholder="https://ubipin.it/#/c/…" value="${isPin ? 'https://ubipin.it/' + esc(t.target) : ''}"></div>
+      <div data-k="cassabox"><label>Cassa del negozio</label><select data-k="cassa">${shops.map((s2) => `<option value="${esc(s2.cashier_token)}" ${isCassa && t.target.toUpperCase().endsWith(String(s2.cashier_token).toUpperCase()) ? 'selected' : ''}>${esc(s2.name)}</option>`).join('')}</select></div>
+      <div data-k="linkbox"><label>Link (https)</label><input data-k="link" placeholder="https://…" value="${kind === 'link' ? esc(t.target) : ''}"></div>
+      <div class="row"><button type="button" data-k="save">Salva</button><button type="button" class="ghost" data-k="test">↗ Prova</button></div><div data-k="m"></div></div>`;
+    const q = (k) => ed.querySelector(`[data-k="${k}"]`);
+    let k2 = kind;
+    const show = () => { [...q('kind').children].forEach((x) => x.classList.toggle('on', x.dataset.v === k2)); q('pinbox').hidden = k2 !== 'pin'; q('cassabox').hidden = k2 !== 'cassa'; q('linkbox').hidden = k2 !== 'link'; };
+    q('kind').onclick = (ev) => { const x = ev.target.closest('button'); if (x) { k2 = x.dataset.v; show(); } };
+    show();
+    const targetOf = () => {
+      if (k2 === 'off') return '';
+      if (k2 === 'cassa') { if (!q('cassa').value) throw new Error('Prima crea il negozio in 🏪 Negozi.'); return '#/cassa/' + q('cassa').value; }
+      if (k2 === 'pin') { const m = q('pin').value.trim().match(/#\/c\/([A-Za-z0-9_-]{4,40})/) || q('pin').value.trim().match(/^([A-Za-z0-9_-]{4,40})$/); if (!m) throw new Error('Incolla il link del pin (https://ubipin.it/#/c/…).'); return '#/c/' + m[1]; }
+      const u = q('link').value.trim(); if (!/^https:\/\//.test(u)) throw new Error('Il link deve iniziare con https://'); return u;
+    };
+    q('test').onclick = () => { try { const tg = targetOf(); if (tg) window.open(tg.startsWith('#') ? location.pathname + tg : tg, '_blank', 'noopener'); } catch (err) { msg(q('m'), errText(err)); } };
+    q('save').onclick = async () => {
+      try {
+        let biz = q('biz').value;
+        if (k2 === 'cassa' && !biz) biz = shops.find((s2) => s2.cashier_token === q('cassa').value)?.id || '';
+        await B.adminNfcSave({ code: t.code, label: q('label').value.trim(), target: targetOf(), business_id: biz });
+        adminNfcTab(box);
+      } catch (err) { msg(q('m'), errText(err)); }
+    };
+  };
+}
+
 // ---------- Curiosità: pin pronti (testo nostro + foto libere da Wikimedia Commons) ----------
 const WIKI = 'https://it.wikipedia.org/w/api.php', COMMONS = 'https://commons.wikimedia.org/w/api.php';
 const wget = async (base, params) => {
@@ -3587,6 +3680,14 @@ const ADMIN_GUIDE = `<div class="aguide">
 <p><b>Cosa dici al negozio</b>: «Ogni mese ti dico quante persone sono entrate grazie a Ubi». Il numero è in <b>📊 Pin</b>: gli sblocchi della vetrina. L'offerta si cambia modificando il pin, il banner resta uguale.</p>
 <p><b>Limite</b>: funziona sulla fiducia (alla cassa guardano il pin aperto; non c'è un controllo contro screenshot o ripetizioni). Va bene per offerte piccole. Per regali di valore usa le <b>campagne regalo</b> con codice unico e 🧾 Cassa.</p>
 <p><b>Il percorso da proporre</b>: banner → vetrina per farli entrare → campagna regalo per Natale e le occasioni.</p></details>
+
+<details><summary>5c · NFC: adesivi da bancone e card dei gestori</summary>
+<p>Su ogni NFC si scrive <b>una sola volta</b> il suo link: adesivi <b>ubipin.it/#/nfc/P01 … P60</b>, card <b>ubipin.it/#/nfc/C01 … C20</b>. Dove portano lo decidi in <b>🏷️ NFC</b> e lo cambi quando vuoi, senza riscriverli.</p>
+<ol><li><b>Scrivere</b>: app <b>NFC Tools</b> → Scrivi → Aggiungi un record → URL → incolla il link (in 🏷️ NFC c'è «📋 Copia link da scrivere») → Scrivi → appoggia l'NFC.</li>
+<li><b>Proteggere</b>: NFC Tools → Altro → <b>Imposta password</b> (annotala). Mai «Blocca»: è per sempre.</li>
+<li><b>Destinazione</b>: 🏷️ NFC → «✏️ Destinazione»: 📍 pin/vetrina del negozio (per gli adesivi), 🧾 Cassa del negozio (per le card), 🔗 link, oppure ⚪ spento.</li>
+<li><b>Tocchi</b>: per ogni NFC vedi quelli degli ultimi 30 giorni e i totali. Da dire al negozio: «Questo mese 47 clienti hanno avvicinato il telefono al tuo bancone».</li></ol>
+<p class="small">L'adesivo sul bancone porta alla <b>vetrina</b>: il cliente è già nel negozio, quindi la sblocca subito. Sull'espositore metti anche un QR con lo stesso link, per chi non ha l'NFC. iPhone: schermo sbloccato, avvicinare la parte alta del telefono.</p></details>
 
 <details><summary>6 · Cacce al tesoro</summary>
 <ol><li><b>Profilo → Le mie cacce</b>: nome, premio, numero massimo di vincitori.</li>
