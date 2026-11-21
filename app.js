@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211933';
+import { CONFIG } from './config.js?v=202611212206';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211933';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611212206';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.108';
+const APP_VERSION = 'v.109';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -211,8 +211,13 @@ async function supabaseBackend() {
     },
     async listMine() {
       const u = await B.user();
-      return must(await sb.from('contents').select('id,share_slug,title,hint,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled,unlock_at,open_anywhere,hunt_id,hunt_step')
-        .eq('owner_id', u.id).order('created_at', { ascending: false }));
+      // a pagine da 1000: oltre quella soglia Supabase taglia la risposta senza avvisare
+      const all = [];
+      for (let from = 0; ; from += 1000) {
+        const page = must(await sb.from('contents').select('id,share_slug,title,hint,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled,unlock_at,open_anywhere,hunt_id,hunt_step')
+          .eq('owner_id', u.id).order('created_at', { ascending: false }).order('id').range(from, from + 999));
+        all.push(...page); if (page.length < 1000) return all;
+      }
     },
     async create(d) {
       const u = await B.user();
@@ -3512,12 +3517,32 @@ async function adminSeedTab(box) {
   const stat = (t) => { const its = items.filter((i) => i.town === t); const d = its.filter((i) => mine.has(i.title)); const txt = d.filter((i) => mine.get(i.title).media_type === 'text').length;
     return `${t} · ${d.length}/${its.length} creati${txt ? ` · ${txt} senza foto` : ''}`; };
   const noPhoto = mineList.filter((c) => c.media_type === 'text' && ((c.tags || []).includes('curiosità') || (c.tags || []).includes('letteratura'))).length;
+  const isSeed = (c) => (c.tags || []).includes('curiosità') || (c.tags || []).includes('letteratura');
+  const byTitle = new Map(); mineList.filter(isSeed).forEach((c) => { if (!byTitle.has(c.title)) byTitle.set(c.title, []); byTitle.get(c.title).push(c); });
+  // per ogni titolo tengo il più vecchio (o quello con la foto) e segno gli altri come doppioni
+  const dupList = [];
+  for (const arr of byTitle.values()) if (arr.length > 1) {
+    arr.sort((a, b) => (a.media_type === 'text') - (b.media_type === 'text') || a.created_at.localeCompare(b.created_at));
+    dupList.push(...arr.slice(1));
+  }
+  const dupTitles = [...new Set(dupList.map((c) => c.title))];
+  const dupNames = dupTitles.slice(0, 8).map((t) => `«${esc(t)}»`).join(', ') + (dupTitles.length > 8 ? ` e altri ${dupTitles.length - 8}` : '');
   box.innerHTML = `<div class="card"><p><b>${items.length}</b> curiosità in ${towns.length} comuni. Scegli un comune: cerco le foto libere su Wikimedia Commons e tu scegli quella giusta.</p>
+    ${dupList.length ? `<p class="small">⚠️ Ci sono <b>${dupList.length}</b> pin doppi (stesso titolo creato più volte): ${dupNames}.</p>
+    <button class="ghost full" id="seeddup">🧹 Elimina i doppioni (tengo il più vecchio)</button><div id="dupmsg"></div>` : ''}
     ${noPhoto ? `<p class="small">📷 Hai <b>${noPhoto}</b> curiosità già create senza foto: apri il loro comune, scegli una foto e premi «Aggiungi foto».</p>` : ''}
     <button class="accent full" id="seedauto">⚡ Fai tutto in automatico</button>
     <p class="muted small">Crea tutte le curiosità mancanti e aggiunge una foto a quelle già create senza, scegliendo da solo la foto più adatta. Lascia la pagina aperta: puoi interrompere e riprendere quando vuoi, riparte da dove era rimasto.</p><div id="automsg"></div>
     <p class="small" style="margin-top:14px">Oppure scegli tu le foto, comune per comune:</p>
     <select id="seedtown" class="full"><option value="">— scegli un comune —</option>${towns.map((t) => `<option value="${esc(t)}">${esc(stat(t))}</option>`).join('')}</select></div><div id="seedbox"></div>`;
+  if ($('#seeddup')) $('#seeddup').onclick = async () => {
+    const b = $('#seeddup');
+    if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = `Conferma: elimino ${dupList.length} doppioni`; return; }
+    b.disabled = true; let ok = 0; const bad = [];
+    for (const c of dupList) { try { await B.remove(c); ok++; msg($('#dupmsg'), `Eliminati ${ok} di ${dupList.length}…`, 'info'); } catch (e) { bad.push(`${c.title}: ${errText(e)}`); } }
+    msg($('#dupmsg'), `Eliminati ${ok} doppioni.${bad.length ? `<br>Non riusciti: ${bad.map(esc).join(' · ')}` : ''}`, bad.length ? 'err' : 'ok');
+    setTimeout(() => adminSeedTab(box), 1500);
+  };
   $('#seedtown').onchange = () => { const t = $('#seedtown').value; if (t) seedTown(t); };
   let stop = false;
   $('#seedauto').onclick = async () => {
