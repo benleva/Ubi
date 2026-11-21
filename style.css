@@ -431,3 +431,10 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .custq .custhead{display:flex;gap:12px;align-items:center;margin-bottom:10px}.custq .custhead p{margin:4px 0 0}
 .custopts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}.custopts button{margin:0;padding:10px 8px;font-size:14px}
 .custopts button.on{background:#1f3a5f;color:#fff;border-color:#1f3a5f}
+/* scelta dell'icona del pin */
+.icopick{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.icopick button{margin:0;padding:4px;border-radius:50%;background:transparent;border:2px solid transparent;line-height:0}
+.icopick button.on{border-color:#e8743b;background:#fff3ec}
+.icopick .tico{width:34px;height:34px;font-size:17px;transform:none;box-shadow:none}
+.icopick .icoauto{border-radius:18px;padding:8px 12px;line-height:1.2;font-size:13px;border:1px solid #d9d2c3;color:#1f3a5f;background:#fff}
+.icopick .icoauto.on{border-color:#e8743b;background:#fff3ec}

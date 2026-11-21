@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211601';
+import { CONFIG } from './config.js?v=202611211623';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211601';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211623';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.94';
+const APP_VERSION = 'v.95';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -34,7 +34,17 @@ const chestBadge = (step, extra = '') => `<span class="tico chest ${extra}" titl
 const litBadge = (extra = '') => `<span class="tico ${extra}" style="background:#1f6f5c;font-size:.8em" title="Luogo di uno scrittore">📖</span>`;
 // Vetrina di un negozio (tag #vetrina): pallino con la bottega
 const isVetrina = (c) => (c.tags || []).includes('vetrina');
-const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : isVetrina(c) && !c.is_dating ? iconBadge('🏪', '#e8743b', 'Vetrina di un negozio', extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
+// Icona scelta per il pin: si salva come tag nascosto «ico-…» (nessuna modifica al database)
+const STELLA_SVG = '<svg viewBox="-12 -12 24 24" width="78%" height="78%" aria-hidden="true">' + [0, 60, 120, 180, 240, 300].map((a) => `<path transform="rotate(${a})" d="M0 0C4-3 3-8 0-11C-3-8-4-3 0 0Z" fill="#fff"/>`).join('') + [30, 90, 150, 210, 270, 330].map((a) => `<path transform="rotate(${a})" d="M0 0C3-2 2-6 0-8C-2-6-3-2 0 0Z" fill="#ffd1d1"/>`).join('') + '<circle r="2.2" fill="#ffd54a"/></svg>';
+const PIN_ICONS = [
+  ['stella-natale', STELLA_SVG, '#c62828', 'Stella di Natale'], ['albero', '🎄', '#1e7d45', 'Albero di Natale'], ['regalo', '🎁', '#c0392b', 'Regalo'],
+  ['fiore', '🌸', '#d6517d', 'Fiore'], ['pianta', '🪴', '#2e7d32', 'Pianta'], ['negozio', '🏪', '#e8743b', 'Negozio'],
+  ['caffe', '☕', '#6d4c41', 'Caffè'], ['birra', '🍺', '#b7791f', 'Birra'], ['pizza', '🍕', '#d35400', 'Cibo'],
+  ['libro', '📖', '#5b4b8a', 'Libro'], ['cuore', '❤️', '#e91e63', 'Amore'], ['stella', '⭐', '#f1a90f', 'Stella'],
+  ['musica', '🎵', '#7b1fa2', 'Musica'], ['sport', '⚽', '#37474f', 'Sport'], ['montagna', '⛰️', '#546e7a', 'Montagna'], ['info', 'ℹ️', '#1f3a5f', 'Informazioni']];
+const pinIcon = (c) => { const t = (c.tags || []).find((x) => x.startsWith('ico-')); return t ? PIN_ICONS.find((i) => i[0] === t.slice(4)) || null : null; };
+const shownTags = (tags) => (tags || []).filter((t) => !t.startsWith('ico-'));
+const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : pinIcon(c) && !c.is_dating ? iconBadge(pinIcon(c)[1], pinIcon(c)[2], pinIcon(c)[3], extra) : isVetrina(c) && !c.is_dating ? iconBadge('🏪', '#e8743b', 'Vetrina di un negozio', extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
   : c.unlock_at && Date.parse(c.unlock_at) > Date.now() ? iconBadge('⏳', '#8a6d3b', 'Capsula del tempo', extra)
   : badge(c.media_type, extra));
 const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
@@ -52,7 +62,7 @@ const DATING_TAGS = [
 ];
 const DATING_FLAT = new Set(DATING_TAGS.flatMap(([, l]) => l));
 const normTag = (t) => String(t).toLowerCase().replace(/[,;#<>"]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24);
-const tagChips = (tags, cls = 'static') => (tags && tags.length) ? `<div class="chips">${tags.map((t) => `<span class="chip ${cls}">#${esc(t)}</span>`).join('')}</div>` : '';
+const tagChips = (tags0, cls = 'static') => { const tags = shownTags(tags0); return tags.length ? `<div class="chips">${tags.map((t) => `<span class="chip ${cls}">#${esc(t)}</span>`).join('')}</div>` : ''; };
 const VIS = { public: 'Pubblico', hidden: 'Solo io', restricted: 'Destinatari scelti' };
 
 function distanceM(lat1, lng1, lat2, lng2) {
@@ -1440,6 +1450,7 @@ async function viewNew(ed = null, opts = {}) {
       <div class="chips" id="tags"></div>
       <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="newtag" maxlength="24" placeholder="Aggiungi un tag tuo…" enterkeyhint="done">
         <button id="addtag" type="button" class="ghost" style="flex:0 0 auto">＋</button></div>
+      ${dating ? '' : `<label>Icona sulla mappa</label><div class="icopick" id="icopick"></div>`}
     </div>
     <div class="card" ${dating || hunt ? 'hidden' : ''}><h2>⏳ Capsula del tempo <span class="muted small">(facoltativo)</span></h2>
       <label class="inline"><input type="checkbox" id="capsule" ${capsuleOn ? 'checked' : ''}><span>Si può aprire solo <b>da una data e un'ora</b> nel futuro (compleanni, anniversari, «da aprire tra 10 anni»…)</span></label>
@@ -1483,7 +1494,7 @@ async function viewNew(ed = null, opts = {}) {
       ? DATING_TAGS.map(([g, list]) => `<div class="taggroup"><div class="muted small"><b>${g}</b></div>${list.map(chip).join('')}</div>`).join('')
         + (allTags.length ? `<div class="taggroup"><div class="muted small"><b>I tuoi tag</b></div>${allTags.map(chip).join('')}</div>` : '')
       : allTags.map(chip).join('');
-    $('#tagn').textContent = `(${s.tags.size}/${maxTags})`;
+    $('#tagn').textContent = `(${[...s.tags].filter((t) => !t.startsWith('ico-')).length}/${maxTags})`;
   };
   const toggleTag = (t, forceOn = false) => {
     if (s.tags.has(t) && !forceOn) s.tags.delete(t);
@@ -1492,6 +1503,20 @@ async function viewNew(ed = null, opts = {}) {
     msg($('#sm'), ''); drawTags();
   };
   $('#tags').onclick = (e) => { const b = e.target.closest('button'); if (b) toggleTag(b.dataset.t); };
+  // --- icona sulla mappa (tag nascosto «ico-…»)
+  const curIco = () => [...s.tags].find((t) => t.startsWith('ico-')) || '';
+  const drawIcons = () => {
+    if (!$('#icopick')) return;
+    $('#icopick').innerHTML = `<button type="button" class="icoauto ${curIco() ? '' : 'on'}" data-ico="">Automatica</button>` + PIN_ICONS.map(([k, ch, col, n]) =>
+      `<button type="button" class="${curIco() === 'ico-' + k ? 'on' : ''}" data-ico="${k}" title="${n}"><span class="tico" style="background:${col}">${ch}</span></button>`).join('');
+  };
+  if ($('#icopick')) $('#icopick').onclick = (e) => {
+    const b = e.target.closest('[data-ico]'); if (!b) return;
+    const old = curIco(); if (old) s.tags.delete(old);
+    if (b.dataset.ico) { if (s.tags.size >= maxTags) { if (old) s.tags.add(old); return msg($('#sm'), `Massimo ${maxTags} tag (l'icona ne usa uno): togline uno.`); } s.tags.add('ico-' + b.dataset.ico); }
+    msg($('#sm'), ''); drawIcons(); drawTags();
+  };
+  drawIcons();
   const addCustom = () => {
     const t = normTag($('#newtag').value); if (!t) return;
     if (!allTags.includes(t) && !(dating && DATING_FLAT.has(t))) allTags.unshift(t);
@@ -1706,7 +1731,7 @@ async function viewNew(ed = null, opts = {}) {
     if (ed.text_body) { $('#txt').value = ed.text_body; $('#txt').oninput(); }
     if (ed.external_url) { $('#url').value = ed.external_url; $('#url').oninput(); }
     $('#title').value = ed.title || ''; $('#hint').value = ed.hint || '';
-    (ed.tags || []).forEach((t) => { if (!allTags.includes(t) && !(dating && DATING_FLAT.has(t))) allTags.unshift(t); }); drawTags();
+    (ed.tags || []).forEach((t) => { if (!t.startsWith('ico-') && !allTags.includes(t) && !(dating && DATING_FLAT.has(t))) allTags.unshift(t); }); drawTags(); drawIcons();
     $(`#vis button[data-v="${s.vis}"]`).click();
     $('#emails').value = (ed.recipients || []).join(', ');
     $('#radius').value = s.radius; $('#rout').textContent = `${s.radius} m`;
@@ -1882,7 +1907,7 @@ async function viewContent(slug, user) {
   const capLine = opensAt ? `<div class="msg info small">⏳ Capsula del tempo · si apre dal <b>${opensAt.toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</b> alle <b>${opensAt.toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' })}</b>${t.open_anywhere ? ', anche da lontano' : ', sul posto'}</div>` : '';
   const header0 = t.is_dating
     ? `<h1>${datingBadge(t.gender)} <span translate="no">${esc(t.title)}</span></h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
-    : `<h1>${badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
+    : `<h1>${pinIcon(t) ? iconBadge(pinIcon(t)[1], pinIcon(t)[2], pinIcon(t)[3]) : badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const bb = biz ? bizBar(biz) : '';
   const header = bb + header0 + huntLine + capLine;
   const player = t.hunt_id && !t.is_owner;
