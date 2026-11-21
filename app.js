@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210303';
+import { CONFIG } from './config.js?v=202611210307';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210303';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210307';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.87';
+const APP_VERSION = 'v.88';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2568,7 +2568,8 @@ const VIDEOS = {
   rispondi: { f: 'video/Ubi-tutorial-rispondi.mp4', s: 19 },
   gruppi: { f: 'video/Ubi-tutorial-gruppi.mp4', s: 21 },
   whatsapp: { f: 'video/Ubi-tutorial-whatsapp.mp4', s: 16 },
-  a_negozio: { f: 'video/Ubi-admin-negozio-v2.mp4', s: 32 },
+  a_negozio: { f: 'video/Ubi-admin-negozio-v3.mp4', s: 25 },
+  cassa: { f: 'video/Ubi-tutorial-cassa-negozio.mp4', s: 25, n: 'Come si usa la Cassa' },
   a_campagna: { f: 'video/Ubi-admin-campagna.mp4', s: 19 },
   a_banner: { f: 'video/Ubi-admin-banner.mp4', s: 18 },
   a_caccia: { f: 'video/Ubi-admin-caccia.mp4', s: 21 },
@@ -2674,6 +2675,7 @@ async function viewCashier(token) {
         <div class="msg info small">${T2('Il catalogo è ancora vuoto: chiedi a Ubi di aggiungere gli articoli.', 'The catalogue is still empty: ask Ubi to add the items.')}</div></div>`}
       ${info.campaigns.length ? `<div class="card"><h2>📊 ${T2('Numeri', 'Numbers')}</h2>${info.campaigns.map((c) => `<p><b>${themeOf(c.theme).e} ${esc(c.title)}</b><br>
         <span class="small">${c.kind === 'omaggio' ? `${T2('Biglietti', 'Cards')}: ${c.total} · ${T2('attivati', 'activated')}: ${c.claimed} · ` : `${T2('Venduti', 'Sold')}: ${c.total} · `}${T2('regalati ad altri', 'given to others')}: ${c.gifted} · ${T2('aperti', 'opened')}: ${c.unlocked} · ${T2('ritirati', 'collected')}: <b>${c.redeemed}</b>${c.redeemed_gifted ? ` (${c.redeemed_gifted} ${T2('da chi l\'ha ricevuto in regalo', 'by gift recipients')})` : ''}</span></p>`).join('')}</div>` : ''}
+      ${videoBtn('cassa')}
       <p class="center small">${linked ? `<a href="#/">← ${T2('Torna a Ubi', 'Back to Ubi')}</a> · <a href="#" id="cunlink">${T2('Scollega dal mio account', 'Unlink from my account')}</a>` : `<a href="#" id="cexit">${T2('Esci dalla cassa', 'Leave the till')}</a>`}</p></div>`;
     if ($('#cexit')) $('#cexit').onclick = (e) => { e.preventDefault(); try { sessionStorage.removeItem(KEY); } catch { /* niente */ } pin = null; askPin(); };
     if ($('#cunlink')) $('#cunlink').onclick = async (e) => { e.preventDefault(); const a = e.target;
@@ -3560,7 +3562,8 @@ const ADMIN_GUIDE = `<div class="aguide">
 <li>⏰ Scaduto → se vuole, <b>Proroga di 7 giorni</b></li><li>⚠️ Già ritirato → non va dato di nuovo</li></ul></li>
 <li><b>Vendi un regalo</b> (bar, pub): il cliente paga al banco, il barista tocca l'articolo due volte → QR da inquadrare (vale 6 mesi) o «Manda su WhatsApp».</li>
 <li><b>Numeri</b>: attivati, regalati, aperti, ritirati. <b>Esci dalla cassa</b> richiede di nuovo il PIN.</li></ul>
-<p class="small">Per vendere servono posizione del negozio e almeno un articolo in catalogo. Ubi non incassa nulla.</p></details>
+<p class="small">Per vendere servono posizione del negozio e almeno un articolo in catalogo. Ubi non incassa nulla.</p>
+<p class="small"><b>Video da mandare al negozio</b> (solo schermate della Cassa, niente amministrazione): collegarsi, vendere un regalo, controllare un codice. Link: <b>ubipin.it/video/Ubi-tutorial-cassa-negozio.mp4</b></p>${videoBtn('cassa')}</details>
 
 <details><summary>5 · Banner pubblicitari</summary>
 <ol><li><b>📣 Banner</b>: nome e testo breve.</li><li>Link: sito, Instagram, Maps, WhatsApp o Vinted.</li>
@@ -4418,9 +4421,9 @@ const FAQ_GUIDE = [
     <li>Ricevi i <b>biglietti da stampare</b> con il QR da dare in cassa. Il cliente torna da te per aprirlo, nell'area che scegli tu (es. il reparto decorazioni).</li>
     <li>I clienti possono <b>regalarlo</b> ad amici e parenti con un pensiero: così ti portano <b>clienti nuovi</b>.</li>
     <li>Un pub o un bar può anche <b>vendere</b> consumazioni da regalare («regala una birra»): il cliente paga al banco e manda il regalo a chi vuole.</li>
-    <li>Hai una <b>pagina Cassa</b> riservata, protetta da PIN, per controllare i codici e vedere i numeri: biglietti attivati, regalati, ritirati.</li>
+    <li>Hai una <b>pagina Cassa</b> riservata, protetta da PIN, per controllare i codici e vedere i numeri: biglietti attivati, regalati, ritirati. Se hai un account Ubi la colleghi una volta e la ritrovi nella tua home, senza PIN.</li>
     <li>Per informazioni scrivi a <a href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">info@ubipin.it</a>.</li></ol>
-    ${videoBtn('campagne')}${videoBtn('consumazione')}${pdfBtn('campagne')}${pdfBtn('consumazione')}${pdfBtn('attivita')}
+    ${videoBtn('campagne')}${videoBtn('consumazione')}${videoBtn('cassa')}${pdfBtn('campagne')}${pdfBtn('consumazione')}${pdfBtn('attivita')}
     ${bizContacts('una campagna regalo')}
     <a class="btn full ghost" href="#/business">⭐ Scopri la pagina per le attività e i nostri partner</a>
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Campagna%20regalo%20su%20Ubi">✉️ Voglio una campagna regalo</a>`],
