@@ -1,0 +1,245 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><title>Ubi · Presentazione completa</title><link rel="stylesheet" href="pdf.css">
+<style>
+.cover h1 { font-size: 46pt; margin-top: 12mm; }
+.cover .row { display: flex; gap: 10mm; align-items: center; margin-top: 10mm; }
+.cover .art { width: 70mm; height: 70mm; }
+.toc { columns: 2; column-gap: 8mm; margin-top: 8mm; padding: 0; list-style: none; }
+.toc li { font-size: 12.5pt; color: #dbe4f0; margin: 0 0 2mm; break-inside: avoid; }
+.toc li b { color: #f0a27a; display: inline-block; width: 8mm; }
+.what { display: grid; grid-template-columns: 1.2fr 1fr; gap: 8mm; align-items: center; }
+.mapfig { height: 56mm; border-radius: 6mm; overflow: hidden; border: 1px solid #e3ddd0; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4.5mm; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+.box h3 { font-size: 14.5pt; margin-top: 1mm; }
+.box p { font-size: 12pt; line-height: 1.42; margin: 1mm 0 0; }
+.box .for { font-size: 9.5pt; color: #e8743b; font-weight: 800; margin-top: 2mm; }
+.box.hl { border: 2px solid #e8743b; }
+ul.check { padding: 0; list-style: none; margin: 0; } ul.check li { padding-left: 10mm; position: relative; margin: 2.6mm 0; font-size: 13.5pt; line-height: 1.45; }
+ul.check li:before { content: '✓'; position: absolute; left: 0; color: #fff; background: #2e9e5b; width: 6.5mm; height: 6.5mm; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10pt; font-weight: 900; top: .5mm; }
+.steps h3 { font-size: 15pt; } .steps p { font-size: 13pt; }
+table.pk { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5pt; margin-top: 3mm; background: #fff; border: 1px solid #e8e1d3; border-radius: 5mm; overflow: hidden; }
+table.pk th, table.pk td { padding: 2.6mm 3mm; text-align: center; border-bottom: 1px solid #efe9dd; }
+table.pk th { background: #1f3a5f; color: #fff; font-size: 13pt; }
+table.pk th.top { background: #e8743b; }
+table.pk td:first-child, table.pk th:first-child { text-align: left; font-weight: 700; color: #3d5674; }
+table.pk tr:last-child td { border-bottom: 0; }
+table.pk .price td { font-size: 15pt; font-weight: 900; color: #1f3a5f; }
+.adm { border-radius: 3mm; color: #fff; padding: 2.4mm 3mm; display: flex; gap: 2.5mm; align-items: center; position: relative; text-align: left; margin-top: 2mm; }
+.adm .lg { width: 10mm; height: 10mm; border-radius: 2mm; background: #fff; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; font-size: 12pt; }
+.adm b { font-size: 9pt; display: block; } .adm small { font-size: 7pt; opacity: .9; display: block; }
+.adm .sp { position: absolute; top: 1mm; right: 2mm; font-size: 5pt; letter-spacing: 1px; opacity: .7; }
+.adm.wide { display: block; padding: 0 0 2.4mm; overflow: hidden; }
+.adm.wide .vid { height: 15mm; background: #19424d; display: flex; align-items: center; gap: 2mm; padding: 0 3mm; }
+.adm.wide .vid i { width: 1mm; height: 11mm; background: #f4efe4; border-radius: 1mm; position: relative; display: inline-block; margin: 0 1.2mm; }
+.adm.wide .vid i:after { content: ''; position: absolute; left: -1.6mm; width: 4.2mm; height: 2.6mm; border-radius: .8mm; background: var(--c); top: var(--y); }
+.adm.wide .row2 { display: flex; gap: 2.5mm; align-items: center; padding: 2mm 3mm 0; }
+.rot { display: flex; gap: 1.2mm; margin-top: 2mm; flex-wrap: wrap; }
+.rot span { flex: 1 0 auto; height: 9mm; border-radius: 1.5mm; color: #fff; font-size: 8.5pt; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.vlist { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6mm 6mm; margin-top: 3mm; padding: 0; list-style: none; }
+.vlist li { font-size: 12pt; line-height: 1.35; padding-left: 7mm; position: relative; }
+.vlist li:before { content: '▶'; position: absolute; left: 0; color: #e8743b; font-size: 9pt; top: .8mm; }
+.qrline { display: flex; gap: 6mm; align-items: center; margin-top: 4mm; }
+.qrline .qr svg { width: 30mm; height: 30mm; }
+.limit { background: #fff8e6; border: 1px solid #f1d58c; border-radius: 5mm; padding: 4.5mm 5mm; margin-top: 5mm; }
+.limit p { font-size: 12pt; margin: 1mm 0 0; line-height: 1.42; }
+.path { display: flex; align-items: center; gap: 3mm; margin-top: 5mm; }
+.path div { flex: 1; background: #1f3a5f; color: #fff; border-radius: 4mm; padding: 3.5mm; text-align: center; font-weight: 800; font-size: 12pt; }
+.path div small { display: block; font-weight: 600; font-size: 9.5pt; opacity: .85; margin-top: 1mm; }
+.path span { color: #e8743b; font-weight: 900; font-size: 18pt; }
+</style></head><body>
+
+<!-- 1. Copertina -->
+<section class="pg dark cover">
+  <span class="logo"><span class="pin"></span>Ubi</span>
+  <h1>I ricordi<br>hanno un posto.<br><em>E i clienti anche.</em></h1>
+  <p class="lead">Foto, video, messaggi e regali fissati in un luogo: si aprono solo quando ci arrivi. Per le persone e per le attività del territorio.</p>
+  <div class="row"><div class="art" data-tree></div>
+    <div><div class="qr"><div data-qr="https://ubipin.it"></div></div><p style="margin:2mm 0 0;font-size:11pt;color:#dbe4f0">Inquadra e prova Ubi<br>gratis, dal telefono</p></div></div>
+  <ul class="toc">
+    <li><b>2</b>Cos'è Ubi</li><li><b>3</b>Come funziona</li><li><b>4</b>Cosa ci fanno le persone</li><li><b>5</b>I servizi per le attività</li>
+    <li><b>6</b>Campagne regalo e consumazioni</li><li><b>7</b>Banner: i pacchetti</li><li><b>8</b>La vetrina del negozio</li><li><b>9</b>Come lavoriamo</li>
+    <li><b>10</b>Perché conviene</li><li><b>11</b>Guide, video e contatti</li>
+  </ul>
+  <div class="foot"><span>ubipin.it</span><span>📞 351 666 1495</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 2. Cos'è Ubi -->
+<section class="pg">
+  <span class="k">Cos'è Ubi</span>
+  <h2>Contenuti che si aprono<br><em>solo quando arrivi lì</em></h2>
+  <div class="what">
+    <div>
+      <p class="lead">Ubi è un'app che fissa foto, video, audio, messaggi e regali in un <b>luogo preciso</b> sulla mappa.</p>
+      <p>Chi li vede sulla mappa può aprirli solo <b>arrivando sul posto</b>: il telefono controlla la posizione e lì si sblocca il contenuto.</p>
+      <p>Per le persone è un modo nuovo di lasciare ricordi. Per un'attività vuol dire una cosa semplice: <b>le persone vengono da te</b>.</p>
+    </div>
+    <div class="mapfig" data-map="16"></div>
+  </div>
+  <div class="g2" style="margin-top:4mm">
+    <div class="box"><div class="e">📱</div><h3>Niente da installare</h3><p>Funziona dal browser del telefono. Si può aggiungere alla schermata Home come un'app.</p></div>
+    <div class="box"><div class="e">🔒</div><h3>Sicuro</h3><p>Posizione, password e codici sono controllati dal server, non dal telefono.</p></div>
+    <div class="box"><div class="e">👵</div><h3>Facile per tutti</h3><p>Si inquadra un QR, si segue la mappa, si tocca «Sblocca qui». Ci sono video tutorial per ogni funzione.</p></div>
+    <div class="box"><div class="e">🌍</div><h3>Italiano e inglese</h3><p>L'app parla anche inglese: va bene per turisti e clienti stranieri.</p></div>
+  </div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>2</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 3. Come funziona -->
+<section class="pg">
+  <span class="k">Come funziona</span>
+  <h2>Quattro passi,<br><em>un ricordo nel posto giusto</em></h2>
+  <div class="steps" style="margin-top:5mm;gap:7mm">
+    <div class="step"><b class="n">1</b><div><h3>Lasci un contenuto</h3><p>Una foto, un video registrato sul posto, un audio, un testo o un link (anche un reel di Instagram o un video di YouTube).</p></div></div>
+    <div class="step"><b class="n">2</b><div><h3>Lo fissi in un luogo</h3><p>Con la tua posizione o cercando un indirizzo. Scegli quanto vicino bisogna arrivare e aggiungi un indizio per trovarlo.</p></div></div>
+    <div class="step"><b class="n">3</b><div><h3>Scegli chi può aprirlo</h3><p>Tutti, solo le persone che scegli (anche un intero gruppo, come «Famiglia») o solo tu. Se vuoi, con una password.</p></div></div>
+    <div class="step"><b class="n">4</b><div><h3>Chi arriva lo sblocca</h3><p>Sulla mappa vede il pin; arrivato sul posto tocca «Sblocca qui» e scopre cosa c'è. Può rispondere con un messaggio, una foto o un video.</p></div></div>
+  </div>
+  <div class="box" style="margin-top:7mm"><h3>📤 Si condivide ovunque</h3><p>Ogni pin ha il suo link, già pronto per WhatsApp, Facebook, TikTok, Telegram e Instagram, con hashtag e immagine. Chi lo apre scopre il luogo e scopre Ubi.</p></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>3</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 4. Persone -->
+<section class="pg">
+  <span class="k">Per le persone · gratis</span>
+  <h2>Cosa ci fanno<br><em>le persone</em></h2>
+  <div class="g2">
+    <div class="box"><div class="e">📍</div><h3>Ricordi nei luoghi</h3><p>Una dedica sulla panchina del primo appuntamento, il video degli auguri al ristorante della festa, la foto del tramonto dove è stata scattata.</p></div>
+    <div class="box"><div class="e">⏳</div><h3>Capsula del tempo</h3><p>Un messaggio che si apre solo da una data: per un compleanno, per i figli da grandi, per la fine di un anno.</p></div>
+    <div class="box"><div class="e">🗺️</div><h3>Caccia al tesoro</h3><p>Tappe con indovinelli: ogni risposta sblocca la tappa successiva. Per famiglie, feste, scuole e pro loco.</p></div>
+    <div class="box"><div class="e">👥</div><h3>Gruppi e rubrica</h3><p>Un pin a tutta la famiglia o agli amici con un tocco: ricevono l'avviso e lo aprono solo sul posto.</p></div>
+    <div class="box"><div class="e">📸</div><h3>Social nei luoghi</h3><p>Un post o un reel di Instagram, un video di YouTube, un percorso da seguire: messi dove sono nati.</p></div>
+    <div class="box"><div class="e">💗</div><h3>Ubi Dating · 18+</h3><p>Un biglietto in un luogo che ami. Lo apre solo chi ci arriva; restate anonimi finché non vi scegliete entrambi.</p></div>
+  </div>
+  <div class="box" style="margin-top:4.5mm"><h3>🎁 E i regali dei negozi</h3><p>Le persone ricevono regali dalle attività (un fiore, un caffè, uno sconto), li possono girare a un amico con un pensiero scritto, e li aprono nel negozio.</p></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>4</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 5. Servizi attività -->
+<section class="pg">
+  <span class="k">Per le attività</span>
+  <h2>I servizi per garden,<br><em>negozi, bar e ristoranti</em></h2>
+  <div class="g2">
+    <div class="box"><div class="e">🎄</div><h3>Campagne regalo</h3><p>Natale, San Valentino, Festa della mamma: un regalo a sorpresa per ogni cliente, da aprire solo nel tuo negozio entro una data.</p><p class="for">Garden · fioristi · negozi</p></div>
+    <div class="box"><div class="e">🍺</div><h3>Regala una consumazione</h3><p>Il cliente paga al banco un caffè, una birra o un hamburger e lo regala a chi vuole, con un messaggio da leggere solo da te.</p><p class="for">Bar · pub · ristoranti</p></div>
+    <div class="box"><div class="e">📣</div><h3>Banner in home</h3><p>Il tuo logo, una foto o un <b>video animato</b> nella pagina che tutti aprono. Tre pacchetti: Base, Plus, Top.</p><p class="for">Tutte le attività</p></div>
+    <div class="box hl"><div class="e">🏪</div><h3>Vetrina</h3><p>Un pin con un'offerta dentro il negozio, collegato al banner: si sblocca solo entrando. Sai quante persone sono arrivate.</p><p class="for">Negozi · bar · ristoranti</p></div>
+    <div class="box"><div class="e">🗺️</div><h3>Caccia al tesoro</h3><p>Indovinelli e tappe nel paese, con un premio da ritirare nel locale. Ogni vincitore ha un codice unico.</p><p class="for">Locali · pro loco · eventi</p></div>
+    <div class="box"><div class="e">⏳</div><h3>Capsula del tempo</h3><p>Un messaggio o un video che si apre in una data scelta, nel luogo scelto: per eventi, inaugurazioni e anniversari.</p><p class="for">Eventi · associazioni</p></div>
+  </div>
+  <p style="margin:4mm 0 0;font-size:12.5pt">⭐ <b>Pagina partner</b>: chi lavora con Ubi compare nella pagina «Per le attività», con logo, città e link.</p>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>5</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 6. Campagne + consumazioni -->
+<section class="pg">
+  <span class="k">Campagne regalo e consumazioni</span>
+  <h2>Un regalo che si apre<br><em>solo nel tuo negozio</em></h2>
+  <div class="g2" style="align-items:start">
+    <div class="box"><h3>🎄 Campagna regalo</h3>
+      <ul class="check" style="margin-top:2mm"><li style="font-size:12pt">Scegli premi, quantità e date.</li><li style="font-size:12pt">Ricevi i <b>biglietti da stampare</b>, ognuno con QR e codice.</li><li style="font-size:12pt">Li dai in cassa: il cliente inquadra e il regalo è suo.</li><li style="font-size:12pt">Torna, lo apre nel negozio e lo ritira.</li></ul></div>
+    <div class="box"><h3>🍺 Regala una consumazione</h3>
+      <ul class="check" style="margin-top:2mm"><li style="font-size:12pt">Il cliente paga e tu tocchi «Birra»: nasce un QR.</li><li style="font-size:12pt">Scrive un pensiero e lo manda su WhatsApp.</li><li style="font-size:12pt">L'amico accetta il regalo e viene da te.</li><li style="font-size:12pt">Lo apre nel locale, legge e brinda.</li></ul></div>
+  </div>
+  <div class="box" style="margin-top:5mm"><h3>💌 Si può regalare a chi vuoi</h3><p>Ogni regalo si può girare a un amico o a un familiare, con un pensiero scritto («Ti regalo questo perché…»). Chi lo riceve viene da te per aprirlo: è un cliente nuovo.</p></div>
+  <div class="box" style="margin-top:5mm"><h3>🧾 La tua pagina Cassa, protetta da PIN</h3>
+    <ul class="check" style="margin-top:2mm"><li style="font-size:12pt">Controlli il codice con un tocco; il «ritirato» impedisce di usarlo due volte.</li>
+      <li style="font-size:12pt">Vedi i numeri in tempo reale: attivati, regalati, aperti, ritirati.</li>
+      <li style="font-size:12pt">Proroghi un regalo per il cliente arrivato in ritardo.</li></ul></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>6</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 7. Banner -->
+<section class="pg">
+  <span class="k">Banner pubblicitario</span>
+  <h2>La tua attività<br><em>nella pagina che tutti aprono</em></h2>
+  <p class="lead" style="margin:0 0 2mm">Il banner sta nella home di Ubi, sotto i pulsanti principali. I banner si alternano nello stesso spazio: <b>meno sono, più spesso torna il tuo</b>.</p>
+  <table class="pk">
+    <tr><th></th><th>Base</th><th>Plus</th><th class="top">Top</th></tr>
+    <tr><td>Volte per giro</td><td>1</td><td>2</td><td>3</td></tr>
+    <tr><td>Tempo a schermo</td><td>9 secondi</td><td>15 secondi</td><td>20 secondi</td></tr>
+    <tr><td>Video animato</td><td>extra</td><td>extra</td><td>incluso</td></tr>
+    <tr><td>Pin vetrina</td><td>—</td><td>1</td><td>2</td></tr>
+    <tr><td>Logo nella pagina partner</td><td>—</td><td>—</td><td>incluso</td></tr>
+    <tr class="price"><td>Prezzo di lancio</td><td>19 € / mese</td><td>39 € / mese</td><td>69 € / mese</td></tr>
+  </table>
+  <p class="note" style="margin-top:1.5mm">IVA esclusa. 3 mesi: 49 / 99 / 179 €. 12 mesi: due mesi in regalo. Chi entra durante il lancio tiene il prezzo per 12 mesi.</p>
+  <div class="g2" style="margin-top:3mm;align-items:start">
+    <div><h3>Come appare</h3>
+      <div class="adm" style="background:#1e7d45"><div class="lg">🌿</div><div><b>Il tuo garden</b><small>Stelle di Natale e idee regalo</small></div><span class="sp">SPONSOR</span></div>
+      <div class="adm wide" style="background:#19424d"><div class="vid"><i style="--c:#e0a83a;--y:7mm"></i><i style="--c:#d98a3a;--y:5mm"></i><i style="--c:#5fa36b;--y:3.5mm"></i><i style="--c:#4a9ea0;--y:2mm"></i><i style="--c:#3fa37a;--y:.5mm"></i><b style="font-size:13pt;color:#f4efe4;margin-left:3mm">5 LEVE</b><span style="margin-left:auto;font-size:7pt;opacity:.7">▶ video</span></div>
+        <div class="row2"><div class="lg">📘</div><div><b>Top con video animato</b><small>Gira da solo, senza audio</small></div></div><span class="sp">SPONSOR</span></div></div>
+    <div><h3>Esempio con 10 negozi nel giro</h3>
+      <p style="font-size:12pt;margin:1mm 0 0">Gli altri 9 sono Base. Il tuo banner è visibile per questa parte del tempo:</p>
+      <div class="rot"><span style="background:#7d93ad;flex:0 0 10%">10%</span><span style="background:#ebe4d6;color:#6b7c90">Base</span></div>
+      <div class="rot"><span style="background:#2c5282;flex:0 0 27%">27%</span><span style="background:#ebe4d6;color:#6b7c90">Plus</span></div>
+      <div class="rot"><span style="background:#e8743b;flex:0 0 43%">43%</span><span style="background:#ebe4d6;color:#6b7c90">Top</span></div></div>
+  </div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>7</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 8. Vetrina -->
+<section class="pg">
+  <span class="k">La vetrina del negozio</span>
+  <h2>Non solo click:<br><em>clienti che entrano davvero</em></h2>
+  <p class="lead" style="margin:0">La vetrina è un pin lasciato <b>dentro il negozio</b> e collegato al banner. Il banner fa venire voglia, la vetrina porta la persona sul posto.</p>
+  <div class="steps" style="margin-top:5mm;gap:5mm">
+    <div class="step"><b class="n">1</b><div><h3>Un'offerta nel pin</h3><p>Una foto o un video del negozio con un'offerta: «Mostra questo pin alla cassa: il secondo caffè è offerto da noi».</p></div></div>
+    <div class="step"><b class="n">2</b><div><h3>Il banner porta lì</h3><p>Il banner mostra «📍 Vetrina · scopri l'offerta sul posto». Toccandolo si vede dov'è il negozio, con le indicazioni. L'offerta resta chiusa.</p></div></div>
+    <div class="step"><b class="n">3</b><div><h3>Sulla mappa con l'icona 🏪</h3><p>La nota anche chi passa in zona mentre esplora Ubi.</p></div></div>
+    <div class="step"><b class="n">4</b><div><h3>Si apre entrando</h3><p>In negozio il pin si sblocca: il cliente mostra l'offerta alla cassa.</p></div></div>
+  </div>
+  <div class="box hl" style="margin-top:5mm"><h3>📊 Sai quanti sono arrivati</h3><p>Ogni mese ricevi il numero di persone che hanno aperto la vetrina, cioè quante sono entrate grazie a Ubi. L'offerta si cambia quando vuoi, senza rifare il banner.</p></div>
+  <div class="path"><div>Banner<small>ti fai conoscere</small></div><span>→</span><div>Vetrina<small>li fai entrare</small></div><span>→</span><div>Campagna regalo<small>li fai tornare</small></div></div>
+  <p class="note" style="margin-top:4mm">La vetrina è pensata per offerte piccole (un caffè, uno sconto, un assaggio). Per regali di valore ci sono le campagne regalo, con un codice unico per ogni cliente convalidato una sola volta.</p>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>8</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 9. Come lavoriamo -->
+<section class="pg">
+  <span class="k">Come lavoriamo</span>
+  <h2>Tu scegli cosa offrire,<br><em>al resto pensiamo noi</em></h2>
+  <div class="steps" style="margin-top:6mm;gap:7mm">
+    <div class="step"><b class="n">1</b><div><h3>Ci racconti cosa vuoi</h3><p>Il servizio, i premi o l'offerta, le date e la zona del negozio dove vuoi far arrivare i clienti.</p></div></div>
+    <div class="step"><b class="n">2</b><div><h3>Prepariamo tutto</h3><p>Banner (anche animato), vetrina, regali sulla mappa, biglietti da stampare con QR e codice, la tua pagina Cassa.</p></div></div>
+    <div class="step"><b class="n">3</b><div><h3>Parti in 24 ore</h3><p>Dal momento in cui ci mandi logo, testo e link. Il primo mese si può disdire senza costi.</p></div></div>
+    <div class="step"><b class="n">4</b><div><h3>Vedi i risultati</h3><p>Biglietti attivati, regali ritirati, vetrine aperte: i numeri li vedi in tempo reale o te li mandiamo noi.</p></div></div>
+  </div>
+  <div class="box" style="margin-top:7mm"><h3>Nessun vincolo</h3><p>A fine periodo si rinnova o si smette, senza penali. Il negozio fornisce testi e immagini di cui ha i diritti; Ubi può rifiutare contenuti offensivi o ingannevoli.</p></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>9</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 10. Perché conviene -->
+<section class="pg">
+  <span class="k">Perché conviene</span>
+  <h2>Clienti che arrivano,<br><em>clienti che tornano</em></h2>
+  <ul class="check" style="margin-top:4mm">
+    <li><b>Pubblico locale e in movimento</b>: su Ubi le persone camminano, esplorano e passano davanti alle vetrine.</li>
+    <li><b>Il cliente viene da te</b>: regali e offerte si aprono solo nel tuo negozio, entro le date che scegli tu.</li>
+    <li><b>Porta clienti nuovi</b>: ogni regalo si può girare a un amico, che viene da te per aprirlo.</li>
+    <li><b>Passa tra i tuoi prodotti</b>: scegli tu l'area dove si sblocca, vicino alle novità.</li>
+    <li><b>Ne parlano</b>: un regalo a sorpresa sulla mappa si racconta e si condivide sui social.</li>
+    <li><b>Pubblicità pulita</b>: un banner per volta, segnato «Sponsor», niente pop-up e niente tracciamento.</li>
+    <li><b>Sai come va</b>: numeri in tempo reale, senza fogli e senza conteggi.</li>
+    <li><b>Prezzo di lancio</b>: chi entra adesso ha meno concorrenti nel giro e blocca il prezzo per un anno.</li>
+  </ul>
+  <p class="note" style="margin-top:5mm">Le campagne con premi assegnati a sorte possono rientrare nella disciplina delle manifestazioni a premio: ti consigliamo di verificarlo con il tuo consulente.</p>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>10</span><span class="u">info@ubipin.it</span></div>
+</section>
+
+<!-- 11. Guide, video, contatti -->
+<section class="pg">
+  <span class="k">Guide, video e contatti</span>
+  <h2>Tutto spiegato<br><em>passo per passo</em></h2>
+  <p style="margin:0">Nelle FAQ di Ubi ogni funzione ha il suo <b>video tutorial</b> di mezzo minuto, e ogni servizio il suo PDF da scaricare.</p>
+  <ul class="vlist">
+    <li>Come si apre un pin</li><li>Lascia un contenuto</li><li>Condividi e WhatsApp</li><li>Rispondi a un pin</li>
+    <li>Gruppi e rubrica</li><li>Un post social in un pin</li><li>Capsula del tempo</li><li>Caccia al tesoro</li>
+    <li>Campagne regalo</li><li>Regala una consumazione</li><li>Ubi Dating: entra</li><li>Ubi Dating: conoscersi</li>
+  </ul>
+  <div class="qrline"><div class="qr"><div data-qr="https://ubipin.it/#/business"></div></div>
+    <div><h3 style="margin:0">Pagina per le attività</h3><p style="margin:1mm 0 0;font-size:12.5pt">ubipin.it/#/business · servizi, partner, PDF e video</p></div></div>
+  <div data-contact data-title="Parliamone" data-text="Scrivici o chiamaci: nome dell'attività, paese e cosa vorresti fare con Ubi. Ti rispondiamo con una proposta su misura." style="margin-top:6mm"></div>
+  <div class="foot"><span class="logo" style="font-size:13pt"><span class="pin" style="width:6mm;height:6mm"></span>Ubi</span><span>11</span><span class="u">ubipin.it</span></div>
+</section>
+<script type="module" src="pdf.js"></script>
+</body></html>

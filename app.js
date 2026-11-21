@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210153';
+import { CONFIG } from './config.js?v=202611210200';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210153';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210200';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.79';
+const APP_VERSION = 'v.80';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2531,7 +2531,8 @@ function giftSendPanel(g) {
 // ======================= PAGINA «PER LE ATTIVITÀ» (#/business) =======================
 // Presentazioni da scaricare e stampare (file in /pdf). Quelle senza file non compaiono finché non sono pronte.
 const PDFS = [
-  { k: 'attivita', t: 'Ubi per le attività (presentazione completa)', f: 'pdf/Ubi-per-le-attivita.pdf' },
+  { k: 'tutto', t: 'Ubi · Presentazione completa (tutti i servizi, banner e vetrina)', f: 'pdf/Ubi-presentazione-completa.pdf' },
+  { k: 'attivita', t: 'Ubi per le attività (servizi per i negozi)', f: 'pdf/Ubi-per-le-attivita.pdf' },
   { k: 'campagne', t: 'Campagne regalo (garden e negozi)', f: 'pdf/Ubi-campagne-regalo.pdf' },
   { k: 'consumazione', t: 'Regala una consumazione (bar e pub)', f: 'pdf/Ubi-regala-una-consumazione.pdf' },
   { k: 'caccia', t: 'Caccia al tesoro', f: 'pdf/Ubi-caccia-al-tesoro.pdf' },
@@ -2581,7 +2582,7 @@ async function viewBusiness() {
       <h1>Porta i clienti nel tuo negozio.<br><em>Con un regalo.</em></h1>
       <p>Regali da sbloccare solo da te: il cliente torna, scopre il premio e ne parla agli amici.</p>
       <a class="btn full accent" style="background:var(--accent);color:#fff" href="${mail}">✉️ Diventa partner</a>
-      ${pdfBtn('attivita').replace('class="btn ghost full pdfbtn"', 'class="btn full pdfbtn pdflight"')}</section>
+      ${pdfBtn('tutto').replace('class="btn ghost full pdfbtn"', 'class="btn full pdfbtn pdflight"')}</section>
     <h2>Come funziona</h2>
     <div class="bizsteps">
       <div><b>1</b><p><strong>Dai un biglietto</strong> con un QR ai tuoi clienti, alla cassa.</p></div>
@@ -3513,6 +3514,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 
 <details><summary>10 · Materiale per vendere</summary>
 <ul><li><a href="#/business">Pagina per le attività</a> (servizi, video, PDF, partner, contatti)</li>
+<li><a href="pdf/Ubi-presentazione-completa.pdf" target="_blank" rel="noopener"><b>PDF Presentazione completa</b></a> (11 pagine: tutto Ubi, banner con prezzi, vetrina)</li>
 <li><a href="pdf/Ubi-per-le-attivita.pdf" target="_blank" rel="noopener">PDF Ubi per le attività</a></li>
 <li>Campagne regalo: <a href="pdf/Ubi-campagne-regalo.pdf" target="_blank" rel="noopener">PDF</a> · <a href="video/Ubi-tutorial-campagne-regalo.mp4" target="_blank" rel="noopener">video</a></li>
 <li>Regala una consumazione: <a href="pdf/Ubi-regala-una-consumazione.pdf" target="_blank" rel="noopener">PDF</a> · <a href="video/Ubi-tutorial-regala-una-consumazione.mp4" target="_blank" rel="noopener">video</a></li>
@@ -4315,7 +4317,7 @@ const FAQ_GUIDE = [
     <li>Con la <b>📍 Vetrina</b> il banner porta i clienti direttamente nel negozio (vedi la voce qui sotto).</li>
     <li>Puoi anche usare Ubi per portare gente da te: un <b>pin pubblico</b> davanti al locale, una <b>caccia al tesoro</b> con premio ritirabile in negozio, una <b>capsula del tempo</b> per un evento.</li>
     <li>Per informazioni e condizioni scrivi a <a href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">info@ubipin.it</a>: indica il nome dell'attività, la città, cosa vuoi promuovere e per quanto tempo. Ti risponderemo con le proposte.</li></ol>
-    ${pdfBtn('banner')}${pdfBtn('attivita')}
+    ${pdfBtn('banner')}${pdfBtn('tutto')}
     ${bizContacts('la pubblicità su Ubi')}
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">✉️ Contattaci per la pubblicità</a>`],
   ['🏪 La vetrina: porta i clienti dentro il negozio', `<p>La vetrina è un <b>pin lasciato dentro il negozio</b>, collegato al suo banner. Il banner fa venire voglia, la vetrina porta la persona sul posto.</p>
