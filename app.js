@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210223';
+import { CONFIG } from './config.js?v=202611210231';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210223';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210231';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.83';
+const APP_VERSION = 'v.84';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2283,7 +2283,8 @@ const giftIcon = (theme, mine) => theme === 'natale'
   : `<span class="gtree gemo${mine ? ' gmine' : ''}" style="--gc:${themeOf(theme).c}">${theme === 'regalo' ? BOX_SVG : themeOf(theme).e}</span>`;
 const giftArt = (theme) => `<div class="giftart th-${esc(theme)}">${theme === 'natale' ? TREE_SVG : BOX_SVG}${theme !== 'natale' && theme !== 'regalo' ? `<span class="gae">${themeOf(theme).e}</span>` : ''}</div>`;
 const dLong = (d) => new Date(d).toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' });
-const giftUrl = (kind, token) => `${location.origin}${location.pathname}#/${kind}/${token}`;
+// i link dei regali passano da regalo.html: su WhatsApp e social mostrano l'anteprima con il pacco regalo, poi aprono l'app
+const giftUrl = (kind, token) => `${location.origin}${location.pathname.replace(/[^/]*$/, '')}regalo.html#/${kind}/${token}`;
 
 // Disegna alberi/pacchi su una mappa Leaflet; fall = animazione «cadono dal cielo»
 function drawGiftTrees(map, trees, { fall = false, onMine = null, layer = null } = {}) {
@@ -2511,7 +2512,7 @@ function giftSendPanel(g) {
         if (r.status !== 'ok') { msg($('#gsm'), esc(r.status)); b.disabled = false; return; }
         g.gifted = true;
         const url = giftUrl('regalo', r.token);
-        const text = T2(`🎁 Ti ho fatto un regalo da ${g.business}! Aprilo entro il ${dLong(g.expires_at)}:`, `🎁 I got you a gift at ${g.business}! Open it by ${dLong(g.expires_at)}:`);
+        const text = T2(`🎁 Ti ho fatto un regalo${g.prize ? `: «${g.prize}»` : ' a sorpresa'} da ${g.business}!${ta.value.trim() ? ' Dentro c\'è anche un mio messaggio 💌' : ''}\nTocca il link, accettalo e vai a ritirarlo nel negozio entro il ${dLong(g.expires_at)}.\n👉`, `🎁 I got you a gift at ${g.business}! Tap the link, accept it and collect it by ${dLong(g.expires_at)}.\n👉`);
         box.innerHTML = `<h2>🎁 ${T2('Ecco il link del regalo', 'Here is the gift link')}</h2>
           <p class="small">${T2('Mandalo alla persona a cui vuoi regalarlo. Vale una volta sola: quando lo accetta, il regalo passa a lei.', 'Send it to the person you want to give it to. It works only once: when they accept it, the gift moves to them.')}</p>
           <p class="linkbox">${esc(url)}</p>
@@ -2695,7 +2696,7 @@ async function viewCashier(token) {
           $('#cissue').innerHTML = `<div class="card center cqr"><p><b>🎁 ${esc(r.prize)}</b> · ${T2('valido fino al', 'valid until')} ${dLong(r.expires_at)}</p>
             ${qrSvg(url, 220)}<p class="small">${T2('Il cliente inquadra il QR con la fotocamera: il regalo diventa suo e poi può regalarlo a chi vuole.', 'The customer scans the QR with the camera: the gift becomes theirs and then they can give it to anyone.')}</p>
             <p class="small muted">${T2('Codice', 'Code')}: <b>${esc(r.code)}</b></p>
-            <a class="btn" style="background:#25d366" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`🎁 ${r.prize} – ${url}`)}">${T2('Manda su WhatsApp', 'Send on WhatsApp')}</a></div>`;
+            <a class="btn" style="background:#25d366" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(T2(`🎁 Hai ricevuto un regalo: «${r.prize}» da ${info.business}!\nTocca il link, accettalo e vai a ritirarlo nel negozio entro il ${dLong(r.expires_at)}. Puoi anche regalarlo a qualcun altro.\n👉 ${url}`, `🎁 You got a gift: «${r.prize}» from ${info.business}!\nTap the link, accept it and collect it in the shop by ${dLong(r.expires_at)}.\n👉 ${url}`))}">${T2('Manda su WhatsApp', 'Send on WhatsApp')}</a></div>`;
         } catch (err) { msg($('#cissue'), errText(err)); }
       };
     });
