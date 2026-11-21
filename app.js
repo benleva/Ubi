@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210236';
+import { CONFIG } from './config.js?v=202611210255';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210236';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210255';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.85';
+const APP_VERSION = 'v.86';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -264,6 +264,12 @@ async function supabaseBackend() {
     async cashierCheck(t, pin, code, redeem = false) { return must(await sb.rpc('cashier_check', { p_token: t, p_pin: pin, p_code: code, p_redeem: redeem })); },
     async cashierExtend(t, pin, code, days) { return must(await sb.rpc('cashier_extend', { p_token: t, p_pin: pin, p_code: code, p_days: days })); },
     async cashierIssue(t, pin, item, days = 180) { return must(await sb.rpc('cashier_issue', { p_token: t, p_pin: pin, p_item: item, p_days: days })); },
+    // Cassa collegata all'account (entra senza PIN)
+    async cashierLink(t, pin) { return must(await sb.rpc('cashier_link', { p_token: t, p_pin: pin })); },
+    async cashierUnlink(t) { must(await sb.rpc('cashier_unlink', { p_token: t })); },
+    async myCashiers() { try { return must(await sb.rpc('my_cashiers')) || []; } catch { return []; } },   // [] anche se l'SQL non è ancora lanciato
+    async adminCashierMembers() { try { return must(await sb.rpc('admin_cashier_members')) || []; } catch { return []; } },
+    async adminCashierUnlink(b, u) { must(await sb.rpc('admin_cashier_unlink', { p_business: b, p_user: u })); },
     async adminBusinesses() { return (must(await sb.rpc('admin_businesses')) || []).map(unwrapRow('admin_businesses')); },
     async adminBusinessSave(p) { return must(await sb.rpc('admin_business_save', { p })); },
     async adminBusinessToggle(id, enabled, hide) { must(await sb.rpc('admin_business_toggle', { p_id: id, p_enabled: enabled, p_hide: hide })); },
@@ -1187,7 +1193,7 @@ async function viewHome(user, prof) {
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
-    <div id="adminrow" hidden>${ADMIN_LINKS}</div>
+    <div id="adminrow" hidden>${ADMIN_LINKS}</div><div id="cashrow"></div>
     <div id="adslot" style="margin-top:10px"></div>
     <a href="#/dating" class="btn full datingbtn" style="margin-top:10px">💗 Ubi Dating · incontra chi ama i tuoi luoghi</a>
     ${inviteBox(false)}
@@ -1206,6 +1212,7 @@ async function viewHome(user, prof) {
       <div class="meta"><span translate="no">${esc(live[0].business)}</span> · ${T2('fino al', 'until')} ${dLong(live[0].expires_at)}</div></div></a>`;
   }).catch(() => {});
   B.isAdmin().then((ok) => { if (ok && $('#adminrow')) $('#adminrow').hidden = false; });
+  drawCashRow();
   let items;
   try { items = await B.listMine(); } catch (err) { msg($('#list'), errText(err)); return; }
   if (!items.length) { $('#list').innerHTML = '<div class="card center muted">Non hai ancora lasciato nulla.<br>Inizia da un luogo che conta per te.</div>'; return; }
@@ -2629,22 +2636,32 @@ async function viewBusiness() {
 async function viewCashier(token) {
   const KEY = `ubi_cassa_${token}`;
   let pin = null; try { pin = sessionStorage.getItem(KEY); } catch { /* niente */ }
+  // account collegato a questa Cassa: si entra senza PIN
+  let user = null; try { user = await B.user(); } catch { /* non collegato */ }
+  let linked = false;
+  if (user) { try { linked = (await B.myCashiers()).some((x) => String(x.token).toUpperCase() === String(token).toUpperCase()); } catch { /* niente */ } }
+  if (linked) pin = '';
   const askPin = (err = '') => {
     app.innerHTML = `<div class="card cassa"><h1>🧾 Cassa</h1><p class="muted">${T2('Scrivi il PIN del negozio per controllare i regali dei clienti.', "Enter the shop PIN to check customers' gifts.")}</p>
       <input id="cpin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN">
-      <button class="full" id="cgo" type="button">${T2('Entra', 'Enter')}</button><div id="cm"></div></div>`;
+      <button class="full" id="cgo" type="button">${T2('Entra', 'Enter')}</button><div id="cm"></div>
+      ${user ? '' : `<p class="muted small" style="margin-top:14px">💡 ${T2('Hai un account Ubi? <a href="#" id="clog">Accedi</a> e poi entra con il PIN: potrai collegare la Cassa al tuo account e la troverai nella tua home, senza PIN.', 'Have a Ubi account? <a href="#" id="clog">Log in</a>, then enter the PIN: you can link the till to your account.')}</p>`}</div>`;
     if (err) msg($('#cm'), esc(err));
+    if ($('#clog')) $('#clog').onclick = (e) => { e.preventDefault(); setPending(location.hash); viewLogin(); };
     $('#cpin').focus();
     const go = () => { pin = $('#cpin').value.trim(); try { sessionStorage.setItem(KEY, pin); } catch { /* niente */ } load(); };
     $('#cgo').onclick = go; $('#cpin').onkeydown = (e) => { if (e.key === 'Enter') go(); };
   };
-  const fail = (r) => { if (r && r.status === 'error') { try { sessionStorage.removeItem(KEY); } catch { /* niente */ } askPin(r.message); return true; } return false; };
+  const fail = (r) => { if (r && r.status === 'error') { try { sessionStorage.removeItem(KEY); } catch { /* niente */ } linked = false; pin = null; askPin(r.message); return true; } return false; };
   const load = async () => {
-    if (!pin) return askPin();
+    if (!pin && !linked) return askPin();
     let info;
     try { info = await B.cashierInfo(token, pin); } catch (err) { return askPin(err.message); }
     if (fail(info)) return;
     app.innerHTML = `<div class="cassa"><h1>🧾 ${T2('Cassa', 'Till')} · <span translate="no">${esc(info.business)}</span></h1>
+      ${user && !linked ? `<div class="card" id="clink" style="border:2px solid #e8743b"><h2 style="margin-top:0">🔗 ${T2('Collega la Cassa al tuo account', 'Link the till to your account')}</h2>
+        <p class="small">${T2('La prossima volta la trovi nella tua home di Ubi con il pulsante «🧾 Cassa», senza PIN. Fallo solo se questo è il tuo account.', 'Next time you will find it in your Ubi home, without PIN. Do it only if this is your account.')}</p>
+        <div class="row"><button type="button" class="accent" id="clinkok">🔗 ${T2('Collega', 'Link')}</button><button type="button" class="ghost" id="clinkno">${T2('Non ora', 'Not now')}</button></div></div>` : ''}
       <div class="card"><h2>${T2('Controlla un regalo', 'Check a gift')}</h2>
         <p class="muted small">${T2('Scrivi il codice che il cliente ti mostra sul telefono (o quello del biglietto).', 'Type the code the customer shows on their phone (or the one on the card).')}</p>
         <div class="row"><input id="ccode" autocapitalize="characters" autocomplete="off" placeholder="ABC123"><button id="cchk" type="button" style="flex:0 0 auto">${T2('Verifica', 'Check')}</button></div>
@@ -2657,8 +2674,19 @@ async function viewCashier(token) {
         <div class="msg info small">${T2('Il catalogo è ancora vuoto: chiedi a Ubi di aggiungere gli articoli.', 'The catalogue is still empty: ask Ubi to add the items.')}</div></div>`}
       ${info.campaigns.length ? `<div class="card"><h2>📊 ${T2('Numeri', 'Numbers')}</h2>${info.campaigns.map((c) => `<p><b>${themeOf(c.theme).e} ${esc(c.title)}</b><br>
         <span class="small">${c.kind === 'omaggio' ? `${T2('Biglietti', 'Cards')}: ${c.total} · ${T2('attivati', 'activated')}: ${c.claimed} · ` : `${T2('Venduti', 'Sold')}: ${c.total} · `}${T2('regalati ad altri', 'given to others')}: ${c.gifted} · ${T2('aperti', 'opened')}: ${c.unlocked} · ${T2('ritirati', 'collected')}: <b>${c.redeemed}</b>${c.redeemed_gifted ? ` (${c.redeemed_gifted} ${T2('da chi l\'ha ricevuto in regalo', 'by gift recipients')})` : ''}</span></p>`).join('')}</div>` : ''}
-      <p class="center small"><a href="#" id="cexit">${T2('Esci dalla cassa', 'Leave the till')}</a></p></div>`;
-    $('#cexit').onclick = (e) => { e.preventDefault(); try { sessionStorage.removeItem(KEY); } catch { /* niente */ } pin = null; askPin(); };
+      <p class="center small">${linked ? `<a href="#/">← ${T2('Torna a Ubi', 'Back to Ubi')}</a> · <a href="#" id="cunlink">${T2('Scollega dal mio account', 'Unlink from my account')}</a>` : `<a href="#" id="cexit">${T2('Esci dalla cassa', 'Leave the till')}</a>`}</p></div>`;
+    if ($('#cexit')) $('#cexit').onclick = (e) => { e.preventDefault(); try { sessionStorage.removeItem(KEY); } catch { /* niente */ } pin = null; askPin(); };
+    if ($('#cunlink')) $('#cunlink').onclick = async (e) => { e.preventDefault(); const a = e.target;
+      if (a.dataset.c !== '1') { a.dataset.c = '1'; a.textContent = T2('Conferma: scollega (servirà di nuovo il PIN)', 'Confirm: unlink (PIN needed again)'); return; }
+      try { await B.cashierUnlink(token); linked = false; pin = null; askPin(); } catch (err) { msg($('#cres'), errText(err)); } };
+    if ($('#clinkok')) {
+      $('#clinkno').onclick = () => { $('#clink').remove(); };
+      $('#clinkok').onclick = async () => {
+        try { const r = await B.cashierLink(token, pin); if (fail(r)) return;
+          linked = true; $('#clink').innerHTML = `<div class="msg ok">✓ ${T2('Collegata! Da ora trovi il pulsante «🧾 Cassa» nella tua home di Ubi.', 'Linked! You will find the «🧾 Till» button in your Ubi home.')} <a href="#/">${T2('Vai alla home', 'Go home')}</a></div>`;
+        } catch (err) { msg($('#clink'), errText(err)); }
+      };
+    }
     const check = async (redeem = false) => {
       const code = $('#ccode').value.trim(); if (!code) return;
       const out = $('#cres');
@@ -2714,6 +2742,8 @@ async function adminShopsTab(box) {
   let list;
   try { list = await B.adminBusinesses(); } catch (err) { box.innerHTML = `<div class="card">${errText(err)}</div>`; return; }
   try { const pd = await B.adminPartnerData(); list.forEach((b) => { b.p = pd.find((x) => x.id === b.id) || null; }); } catch { /* SQL partner non ancora lanciato */ }
+  const members = B.adminCashierMembers ? await B.adminCashierMembers() : [];
+  list.forEach((b) => { b.members = members.filter((m) => m.business_id === b.id); });
   const today = new Date().toISOString().slice(0, 10);
   box.innerHTML = `<p class="muted small">${T2('Ogni negozio ha la sua spunta: togliendola sparisce il pannello e la Cassa, ma non si cancella niente. «Nascondi anche i doni» li toglie pure dalla mappa dei clienti.', '')}</p>
     <button type="button" class="full" id="bnew">＋ Nuovo negozio</button><div id="bform"></div>
@@ -2727,7 +2757,9 @@ async function adminShopsTab(box) {
       ${b.active_until && b.active_until < today ? '<div class="msg warn small">Scaduto: il servizio è sospeso da solo.</div>' : ''}
       <details><summary>🧾 Cassa ${b.has_pin ? '' : '<span class="pill off">manca il PIN</span>'}</summary>
         <p class="linkbox small">${esc(`${location.origin}${location.pathname}#/cassa/${b.cashier_token}`)}</p>
-        <div class="row"><button type="button" class="ghost" data-a="copycassa">Copia link</button><input data-a="pin" inputmode="numeric" maxlength="8" placeholder="Nuovo PIN (4-8 cifre)"><button type="button" data-a="savepin" style="flex:0 0 auto">Salva PIN</button></div></details>
+        <div class="row"><button type="button" class="ghost" data-a="copycassa">Copia link</button><input data-a="pin" inputmode="numeric" maxlength="8" placeholder="Nuovo PIN (4-8 cifre)"><button type="button" data-a="savepin" style="flex:0 0 auto">Salva PIN</button></div><div class="cmembers"><p class="small" style="margin:10px 0 4px"><b>🔗 Account collegati</b> (entrano senza PIN dalla loro home)</p>
+          ${b.members.length ? b.members.map((m) => `<div class="row small" style="align-items:center"><span style="flex:1">👤 ${esc(m.name || '')}${m.email ? ` · ${esc(m.email)}` : ''}<br><span class="muted">dal ${new Date(m.since).toLocaleDateString(LOC)}</span></span><button type="button" class="ghost" data-a="munlink" data-u="${esc(m.user_id)}" style="flex:0 0 auto">✕ Scollega</button></div>`).join('')
+            : '<p class="muted small">Nessuno. Quando il titolare entra con il PIN dal suo account Ubi, può collegarsi.</p>'}</div></details>
       <details><summary>🛍️ Catalogo (${b.items.length})</summary>
         ${b.items.map((it) => `<div class="citem" data-id="${esc(it.id)}"><div class="row small" style="align-items:center">${it.image_url ? `<img class="citthumb" src="${esc(it.image_url)}" alt="">` : ''}<span style="flex:1">${it.active ? '' : '🚫 '}<b>${esc(it.name)}</b> ${esc(it.value_label || '')}${it.meaning ? `<br><span class="muted">${esc(it.meaning)}</span>` : ''}</span></div>
           <div class="row small citacts"><button type="button" class="ghost" data-a="itemtoggle" data-id="${esc(it.id)}" data-on="${it.active ? 1 : 0}">${it.active ? 'Togli' : 'Rimetti'}</button><button type="button" class="ghost" data-a="itemdup" data-id="${esc(it.id)}">⧉ Duplica</button><label class="btn ghost" style="margin:0">📷 Foto<input type="file" accept="image/*" data-a="itemphoto" data-id="${esc(it.id)}" hidden></label></div>
@@ -2758,6 +2790,9 @@ async function adminShopsTab(box) {
     q('hide').onchange = q('en').onchange;
     q('until').onchange = async () => { try { await B.adminBusinessSave({ ...b, pin: '', active_until: q('until').value }); reload(); } catch (err) { msg(out, errText(err)); } };
     q('nountil').onclick = async () => { q('until').value = ''; q('until').onchange(); };
+    card.querySelectorAll('[data-a="munlink"]').forEach((x) => { x.onclick = async () => {
+      if (x.dataset.c !== '1') { x.dataset.c = '1'; x.textContent = 'Conferma'; return; }
+      try { await B.adminCashierUnlink(b.id, x.dataset.u); reload(); } catch (err) { msg(out, errText(err)); } }; });
     q('copycassa').onclick = async () => { try { await navigator.clipboard.writeText(`${location.origin}${location.pathname}#/cassa/${b.cashier_token}`); q('copycassa').textContent = 'Copiato ✓'; } catch { /* a mano */ } };
     q('savepin').onclick = async () => { const p = q('pin').value.trim(); if (!/^[0-9]{4,8}$/.test(p)) return msg(out, 'Il PIN deve avere da 4 a 8 cifre.'); try { await B.adminBusinessSave({ ...b, pin: p }); msg(out, 'PIN salvato ✓ Comunicalo al negozio a voce, non per email.', 'ok'); q('pin').value = ''; } catch (err) { msg(out, errText(err)); } };
     // foto caricate dal telefono: ridotte e salvate nell'archivio pubblico dei banner
@@ -2910,7 +2945,7 @@ async function adminCardsPrint(campaignId) {
 function demoGifts(getDb, save) {
   const ALPHA = 'ACDEFGHJKMNPQRTUVWXY34679';
   const code = (n) => Array.from({ length: n }, () => ALPHA[Math.floor(Math.random() * ALPHA.length)]).join('');
-  const D = () => { const db = getDb(); db.biz = db.biz || []; db.camps = db.camps || []; db.gifts = db.gifts || []; db.items = db.items || []; return db; };
+  const D = () => { const db = getDb(); db.biz = db.biz || []; db.camps = db.camps || []; db.gifts = db.gifts || []; db.items = db.items || []; db.members = db.members || []; return db; };
   const uid = () => getDb().user?.id;
   const ctx = (g) => { const db = D(); const c = db.camps.find((x) => x.id === g.campaign_id); const b = db.biz.find((x) => x.id === c.business_id); return { c, b }; };
   const exp = (g, c) => g.expires_at || c.expires_at;
@@ -2924,7 +2959,8 @@ function demoGifts(getDb, save) {
       message: u ? g.message : null, redeem_code: u ? g.redeem_code : null, redeemed_at: g.redeemed_at, unlocked_at: g.unlocked_at }; };
   const active = (b) => b.enabled && (!b.active_until || b.active_until >= new Date().toISOString().slice(0, 10));
   const auth = (t, pin) => { const b = D().biz.find((x) => x.cashier_token === String(t).toUpperCase());
-    if (!b) return { err: 'Cassa non trovata: controlla il link.' }; if (b.pin !== pin) return { err: 'PIN sbagliato.' }; if (!active(b)) return { err: 'Il servizio per questo negozio è sospeso.' }; return { b }; };
+    if (!b) return { err: 'Cassa non trovata: controlla il link.' }; const mem = uid() && D().members.some((m) => m.business_id === b.id && m.user_id === uid());
+    if (!mem && b.pin !== pin) return { err: 'PIN sbagliato.' }; if (!active(b)) return { err: 'Il servizio per questo negozio è sospeso.' }; return { b }; };
   const byCode = (b, k) => { k = String(k).toUpperCase().replace(/[^A-Z0-9]/g, ''); const ids = D().camps.filter((c) => c.business_id === b.id).map((c) => c.id);
     return D().gifts.find((g) => ids.includes(g.campaign_id) && (g.redeem_code === k || g.card_code === k)); };
   const stats = (c) => { const gs = D().gifts.filter((g) => g.campaign_id === c.id);
@@ -2961,6 +2997,13 @@ function demoGifts(getDb, save) {
     async giftTrees(bb) { return D().gifts.filter((g) => { const { c, b } = ctx(g); return !b.hide_campaigns && !g.redeemed_at && Date.now() <= Date.parse(exp(g, c))
         && (c.kind === 'omaggio' ? g.lat >= bb.s && g.lat <= bb.n && g.lng >= bb.w && g.lng <= bb.e : g.holder_id === uid()); })
       .map((g) => ({ lat: g.lat, lng: g.lng, theme: ctx(g).c.theme, mine: g.holder_id === uid() && !!uid(), gift_id: g.holder_id === uid() ? g.id : null })); },
+    async cashierLink(t, pin) { if (!uid()) return { status: 'login' }; const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err };
+      if (!D().members.some((m) => m.business_id === a.b.id && m.user_id === uid())) D().members.push({ business_id: a.b.id, user_id: uid(), since: new Date().toISOString() }); save();
+      return { status: 'ok', business: a.b.name }; },
+    async cashierUnlink(t) { const b = D().biz.find((x) => x.cashier_token === String(t).toUpperCase()); if (!b) return; getDb().members = D().members.filter((m) => !(m.business_id === b.id && m.user_id === uid())); save(); },
+    async myCashiers() { return D().members.filter((m) => m.user_id === uid()).map((m) => D().biz.find((b) => b.id === m.business_id)).filter((b) => b && active(b)).map((b) => ({ name: b.name, token: b.cashier_token })); },
+    async adminCashierMembers() { const db = getDb(); return D().members.map((m) => ({ ...m, email: m.user_id === db.user?.id ? db.user.email : '', name: db.profiles?.[m.user_id]?.display_name || '' })); },
+    async adminCashierUnlink(bid, u) { getDb().members = D().members.filter((m) => !(m.business_id === bid && m.user_id === u)); save(); },
     async cashierInfo(t, pin) { const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err };
       return { business: a.b.name, items: D().items.filter((i) => i.business_id === a.b.id && i.active).map((i) => ({ id: i.id, name: i.name, value: i.value_label })),
         campaigns: D().camps.filter((c) => c.business_id === a.b.id).map(stats) }; },
@@ -3489,6 +3532,7 @@ const ADMIN_GUIDE = `<div class="aguide">
 <li>Facoltativi: telefono, link «Come acquistare», note solo per te.</li>
 <li>Scegli il <b>PIN della Cassa</b> (4–8 cifre) e premi <b>Salva</b>.</li>
 <li>Apri <b>🧾 Cassa → Copia link</b> e mandalo al negozio. Il PIN <b>a voce</b>, mai nello stesso messaggio.</li></ol>
+<p><b>🔗 Cassa collegata all'account</b>: se il titolare (o un dipendente) ha un account Ubi, gli basta aprire il link della Cassa da loggato e mettere il PIN una volta: compare «🔗 Collega la Cassa al tuo account» → <b>Collega</b>. Da quel momento nella sua home (e nel profilo) c'è il pulsante verde <b>🧾 Cassa · nome negozio</b> e la Cassa si apre senza PIN. Nella scheda del negozio, sezione 🧾 Cassa, vedi gli <b>account collegati</b> con <b>✕ Scollega</b>. Se sospendi il negozio, il pulsante sparisce a tutti; cambiare il PIN non scollega nessuno. Chi non ha un account usa la Cassa come sempre, con link e PIN.</p>
 <table class="tbl"><tr><th>Comando</th><th>Cosa succede (non si cancella niente)</th></tr>
 <tr><td>☑️ Area riservata attiva</td><td>Tolta: la Cassa dice «servizio sospeso». I regali già dati restano apribili</td></tr>
 <tr><td>Attivo fino al</td><td>Dal giorno dopo si sospende da solo. ✕ toglie la data</td></tr>
@@ -4059,14 +4103,23 @@ function normPhone(v) {
   return x;
 }
 
+// Pulsanti «🧾 Cassa» per chi ha collegato la Cassa del suo negozio all'account
+async function drawCashRow() {
+  if (!B.myCashiers) return;
+  const list = await B.myCashiers().catch(() => []);
+  const box = $('#cashrow');
+  if (!list.length || !box) return;
+  box.innerHTML = `<div class="cashrow">${list.map((c) => `<a class="btn full cashbtn" href="#/cassa/${esc(c.token)}">🧾 ${T2('Cassa', 'Till')} · <span translate="no">${esc(c.name)}</span></a>`).join('')}</div>`;
+}
 async function viewMyProfile(prof) {
   B.isAdmin().then((ok) => { if (ok && $('#adminrow')) $('#adminrow').hidden = false; });
+  drawCashRow();
   const st = { blob: null, remove: false };
   const p = prof || {};
   app.innerHTML = `
     <h1>Il mio profilo</h1>
     ${topTools()}
-    <div id="adminrow" hidden>${ADMIN_LINKS}</div>
+    <div id="adminrow" hidden>${ADMIN_LINKS}</div><div id="cashrow"></div>
     <p class="muted">Foto, presentazione e contatti sono visibili a chi può vedere i tuoi pin. I contatti sono tutti facoltativi.</p>
     <div class="card center">
       <div id="av">${avatarHtml(p.avatar_path, p.display_name, 110)}</div>

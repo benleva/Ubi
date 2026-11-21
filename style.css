@@ -413,3 +413,6 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .updbar { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 9999; background: #1f3a5f; color: #fff; border-radius: 14px; padding: 10px 12px 10px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.3); font-weight: 700; }
 .updbar span { flex: 1; font-size: 15px; }
 .updbar button { flex: 0 0 auto; background: #e8743b; color: #fff; border: 0; margin: 0; }
+
+.cashrow { margin-top: 10px; display: grid; gap: 8px; }
+.cashbtn { background: #2e9e5b !important; color: #fff !important; border-color: #2e9e5b !important; font-weight: 800; }
