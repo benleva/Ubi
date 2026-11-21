@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211015';
+import { CONFIG } from './config.js?v=202611211147';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211015';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211147';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.90';
+const APP_VERSION = 'v.91';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1272,7 +1272,7 @@ const pinShareText = (title) => LANG === 'en'
 // Caccia al tesoro: si condivide il link della tappa 1, con un messaggio che parla del gioco e del premio
 const huntShareText = (title, prize) => LANG === 'en'
   ? `🗺️ Treasure hunt «${title}» on Ubi!${prize ? ` Prize: ${prize}.` : ''} Start from stage 1 — you'll discover the rest by playing. #treasurehunt #Ubi #ubipin`
-  : `🗺️ Caccia al tesoro «${title}» con Ubi!${prize ? ` In palio: ${prize}.` : ''} Parti dalla tappa 1: il resto lo scopri giocando. #cacciaaltesoro #caccialtesoro #Ubi #ubipin`;
+  : `🗺️ Caccia al tesoro «${title}» con Ubi!${prize ? ` In regalo a chi completa: ${prize}.` : ''} Parti dalla tappa 1: il resto lo scopri giocando. #cacciaaltesoro #caccialtesoro #Ubi #ubipin`;
 function shareSheet(title, slug, container, hint = '', hunt = null) {
   const url = shareUrl(slug);
   const old = container.querySelector('.share'); if (old) { old.remove(); return; }
@@ -1964,12 +1964,12 @@ async function viewContent(slug, user) {
           const first = t.hunt_step === 1 && t.hunt_steps > 1;
           huntOverlay({
             kind: 'ok', icon: isLast ? '🏆' : first ? '🚀' : '✅',
-            title: isLast ? T2('Hai vinto! 🎉', 'You won! 🎉') : first ? T2('Si parte!', "Let's go!") : T2('Esatto!', 'Correct!'),
+            title: isLast ? T2('Caccia completata! 🎉', 'Hunt completed! 🎉') : first ? T2('Si parte!', "Let's go!") : T2('Esatto!', 'Correct!'),
             sub: isLast ? T2(`Hai completato «${esc(t.hunt_title || '')}»`, `You completed «${esc(t.hunt_title || '')}»`)
               : first ? T2('Prima tappa trovata. Leggi il primo indizio!', 'First stage found. Read the first clue!')
               : T2(`Tappa ${t.hunt_step} superata. Ecco il prossimo indizio.`, `Stage ${t.hunt_step} cleared. Here is the next clue.`),
             step: t.hunt_step, steps: t.hunt_steps,
-            button: isLast ? T2('🎁 Guarda cosa hai vinto', '🎁 See what you won') : T2("📜 Leggi l'indizio", '📜 Read the clue'),
+            button: isLast ? T2('🎁 Guarda il tuo regalo', '🎁 See your gift') : T2("📜 Leggi l'indizio", '📜 Read the clue'),
             onClose: () => {
               const el = isLast ? $('#prizebox') : $('.card.media');
               if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); }
@@ -2120,7 +2120,7 @@ async function huntPrizeBox(t, slug, box) {
   }
   if (p.code) {
     box.innerHTML = `<div class="card prize center"><div style="font-size:46px">🏆</div><h2>Hai completato «<span translate="no">${esc(p.hunt_title)}</span>»!</h2>
-      <p>Hai vinto: <b>${esc(p.prize)}</b></p><div class="prizecode">${esc(p.code)}</div>
+      <p>Il tuo regalo: <b>${esc(p.prize)}</b></p><div class="prizecode">${esc(p.code)}</div>
       ${p.redeemed_at ? `<p class="muted">Premio già ritirato il ${fmtWhen(p.redeemed_at)}.</p>` : '<p><b>Mostra questo codice</b> a chi ha organizzato la caccia per ritirare il premio. Il codice è solo tuo e vale una volta.</p>'}</div>`;
     return;
   }
@@ -3857,7 +3857,7 @@ async function huntCardFile(card, url) {
   let y = 720; g.fillStyle = '#ffffff';
   for (const l of wrap(card.title, `800 86px ${F}`, 940, 2)) { g.font = `800 86px ${F}`; g.fillText(l, W / 2, y); y += 100; }
   if (card.prize) {
-    y += 10; g.fillStyle = '#ffe58a'; g.font = `700 44px ${F}`; g.fillText(LANG === 'en' ? '🏆 PRIZE' : '🏆 IN PALIO', W / 2, y); y += 62;
+    y += 10; g.fillStyle = '#ffe58a'; g.font = `700 44px ${F}`; g.fillText(LANG === 'en' ? '🎁 GIFT FOR FINISHERS' : '🎁 IN REGALO A CHI COMPLETA', W / 2, y); y += 62;
     g.fillStyle = '#ffffff'; for (const l of wrap(card.prize, `600 50px ${F}`, 900, 2)) { g.font = `600 50px ${F}`; g.fillText(l, W / 2, y); y += 62; }
   }
   const m = qrMatrix(url), n = m.length, box = 480, cell = Math.floor((box - 56) / n), qs = cell * n, bx = (W - box) / 2, by = y + 90;
