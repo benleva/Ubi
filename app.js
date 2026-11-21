@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210220';
+import { CONFIG } from './config.js?v=202611210223';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210220';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210223';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.82';
+const APP_VERSION = 'v.83';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2728,8 +2728,9 @@ async function adminShopsTab(box) {
         <p class="linkbox small">${esc(`${location.origin}${location.pathname}#/cassa/${b.cashier_token}`)}</p>
         <div class="row"><button type="button" class="ghost" data-a="copycassa">Copia link</button><input data-a="pin" inputmode="numeric" maxlength="8" placeholder="Nuovo PIN (4-8 cifre)"><button type="button" data-a="savepin" style="flex:0 0 auto">Salva PIN</button></div></details>
       <details><summary>🛍️ Catalogo (${b.items.length})</summary>
-        ${b.items.map((it) => `<div class="row small citem"><span style="flex:1">${it.active ? '' : '🚫 '}<b>${esc(it.name)}</b> ${esc(it.value_label || '')}${it.meaning ? `<br><span class="muted">${esc(it.meaning)}</span>` : ''}</span>
-          <button type="button" class="ghost" data-a="itemtoggle" data-id="${esc(it.id)}" data-on="${it.active ? 1 : 0}" style="flex:0 0 auto">${it.active ? 'Togli' : 'Rimetti'}</button></div>`).join('')}
+        ${b.items.map((it) => `<div class="citem" data-id="${esc(it.id)}"><div class="row small" style="align-items:center">${it.image_url ? `<img class="citthumb" src="${esc(it.image_url)}" alt="">` : ''}<span style="flex:1">${it.active ? '' : '🚫 '}<b>${esc(it.name)}</b> ${esc(it.value_label || '')}${it.meaning ? `<br><span class="muted">${esc(it.meaning)}</span>` : ''}</span></div>
+          <div class="row small citacts"><button type="button" class="ghost" data-a="itemtoggle" data-id="${esc(it.id)}" data-on="${it.active ? 1 : 0}">${it.active ? 'Togli' : 'Rimetti'}</button><button type="button" class="ghost" data-a="itemdup" data-id="${esc(it.id)}">⧉ Duplica</button><label class="btn ghost" style="margin:0">📷 Foto<input type="file" accept="image/*" data-a="itemphoto" data-id="${esc(it.id)}" hidden></label></div>
+          <div class="itemdupbox"></div></div>`).join('')}
         <input data-a="iname" placeholder="Nome (es. Birra media, Stella di Natale mignon)"><input data-a="ivalue" placeholder="Valore indicativo (es. 5 €)">
         <input data-a="imeaning" placeholder="Significato / descrizione (facoltativo)"><label class="small" style="margin-top:6px">Foto dell'articolo (facoltativa)</label><input data-a="iimage" type="file" accept="image/*"><div data-a="iprev" class="adprev"></div>
         <button type="button" data-a="additem">＋ Aggiungi al catalogo</button></details>
@@ -2774,7 +2775,24 @@ async function adminShopsTab(box) {
         await B.adminItemSave({ business_id: b.id, name: q('iname').value.trim(), value_label: q('ivalue').value.trim(), meaning: q('imeaning').value.trim(), image_url }); reload();
       } catch (err) { msg(out, errText(err)); btn.disabled = false; }
     };
-    card.querySelectorAll('[data-a="itemtoggle"]').forEach((x) => { x.onclick = async () => { try { await B.adminItemSave({ id: x.dataset.id, active: x.dataset.on !== '1' }); reload(); } catch (err) { msg(out, errText(err)); } }; });
+    // il salvataggio riscrive tutti i campi: si manda sempre l'articolo completo
+    const itemOf = (id) => b.items.find((x) => x.id === id);
+    const fullItem = (it, extra) => ({ id: it.id, business_id: it.business_id || b.id, name: it.name, value_label: it.value_label || '', meaning: it.meaning || '', image_url: it.image_url || '', active: it.active, ...extra });
+    card.querySelectorAll('[data-a="itemtoggle"]').forEach((x) => { x.onclick = async () => { try { await B.adminItemSave(fullItem(itemOf(x.dataset.id), { active: x.dataset.on !== '1' })); reload(); } catch (err) { msg(out, errText(err)); } }; });
+    card.querySelectorAll('[data-a="itemphoto"]').forEach((x) => { x.onchange = async () => { const f = x.files[0]; if (!f) return;
+      try { const url = await B.uploadAdMedia(await fitImage(f, 800)); await B.adminItemSave(fullItem(itemOf(x.dataset.id), { image_url: url })); reload(); } catch (err) { msg(out, errText(err)); } }; });
+    card.querySelectorAll('[data-a="itemdup"]').forEach((x) => { x.onclick = () => {
+      const it = itemOf(x.dataset.id), dbox = x.closest('.citem').querySelector('.itemdupbox');
+      dbox.innerHTML = `<div class="card" style="margin:6px 0"><label>Duplica «${esc(it.name)}» nel negozio</label>
+        <select data-k="to">${list.map((o) => `<option value="${esc(o.id)}" ${o.id === b.id ? 'selected' : ''}>${esc(o.name)}</option>`).join('')}</select>
+        <label>Nome della copia</label><input data-k="nm" maxlength="80" value="${esc(it.name)}${list.length > 1 ? '' : ' (copia)'}">
+        <div class="row"><button type="button" data-k="ok">⧉ Crea la copia</button><button type="button" class="ghost" data-k="no">Annulla</button></div></div>`;
+      dbox.querySelector('[data-k="no"]').onclick = () => { dbox.innerHTML = ''; };
+      dbox.querySelector('[data-k="ok"]').onclick = async () => {
+        try { await B.adminItemSave({ ...fullItem(it, { active: true }), id: '', business_id: dbox.querySelector('[data-k="to"]').value, name: dbox.querySelector('[data-k="nm"]').value.trim() || it.name }); reload(); }
+        catch (err) { msg(out, errText(err)); }
+      };
+    }; });
     card.querySelectorAll('[data-a="prolong"]').forEach((x) => { x.onclick = async () => {
       const v = prompt('Nuova scadenza (AAAA-MM-GG): dopo questa data i doni spariscono', x.dataset.exp.slice(0, 10)); if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
       try { await B.adminCampaignDates(x.dataset.id, null, new Date(`${v}T23:59:00`).toISOString()); reload(); } catch (err) { msg(out, errText(err)); } }; });
@@ -3311,6 +3329,31 @@ async function adminUsersTab(box) {
     ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati', 'File', 'Piano', 'Arrivato dal pin', 'Pin sbloccati'],
     rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati, r.file_caricati ?? '', r.piano || 'free', r.arrivato_da_pin || '', r.pin_sbloccati ?? '']));
 }
+// Dal banner nasce un articolo del catalogo di un negozio: nome, descrizione e foto copiati (poi si vende dalla Cassa o va in una campagna)
+async function bannerToGift(a, gbox) {
+  let shops = [];
+  try { shops = await B.adminBusinesses(); } catch (err) { gbox.innerHTML = `<div class="msg err small">${esc(errText(err))}</div>`; return; }
+  if (!shops.length) { gbox.innerHTML = '<div class="msg info small">Prima crea il negozio in <a href="#/admin/negozi">🏪 Negozi</a>.</div>'; return; }
+  const img = [a.image_url, a.media_url].find((u) => u && !isVidUrl(u)) || '';
+  gbox.innerHTML = `<div class="card" style="margin-top:8px"><h3 style="margin-top:0">🎁 Nuovo regalo dal banner</h3>
+    ${img ? `<img class="adthumb" src="${esc(img)}" alt="" style="max-height:70px">` : '<p class="muted small">Il banner non ha una foto (o ha solo un video): il regalo resta senza foto, puoi aggiungerla dopo dal catalogo.</p>'}
+    <label>Nel catalogo del negozio</label><select data-k="to">${shops.map((o) => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select>
+    <label>Nome del regalo</label><input data-k="nm" maxlength="80" value="${esc(a.title)}">
+    <label>Valore indicativo (es. 18 €)</label><input data-k="val" maxlength="40">
+    <label>Descrizione</label><input data-k="mn" maxlength="300" value="${esc(a.body || '')}">
+    <div class="row"><button type="button" data-a="giftok">🎁 Aggiungi al catalogo</button><button type="button" class="ghost" data-a="giftno">Annulla</button></div><div data-k="m"></div></div>`;
+  const q = (k) => gbox.querySelector(`[data-k="${k}"]`);
+  gbox.querySelector('[data-a="giftno"]').onclick = () => { gbox.innerHTML = ''; };
+  gbox.querySelector('[data-a="giftok"]').onclick = async (e) => {
+    if (!q('nm').value.trim()) return msg(q('m'), 'Scrivi il nome del regalo.');
+    e.target.disabled = true;
+    try {
+      await B.adminItemSave({ id: '', business_id: q('to').value, name: q('nm').value.trim(), value_label: q('val').value.trim(), meaning: q('mn').value.trim(), image_url: img, active: true });
+      const shop = shops.find((o) => o.id === q('to').value);
+      gbox.innerHTML = `<div class="msg ok small">✓ «${esc(q('nm').value.trim())}» aggiunto al catalogo di <b>${esc(shop.name)}</b>: ora compare in «Vendi un regalo» nella sua Cassa e si può usare nelle campagne. <a href="#/admin/negozi">Apri i negozi</a></div>`;
+    } catch (err) { msg(q('m'), errText(err)); e.target.disabled = false; }
+  };
+}
 async function checkAdVideo(f) {
   if (f.size > 5 * 1024 * 1024) throw new Error('Il video è troppo pesante: massimo 5 MB (meglio 2–3 MB).');
   const d = await new Promise((res) => { const v = document.createElement('video'); v.preload = 'metadata'; v.muted = true;
@@ -3353,7 +3396,8 @@ async function adminAdsTab(box) {
       const info = `${ADPLANS[a.plan]?.n || 'Base'} · ${adCopies(a)}× ${adSecs(a)} s${a.vetrina_slug ? ' · 📍 vetrina' : ''}${a.ends_on ? ` · scade il ${new Date(a.ends_on).toLocaleDateString(LOC)}` : ''}${adLive(a) && tot ? ` · ${Math.round(shareOf(a) / tot * 100)}% del tempo` : ''}`;
       return `<div class="card" data-id="${esc(a.id)}">${adCard(a, !a.active ? 'Spento' : adLive(a) ? 'Attivo' : 'Scaduto', false)}
       <p class="small muted" style="margin:6px 2px 0">${esc(info)}</p>
-      <div class="actions"><button class="ghost" data-a="edit">✏️ Modifica</button><button class="ghost" data-a="toggle">${a.active ? '⏸ Spegni' : '▶️ Accendi'}</button><button class="danger" data-a="del">🗑</button></div></div>`; }).join('') || '<div class="card center muted">Nessun banner. Crea il primo qui sopra (es. Chiara, Kymera).</div>'}</div>`;
+      <div class="actions"><button class="ghost" data-a="edit">✏️ Modifica</button><button class="ghost" data-a="toggle">${a.active ? '⏸ Spegni' : '▶️ Accendi'}</button><button class="danger" data-a="del">🗑</button></div>
+      <button type="button" class="ghost full" data-a="gift" style="margin-top:6px">🎁 Trasforma in regalo</button><div class="giftbox"></div></div>`; }).join('') || '<div class="card center muted">Nessun banner. Crea il primo qui sopra (es. Chiara, Kymera).</div>'}</div>`;
   const old = () => ads.find((a) => a.id === editing);
   const cur = () => ({ title: $('#at').value.trim() || 'Nome del negozio', body: $('#ab').value.trim(), link_url: $('#al').value.trim(), color: $('#ac').value,
     plan: st.plan, copies: st.copies, seconds: st.seconds, vetrina_slug: st.vet ? vetrinaSlug($('#avs').value) || 'xxxx' : null,
@@ -3413,6 +3457,8 @@ async function adminAdsTab(box) {
         showOld(a); refresh();
         $('#aft').textContent = 'Modifica banner'; $('#acancel').hidden = false; window.scrollTo(0, 0); return;
       }
+      if (b.dataset.a === 'gift') return bannerToGift(a, b.closest('.card').querySelector('.giftbox'));
+      if (b.dataset.a === 'giftok' || b.dataset.a === 'giftno') return;
       if (b.dataset.a === 'toggle') { await B.saveAd({ ...a, active: !a.active }); return adminAdsTab(box); }
       if (b.dataset.a === 'del') {
         if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma'; return; }
@@ -3452,7 +3498,8 @@ const ADMIN_GUIDE = `<div class="aguide">
 <p class="small">Dopo 8 PIN sbagliati in 15 minuti la Cassa si blocca per 15 minuti.</p>${videoBtn('a_negozio')}</details>
 
 <details><summary>3 · Catalogo e campagne regalo</summary>
-<p><b>🛍️ Catalogo</b>: articoli con nome, valore, significato (es. dei fiori) e foto (link https). <b>Togli/Rimetti</b> li nasconde dalla Cassa.</p>
+<p><b>🛍️ Catalogo</b>: articoli con nome, valore, significato (es. dei fiori) e foto caricata dal telefono. Per ogni articolo: <b>Togli/Rimetti</b> (lo nasconde dalla Cassa), <b>⧉ Duplica</b> (copia nello stesso negozio o in un altro), <b>📷 Foto</b> (cambia la foto).</p>
+<p><b>Dal banner al regalo</b>: in 📣 Banner, sotto ogni banner, <b>🎁 Trasforma in regalo</b> → scegli il negozio, aggiungi il valore → il banner diventa un articolo del suo catalogo (nome, descrizione e foto copiati).</p>
 <ol><li><b>🎄 Campagne → ＋ Nuova campagna</b>: titolo e tema (Natale, Capodanno, San Valentino, Pasqua, Festa della mamma, Compleanno, Regalo).</li>
 <li>Frase sul regalo, es. «Vieni a sbloccare il tuo regalo».</li>
 <li>Date: «Si apre dal» e «Scade (incluso)», es. 1/12 → 8/1. Dopo la scadenza i regali spariscono e i codici non valgono più.</li>

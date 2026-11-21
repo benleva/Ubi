@@ -404,3 +404,8 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .aguide summary { font-weight: 800; padding: 10px 0; cursor: pointer; font-size: 17px; }
 .aguide li { margin: 6px 0; } .aguide .tbl { font-size: 14px; margin: 8px 0; }
 .aguide .tbl th, .aguide .tbl td { white-space: normal; vertical-align: top; }
+
+.citem { border-top: 1px solid var(--line); padding: 8px 0; }
+.citem .citthumb { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; flex: 0 0 auto; }
+.citem .citacts { gap: 6px; margin-top: 4px; }
+.citem .citacts > * { flex: 1; padding: 6px; font-size: 14px; text-align: center; }
