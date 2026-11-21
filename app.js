@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611212206';
+import { CONFIG } from './config.js?v=202611212227';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611212206';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611212227';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.109';
+const APP_VERSION = 'v.110';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1089,12 +1089,51 @@ const showCats = new Set();
 let onlyMine = false;   // «Miei»: acceso mostra solo i miei
 // ogni pin sta in UNA sola categoria: monumenti e scrittori hanno il loro bottone, anche se hanno una foto
 const pinCat = (c) => (c.is_dating ? 'dating' : isLit(c) ? 'lit' : isMonu(c) ? 'monu' : c.media_type);
+// «Vai a…»: città, indirizzo, coordinate o link di Google Maps → sposta la mappa lì
+function parseCoords(q) {
+  const t = q.trim();
+  const g = t.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/) || t.match(/[?&](?:q|query|ll|destination)=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+  const m = g || t.match(/^(-?\d{1,2}(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:[.,]\d+)?)$/);
+  if (!m) return null;
+  const n = (x) => +String(x).replace(',', '.');
+  const lat = n(m[1]), lng = n(m[2]);
+  return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : null;
+}
+function bindMapSearch(map, el) {
+  el.insertAdjacentHTML('afterend', `<form class="mapsearch" id="mapsf" autocomplete="off"><input id="mapq" type="search" enterkeyhint="search"
+    placeholder="${T2('Vai a: città, indirizzo o coordinate', 'Go to: city, address or coordinates')}" aria-label="${T2('Cerca un luogo sulla mappa', 'Search a place on the map')}">
+    <button type="submit" aria-label="${T2('Cerca', 'Search')}">🔎</button></form><div id="mapqres"></div>`);
+  const res = $('#mapqres');
+  const go = (lat, lng, bb) => {
+    res.innerHTML = '';
+    if (bb) map.fitBounds([[+bb[0], +bb[2]], [+bb[1], +bb[3]]], { maxZoom: 16 }); else map.setView([lat, lng], 16);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+  let busy = false;
+  $('#mapsf').onsubmit = async (e) => {
+    e.preventDefault(); $('#mapq').blur();
+    const q = $('#mapq').value.trim(); if (!q || busy) return;
+    const c = parseCoords(q); if (c) return go(c.lat, c.lng);
+    busy = true; res.innerHTML = `<p class="muted small">${T2('Cerco…', 'Searching…')}</p>`;
+    try {
+      const u = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=${LANG}&q=${encodeURIComponent(q)}`;
+      const r = await withTimeout(fetch(u, { headers: { accept: 'application/json' } }), 15000);
+      const list = r.ok ? await r.json() : [];
+      if (!list.length) { res.innerHTML = `<p class="muted small">${T2('Non trovato: prova ad aggiungere la nazione (es. «Quito, Ecuador») o scrivi le coordinate.', 'Not found: try adding the country (e.g. "Quito, Ecuador") or type the coordinates.')}</p>`; return; }
+      if (list.length === 1) return go(+list[0].lat, +list[0].lon, list[0].boundingbox);
+      res.innerHTML = list.map((x, i) => `<button type="button" class="ghost full addrpick" data-i="${i}">${esc(x.display_name)}</button>`).join('');
+      res.querySelectorAll('[data-i]').forEach((b) => { b.onclick = () => { const x = list[+b.dataset.i]; go(+x.lat, +x.lon, x.boundingbox); }; });
+    } catch { res.innerHTML = `<p class="muted small">${T2('Ricerca non disponibile in questo momento, riprova tra poco.', 'Search unavailable right now, try again shortly.')}</p>`; }
+    finally { setTimeout(() => { busy = false; }, 1100); }   // Nominatim: massimo una richiesta al secondo
+  };
+}
 async function homeMap(opts = {}) {
   const el = $('#hmap');
   await waitLeaflet();
   if (!document.body.contains(el)) return;
   const map = makeMap(el, 42.5, 12.5, 6);
   if (!map) return;
+  bindMapSearch(map, el);
   // pin vicini raggruppati in un cerchio con il numero: toccandolo si ingrandisce
   let layer;
   try { layer = (L.markerClusterGroup ? L.markerClusterGroup({
@@ -1416,6 +1455,7 @@ async function viewNew(ed = null, opts = {}) {
   const isStage = !!(hunt || (ed && ed.hunt_id));
   const capsuleOn = !!opts.capsule || !!(ed && ed.unlock_at);
   const maxTags = dating ? MAX_TAGS_DATING : MAX_TAGS;
+  const lastPt = lastPoint();
   const s = { sel: new Set(), book: [], tags: new Set(), kind: 'file', file: null, media_type: null, duration: null, lat: null, lng: null, source: null, radius: CONFIG.DEFAULT_RADIUS_M, vis: dating || hunt ? 'public' : 'restricted' };
   if (ed) {
     Object.assign(s, {
@@ -1461,6 +1501,7 @@ async function viewNew(ed = null, opts = {}) {
     </div>
     <div class="card"><h2>2 · Dove</h2>
       <button class="full" id="gps" type="button">📍 Usa la mia posizione attuale</button>
+      ${!ed && lastPt ? `<button class="ghost full" id="lastpt" type="button" style="margin-top:8px">📌 Stesso punto dell'ultimo pin</button><p class="muted small center" style="margin:4px 0 0">${lastPt.lat}, ${lastPt.lng}</p>` : ''}
       <label for="addr">…oppure cerca un indirizzo o un luogo</label>
       <div class="row"><input id="addr" type="search" enterkeyhint="search" autocomplete="off" placeholder="Es. Alghero, via Sant'Antioco"><button id="find" type="button" class="ghost" style="flex:0 0 auto">🔎 Cerca</button></div>
       <div id="addrres"></div>
@@ -1663,6 +1704,11 @@ async function viewNew(ed = null, opts = {}) {
     map = makeMap($('#map'), 41.9028, 12.4964, 5);
     if (map) { map.on('click', (e) => setPoint(e.latlng.lat, e.latlng.lng, 'map')); drawPoint(); }
   });
+  const useLast = () => { s.radius = lastPt.radius || s.radius; $('#radius').value = s.radius; $('#rout').textContent = `${s.radius} m`; if (circle) circle.setRadius(s.radius);
+    setPoint(lastPt.lat, lastPt.lng, lastPt.source || 'coordinates'); msg($('#lm'), 'Stesso punto dell\'ultimo pin. Se serve, trascina lo spillo di qualche metro.', 'ok'); };
+  if ($('#lastpt')) $('#lastpt').onclick = useLast;
+  if (!ed && lastPt) { let again = false; try { again = sessionStorage.getItem('ubi_same_point') === '1'; sessionStorage.removeItem('ubi_same_point'); } catch { /* niente */ }
+    if (again) useLast(); }
   $('#gps').onclick = async () => {
     $('#gps').disabled = true; msg($('#lm'), 'Cerco la posizione…', 'info');
     try { const p = await getPos(); setPoint(p.lat, p.lng, 'gps', p.acc); } catch (err) { msg($('#lm'), errText(err)); }
@@ -1824,6 +1870,7 @@ async function viewNew(ed = null, opts = {}) {
         return;
       }
       const slug = await B.create(data);
+      saveLastPoint(data);
       if (hunt) { location.hash = `#/caccia/${hunt.id}`; return; }
       const me = await B.profile().catch(() => null);
       viewCreated(title, slug, data.visibility === 'restricted'
@@ -1879,6 +1926,9 @@ async function autoNotify(slug, box) {
   }
 }
 
+// l'ultimo punto usato per un pin, per crearne altri lì vicino senza rifare tutto
+function lastPoint() { try { const p = JSON.parse(localStorage.getItem('ubi_last_point') || 'null'); return p && Number.isFinite(p.lat) && Number.isFinite(p.lng) ? p : null; } catch { return null; } }
+function saveLastPoint(d) { try { localStorage.setItem('ubi_last_point', JSON.stringify({ lat: d.lat, lng: d.lng, radius: d.radius, source: d.source })); } catch { /* pazienza */ } }
 function viewCreated(title, slug, info = null) {
   history.replaceState(null, '', location.pathname + '#/fatto');  // così '＋' e 'Torna alla mappa' funzionano
   app.innerHTML = `
@@ -1886,7 +1936,9 @@ function viewCreated(title, slug, info = null) {
       <p class="muted">«<span translate="no">${esc(title)}</span>» ora vive in quel luogo. Manda il link: si aprirà solo sul posto.</p></div>
     ${pinShareCard(title, slug, info?.hint)}
     ${info && info.recipients.length ? emailCard(info) : ''}
-    <a class="btn ghost full" href="#/">Torna alla mappa</a>`;
+    <a class="btn accent full" href="#/new" id="samept">📌 Crea un altro pin nello stesso punto</a>
+    <a class="btn ghost full" href="#/" style="margin-top:10px">Torna alla mappa</a>`;
+  $('#samept').onclick = () => { try { sessionStorage.setItem('ubi_same_point', '1'); } catch { /* niente */ } };
   bindPinShare(app);
   if (info && info.recipients.length) autoNotify(slug, $('#automsg'));
 }
@@ -4658,10 +4710,12 @@ const FAQ_GUIDE = [
     <li>Ogni cerchio indica il tipo: <b>I</b> immagine, <b>V</b> video, <b>T</b> testo, <b>L</b> link, <b>A</b> audio. I tuoi hanno il bordo scuro.</li>
     <li><b>Tocca un cerchio</b> per aprire la scheda del contenuto.</li>
     <li>Il pulsante <b>📍</b> in alto riporta la mappa dove sei tu.</li>
+    <li><b>Andare in un altro posto</b>: sotto la mappa scrivi in <i>Vai a…</i> una città (es. <code>Quito, Ecuador</code>), un indirizzo, le coordinate (<code>-0.1807, -78.4678</code>) o incolla un link di Google Maps, e tocca 🔎: la mappa si sposta lì.</li>
     <li><b>Filtri</b>: sotto la mappa tocca un tipo (es. <i>Video</i>) e/o uno o più <b>#tag</b> (es. <i>#tramonto</i>) per vedere solo quei contenuti. Si combinano: <i>Video + #tramonto</i> mostra solo i video di tramonti. <b>Tutti i tag</b> azzera.</li></ol>`],
   ['3 · Lascia un contenuto', `<ol>
     <li>Tocca <b>＋ Lascia un contenuto in un luogo</b>.</li>
     <li><b>Cosa</b>: <i>Galleria</i> (foto, video max 60 s, audio), <i>Testo</i> (fino a 2000 caratteri) o <i>Link</i> (qualsiasi indirizzo: video su YouTube o altri siti, percorsi Wikiloc/Komoot, pagine web, mappe; puoi incollare anche il messaggio di condivisione).</li>
+    <li><b>Tanti pin nello stesso posto</b>: dopo aver creato un pin tocca <i>📌 Crea un altro pin nello stesso punto</i>, oppure in <i>2 · Dove</i> tocca <i>📌 Stesso punto dell'ultimo pin</i>: posizione e raggio sono già pronti, al massimo sposti lo spillo di qualche metro.</li>
     <li><b>Dove</b>, in quattro modi: <i>Usa la mia posizione</i> se sei sul posto; <i>cerca un indirizzo</i> (es. <code>Alghero, via Sant'Antioco</code>) e poi trascina lo spillo nel punto esatto; scrivi le <i>coordinate</i> (es. <code>41.8902, 12.4922</code>); oppure <i>tocca la mappa</i> e trascina lo spillo.</li>
     <li><b>Raggio</b>: da quanti metri si sblocca (consigliato 30–50 m; in città il GPS può sbagliare di qualche decina di metri).</li>
     <li><b>Titolo</b> e <b>indizio</b>: l'indizio si vede <i>prima</i> dello sblocco e aiuta a trovare il punto.</li>
