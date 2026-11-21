@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211715';
+import { CONFIG } from './config.js?v=202611211721';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211715';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211721';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.100';
+const APP_VERSION = 'v.101';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1115,8 +1115,13 @@ async function homeMap(opts = {}) {
       b.classList.toggle('on', k === 'all' ? !showCats.size && !onlyMine : k === 'mine' ? onlyMine : showCats.has(k));
       const n = b.querySelector('.n'); if (n) n.textContent = k === 'all' ? rows.length : cnt[k] || 0;
     });
-    const mks = shown.filter((c) => !huntSlugs.has(c.share_slug)).map((c) => L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true })
-      .on('click', () => { location.hash = `#/c/${c.share_slug}`; }));
+    const pinHits = [];
+    const mks = shown.filter((c) => !huntSlugs.has(c.share_slug)).map((c) => {
+      const hit = { ll: LLc(c.lat, c.lng), label: c.title, html: pinBadge(c, 'sm'), go: () => { location.hash = `#/c/${c.share_slug}`; } };
+      pinHits.push(hit);
+      return L.marker([c.lat, c.lng], { icon: icon(c), title: c.title, keyboard: true }).on('click', () => pickOverlap(map, hit.ll, hit));
+    });
+    mapHits(map).set('pins', pinHits);
     if (layer.addLayers) layer.addLayers(mks); else mks.forEach((m) => m.addTo(layer));
     // nuvola: tag presenti nella zona, i più usati prima; i selezionati restano sempre visibili
     const count = new Map();
@@ -2394,16 +2399,45 @@ const dLong = (d) => new Date(d).toLocaleDateString(LOC, { day: 'numeric', month
 // i link dei regali passano da regalo.html: su WhatsApp e social mostrano l'anteprima con il pacco regalo, poi aprono l'app
 const giftUrl = (kind, token) => `${location.origin}${location.pathname.replace(/[^/]*$/, '')}regalo.html#/${kind}/${token}`;
 
+// Più cose una sopra l'altra sulla mappa (pin, il mio regalo…): al tocco Ubi chiede quale aprire
+const mapHits = (map) => map._ubiHits || (map._ubiHits = new Map());   // gruppo -> [{ ll, label, html, go }]
+const LLc = (a, b) => (L.latLng ? L.latLng(a, b) : { lat: a, lng: b });
+let giftLayerN = 0;
+function pickOverlap(map, ll, self) {
+  let near = [];
+  try {
+    const p = map.latLngToContainerPoint(ll);
+    near = [...mapHits(map).values()].flat().filter((h) => h !== self && map.latLngToContainerPoint(h.ll).distanceTo(p) < 28);
+  } catch { /* mappa semplificata: apro e basta */ }
+  const all = self.go ? [self, ...near] : near;
+  if (all.length <= 1) { if (all[0]) all[0].go(); else if (self.fallback) self.fallback(); return; }
+  document.querySelectorAll('.ovpick').forEach((e) => e.remove());
+  const box = document.createElement('div'); box.className = 'ovpick';
+  box.innerHTML = `<div class="ovcard"><b>${T2('Qui ci sono più cose: quale apri?', 'Several things here: which one?')}</b>
+    ${all.map((h, i) => `<button type="button" class="ghost ovit" data-i="${i}"><span class="ovic">${h.html}</span><span>${esc(h.label)}</span></button>`).join('')}
+    <button type="button" class="ghost" data-x="1">${T2('Chiudi', 'Close')}</button></div>`;
+  box.onclick = (e) => {
+    const b = e.target.closest('button');
+    if (e.target === box || (b && b.dataset.x)) { box.remove(); return; }
+    if (b) { box.remove(); all[+b.dataset.i].go(); }
+  };
+  document.body.appendChild(box);
+}
+
 // Disegna alberi/pacchi su una mappa Leaflet; fall = animazione «cadono dal cielo»
 function drawGiftTrees(map, trees, { fall = false, onMine = null, layer = null } = {}) {
   const g = layer || L.layerGroup().addTo(map);
   if (layer) layer.clearLayers();
+  const hits = []; mapHits(map).set('gifts' + (g._ubiN || (g._ubiN = ++giftLayerN)), hits);
   trees.slice(0, 600).forEach((t, i) => {
     const size = t.mine ? 48 : 28;
     const html = `<span class="gwrap${fall ? ' gfall' : ''}" style="animation-delay:${fall ? Math.min(1.6, i * 0.035 + Math.random() * 0.3).toFixed(2) : 0}s">${giftIcon(t.theme, t.mine)}</span>`;
     const m = L.marker([t.lat, t.lng], { icon: L.divIcon({ className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2], html }),
       zIndexOffset: t.mine ? 2000 : 0, keyboard: !!t.mine, title: t.mine ? T2('Il tuo regalo', 'Your gift') : '' });
-    m.on('click', () => { if (t.mine && t.gift_id) { if (onMine) onMine(t); else location.hash = `#/doni/${t.gift_id}`; } else huntToast(T2('Questo è il regalo di qualcun altro 🎁', "This is someone else's gift 🎁")); });
+    const toast = () => huntToast(T2('Questo è il regalo di qualcun altro 🎁', "This is someone else's gift 🎁"));
+    const hit = t.mine && t.gift_id ? { ll: LLc(t.lat, t.lng), label: T2('Il tuo regalo 🎁', 'Your gift 🎁'), html: giftIcon(t.theme, false), go: () => { if (onMine) onMine(t); else location.hash = `#/doni/${t.gift_id}`; } } : null;
+    if (hit) hits.push(hit);
+    m.on('click', () => pickOverlap(map, LLc(t.lat, t.lng), hit || { fallback: toast }));
     m.addTo(g);
   });
   return g;
