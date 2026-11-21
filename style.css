@@ -448,3 +448,19 @@ body.pubt button:not(.ghost):not(.accent):not(.danger), body.pubt .btn:not(.ghos
 body.pubt .bizbar { border-color: #f2d94e; }
 body.pubt .hero { background: #1b1b1b; }
 body.pubt .bizlogo { border: 2px solid #f2d94e; }
+/* pin di garden e fioristi: verde */
+body.greent { --brand: #1e5631; --accent: #2e9e5b; --bg: #f3f8f1; --line: #d7e8d2; }
+body.greent .top { background: #1e5631; border-bottom: 4px solid #8fd19e; }
+body.greent .msg.info { background: #e3f3e1; color: #1e5631; }
+body.greent .seg button.on { background: #1e5631; color: #fff; }
+body.greent .bizbar { border-color: #8fd19e; }
+body.greent .hero { background: #1e5631; }
+body.greent .bizlogo { border: 2px solid #8fd19e; }
+/* pin dei negozi: arancione */
+body.oranget { --brand: #b8501a; --accent: #e8743b; --bg: #fdf4ee; --line: #f1dccd; }
+body.oranget .top { background: #b8501a; border-bottom: 4px solid #ffb27a; }
+body.oranget .msg.info { background: #fde8da; color: #7a3410; }
+body.oranget .seg button.on { background: #b8501a; color: #fff; }
+body.oranget .bizbar { border-color: #ffb27a; }
+body.oranget .hero { background: #b8501a; }
+body.oranget .bizlogo { border: 2px solid #ffb27a; }

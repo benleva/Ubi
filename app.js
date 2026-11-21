@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211652';
+import { CONFIG } from './config.js?v=202611211654';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211652';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211654';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.98';
+const APP_VERSION = 'v.99';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -50,9 +50,10 @@ const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.
   : badge(c.media_type, extra));
 const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
 const setDatingTheme = (on) => document.body.classList.toggle('dating', !!on);
-// Pin di bar, pub e ristoranti: colori giallo e nero (come il dating ha i suoi)
-const PUB_CATS = new Set(['bar', 'pub', 'ristorante']);
-const setPubTheme = (b) => document.body.classList.toggle('pubt', !!(b && PUB_CATS.has(b.category)));
+// Colori dei pin dei negozi, per categoria (come il dating ha i suoi):
+// bar, pub e ristoranti giallo e nero · garden e fioristi verde · negozi arancione
+const BIZ_THEMES = { bar: 'pubt', pub: 'pubt', ristorante: 'pubt', garden: 'greent', fiorista: 'greent', negozio: 'oranget' };
+const setPubTheme = (b) => { const t = b && BIZ_THEMES[b.category]; ['pubt', 'greent', 'oranget'].forEach((c) => document.body.classList.toggle(c, c === t)); };
 const TAGS_SUGGESTED = ['famiglia', 'amore', 'anniversario', 'amici', 'ricordo', 'sport', 'panorama', 'tramonto',
   'monumento', 'storia', 'arte', 'natura', 'mare', 'montagna', 'trekking', 'sentiero', 'passeggiata', 'mappa interattiva', 'città', 'cibo', 'fotografia', 'musica', 'guida', 'caccia al tesoro'];
 const MAX_TAGS = 8;
