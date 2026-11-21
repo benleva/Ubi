@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211647';
+import { CONFIG } from './config.js?v=202611211652';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211647';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211652';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.97';
+const APP_VERSION = 'v.98';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -50,6 +50,9 @@ const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.
   : badge(c.media_type, extra));
 const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
 const setDatingTheme = (on) => document.body.classList.toggle('dating', !!on);
+// Pin di bar, pub e ristoranti: colori giallo e nero (come il dating ha i suoi)
+const PUB_CATS = new Set(['bar', 'pub', 'ristorante']);
+const setPubTheme = (b) => document.body.classList.toggle('pubt', !!(b && PUB_CATS.has(b.category)));
 const TAGS_SUGGESTED = ['famiglia', 'amore', 'anniversario', 'amici', 'ricordo', 'sport', 'panorama', 'tramonto',
   'monumento', 'storia', 'arte', 'natura', 'mare', 'montagna', 'trekking', 'sentiero', 'passeggiata', 'mappa interattiva', 'città', 'cibo', 'fotografia', 'musica', 'guida', 'caccia al tesoro'];
 const MAX_TAGS = 8;
@@ -644,7 +647,7 @@ function demoBackend() {
     async huntStats() { return null; },
     async setSignupSource() {},
     async pinBusiness(slug) { const c = db.contents.find((x) => x.share_slug === slug); const b = c && c.business_id && (db.biz || []).find((x) => x.id === c.business_id && x.enabled !== false);
-      return b ? { business_id: b.id, name: b.name, logo_url: b.logo_url || null } : null; },
+      return b ? { business_id: b.id, name: b.name, logo_url: b.logo_url || null, category: b.category || null } : null; },
     async myCustomerAnswer(bid) { return ((db.cust || {})[db.user?.id] || {})[bid] || null; },
     async setCustomerAnswer(bid, a) { if (!db.user) throw new Error('Accesso richiesto'); db.cust = db.cust || {}; const m = (db.cust[db.user.id] = db.cust[db.user.id] || {}); if (!m[bid]) m[bid] = a; save(); },
     async adminSetPinBusiness(slug, bid) { const c = db.contents.find((x) => x.share_slug === slug); if (!c) throw new Error('Pin non trovato'); c.business_id = bid || null; save(); },
@@ -821,6 +824,7 @@ async function routeInner() {
   if (B.recovery) return viewNewPassword();
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
   setDatingTheme(page === 'dating' || (page === 'new' && arg === 'dating'));
+  setPubTheme(null);
   if (page === 'faq') return viewFaq(arg);
   if (page === 'invita') return viewInvite();
   if (page === 'avvisi') return viewOptout(arg);
@@ -952,6 +956,7 @@ async function flushCustPending() {
 
 function viewLogin(note = '', tab = 'login') {
   const bs = bizSrc();
+  setPubTheme(bs);
   app.innerHTML = `
     ${bs ? `<div class="hero bizhero">${bizLogo(bs, 'bizlogo lg')}<h1>${T2('Benvenuto da', 'Welcome to')} ${esc(bs.name)}</h1>
       <p class="muted">${T2('Iscriviti a Ubi, è gratis: apri i pin nascosti nel negozio, scopri consigli e regali.', 'Join Ubi, it is free: open the pins hidden in the shop, find tips and gifts.')}</p></div>`
@@ -1900,6 +1905,7 @@ async function viewContent(slug, user) {
   setDatingTheme(t.is_dating);
   const biz = t.is_dating ? null : await B.pinBusiness(slug);
   if (biz && !user) store.set('ubi_biz_src', JSON.stringify({ ...biz, t: Date.now() }));
+  setPubTheme(biz);
   if (t.hunt_locked && !t.is_owner) {
     app.innerHTML = `<h1>🗺️ <span translate="no">${esc(t.title)}</span></h1><div class="card center"><p style="font-size:42px;margin:0">🔒</p>
       <p>Questa è la <b>tappa ${t.hunt_step}</b> della caccia al tesoro «${esc(t.hunt_title || '')}».</p>

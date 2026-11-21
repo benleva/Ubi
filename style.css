@@ -438,3 +438,13 @@ body.dating .seg button.on { background: linear-gradient(90deg, #7b3fa0, #d94f9a
 .icopick .tico{width:34px;height:34px;font-size:17px;transform:none;box-shadow:none}
 .icopick .icoauto{border-radius:18px;padding:8px 12px;line-height:1.2;font-size:13px;border:1px solid #d9d2c3;color:#1f3a5f;background:#fff}
 .icopick .icoauto.on{border-color:#e8743b;background:#fff3ec}
+/* pin di bar, pub e ristoranti: giallo e nero */
+body.pubt { --brand: #1b1b1b; --accent: #f2c300; --bg: #faf6ec; --line: #ece3c8; }
+body.pubt .top { background: #1b1b1b; border-bottom: 4px solid #f2d94e; }
+body.pubt .msg.info { background: #fdf3c4; color: #4a3d00; }
+body.pubt .seg button.on { background: #1b1b1b; color: #f2d94e; }
+body.pubt button.accent, body.pubt .btn.accent { background: #f2d94e; color: #1b1b1b; }
+body.pubt button:not(.ghost):not(.accent):not(.danger), body.pubt .btn:not(.ghost):not(.accent) { background: #1b1b1b; color: #f2d94e; }
+body.pubt .bizbar { border-color: #f2d94e; }
+body.pubt .hero { background: #1b1b1b; }
+body.pubt .bizlogo { border: 2px solid #f2d94e; }
