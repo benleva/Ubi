@@ -2,8 +2,12 @@ import asyncio, sys, copy, time
 sys.path.insert(0,'/home/claude/video')
 from cap_lib import Rec
 import cap_garden as G0
+import json as _j
 def gdb(user=True, owner=False, cat='garden'):
-  db=copy.deepcopy(G0.db); db['biz'][0]['logo_url']='logo-carrara.png'; db['biz'][0]['category']=cat
+  # negozio inventato: niente nomi o loghi di attività reali nei video pubblici
+  raw=_j.dumps(G0.db, ensure_ascii=False)
+  for a,b in [('Garden Carrara Clusone','Garden dei Fiori'),('Garden Carrara','Garden dei Fiori'),('Via Brescia, Clusone','Via dei Prati 1'),('freddo di Clusone',"freddo d'inverno")]: raw=raw.replace(a,b)
+  db=_j.loads(raw); db['biz'][0]['logo_url']='logo-fiori.png'; db['biz'][0]['category']=cat
   for c in db['contents']: c['business_id']='b1'
   if owner:
     for c in db['contents']: c['owner_id']='u_cli'; c['business_id']=None
