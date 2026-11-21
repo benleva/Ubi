@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210200';
+import { CONFIG } from './config.js?v=202611210216';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210200';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210216';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.80';
+const APP_VERSION = 'v.81';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2651,7 +2651,9 @@ async function viewCashier(token) {
       ${info.items.length ? `<div class="card"><h2>🎁 ${T2('Vendi un regalo', 'Sell a gift')}</h2>
         <p class="muted small">${T2('Il cliente paga qui, tu tocchi l\'articolo: nasce un regalo con il suo QR da mandare a chi vuole.', 'The customer pays here, you tap the item: a gift is created with a QR to send to anyone.')}</p>
         <div class="citems">${info.items.map((i) => `<button type="button" class="ghost" data-item="${esc(i.id)}">🎁 ${esc(i.name)}${i.value ? ` <span class="muted small">${esc(i.value)}</span>` : ''}</button>`).join('')}</div>
-        <div id="cissue"></div></div>` : ''}
+        <div id="cissue"></div></div>` : `<div class="card"><h2>🎁 ${T2('Vendi un regalo', 'Sell a gift')}</h2>
+        <p class="muted small">${T2('Qui compariranno i tuoi articoli da regalare (es. ☕ Caffè, 🍺 Birra, 💐 Mazzo di fiori): il cliente paga, tu tocchi l\'articolo e nasce un regalo con il QR da mandare a chi vuole.', 'Your gift items will appear here: the customer pays, you tap the item and a gift with a QR is created.')}</p>
+        <div class="msg info small">${T2('Il catalogo è ancora vuoto: chiedi a Ubi di aggiungere gli articoli.', 'The catalogue is still empty: ask Ubi to add the items.')}</div></div>`}
       ${info.campaigns.length ? `<div class="card"><h2>📊 ${T2('Numeri', 'Numbers')}</h2>${info.campaigns.map((c) => `<p><b>${themeOf(c.theme).e} ${esc(c.title)}</b><br>
         <span class="small">${c.kind === 'omaggio' ? `${T2('Biglietti', 'Cards')}: ${c.total} · ${T2('attivati', 'activated')}: ${c.claimed} · ` : `${T2('Venduti', 'Sold')}: ${c.total} · `}${T2('regalati ad altri', 'given to others')}: ${c.gifted} · ${T2('aperti', 'opened')}: ${c.unlocked} · ${T2('ritirati', 'collected')}: <b>${c.redeemed}</b>${c.redeemed_gifted ? ` (${c.redeemed_gifted} ${T2('da chi l\'ha ricevuto in regalo', 'by gift recipients')})` : ''}</span></p>`).join('')}</div>` : ''}
       <p class="center small"><a href="#" id="cexit">${T2('Esci dalla cassa', 'Leave the till')}</a></p></div>`;
