@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211724';
+import { CONFIG } from './config.js?v=202611211726';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211724';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211726';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.102';
+const APP_VERSION = 'v.103';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2926,6 +2926,7 @@ async function adminShopsTab(box) {
             : '<p class="muted small">Nessuno. Quando il titolare entra con il PIN dal suo account Ubi, può collegarsi.</p>'}</div></details>
       <details data-a="pinsbox"><summary>📍 Pin del negozio e clienti</summary>
         <p class="small muted">I pin collegati mostrano il logo del negozio; chi li apre risponde a «Sei già cliente?». Qui vedi solo numeri.</p>
+        ${!b.p || !b.p.category || !b.p.logo_url ? `<div class="msg warn small">⚠️ ${!b.p || !b.p.category ? 'Manca la <b>categoria</b>: i pin restano con i colori normali di Ubi.' : ''} ${!b.p || !b.p.logo_url ? 'Manca il <b>logo</b>: al suo posto compare 🌿.' : ''} Compilali nella sezione <b>⭐ Partner</b> qui sotto e tocca «Salva dati partner» (non serve spuntare «Mostra tra i partner»).</div>` : ''}
         <div class="msg info small">👥 ${b.cs ? `<b>${+b.cs.abituali + +b.cs.occasionali + +b.cs.nuovi + +b.cs.non_detto}</b> risposte · ${b.cs.abituali} clienti abituali · ${b.cs.occasionali} occasionali · <b>${b.cs.nuovi} nuovi</b> · ${b.cs.non_detto} non detto` : 'Ancora nessuna risposta.'}</div>
         <div data-a="pinlist"><p class="muted small">…</p></div>
         <div class="row"><input data-a="pinslug" placeholder="Link o codice del pin (es. ubipin.it/#/c/abc123)"><button type="button" data-a="pinlink" style="flex:0 0 auto">Collega</button></div>
