@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211750';
+import { CONFIG } from './config.js?v=202611211828';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211750';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211828';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.105';
+const APP_VERSION = 'v.106';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2243,7 +2243,7 @@ async function viewHunts() {
       <li>Chi sblocca l'ultima riceve un <b>codice unico</b>: lo verifichi qui e lo segni come ritirato.</li>
       <li><b>Offerta in negozio</b> (es. «−20% ai primi 30»): crea una caccia con <b>una sola tappa</b> davanti al prodotto. I primi che la sbloccano ricevono ognuno un codice diverso; finiti i codici, gli altri vedono «Offerta esaurita».</li></ul></div>
     <div class="card"><form id="hf"><h2>Nuova caccia</h2>
-      <label for="ht">Nome</label><input id="ht" maxlength="80" required placeholder="Es. La caccia del Kymera">
+      <label for="ht">Nome</label><input id="ht" maxlength="80" required placeholder="Es. La caccia della Lanterna">
       <label for="hp">Regalo per chi completa</label><input id="hp" maxlength="200" required placeholder="Es. Una birra media, a chi completa entro il 31/12">
       <label for="hm">Regali disponibili (massimo)</label><input id="hm" type="number" min="1" max="10000" value="30">
       <div id="hm2"></div><button class="full accent" type="submit">Crea la caccia</button></form></div>
@@ -2334,7 +2334,7 @@ async function huntDuplicatePanel(h, steps) {
   const s1 = steps.find((x) => x.hunt_step === 1) || steps[0];
   box.innerHTML = `<label for="dupt">Nome della copia</label><input id="dupt" maxlength="80" value="${esc((h.title + ' – copia').slice(0, 80))}">
     <p class="small" style="margin:12px 0 6px"><b>Dove la metti?</b> Tocca la mappa nel punto della nuova <b>tappa 1</b>: le altre tappe si spostano insieme, alla stessa distanza tra loro.</p>
-    <div class="row" style="margin-bottom:8px"><input id="dupq" placeholder="Cerca un posto (es. Clusone, piazza)"><button type="button" class="ghost" id="dupgo" style="flex:0 0 auto">Cerca</button></div>
+    <div class="row" style="margin-bottom:8px"><input id="dupq" placeholder="Cerca un posto (es. via Roma, piazza)"><button type="button" class="ghost" id="dupgo" style="flex:0 0 auto">Cerca</button></div>
     <button type="button" class="ghost full" id="dupme">📍 Usa la mia posizione</button>
     <div class="map" id="dupmap" style="height:300px;margin-top:8px"></div>
     <p class="muted small" id="dupinfo">Nessun punto scelto: tocca la mappa.</p>
@@ -2720,8 +2720,8 @@ const VIDEOS = {
   cassa: { f: 'video/Ubi-tutorial-cassa-negozio.mp4', s: 25, n: 'Come si usa la Cassa' },
   a_campagna: { f: 'video/Ubi-admin-campagna.mp4', s: 19 },
   a_banner: { f: 'video/Ubi-admin-banner-v2.mp4', s: 22 },
-  a_nfc: { f: 'video/Ubi-admin-nfc.mp4', s: 22 },
-  a_caccia: { f: 'video/Ubi-admin-caccia-v2.mp4', s: 21 },
+  a_nfc: { f: 'video/Ubi-admin-nfc.mp4', s: 21 },
+  a_caccia: { f: 'video/Ubi-admin-caccia-v2.mp4', s: 20 },
   social: { f: 'video/Ubi-tutorial-social-in-un-pin.mp4', s: 26 },
   dating: { f: 'video/Ubi-tutorial-dating-entra.mp4', s: 30, n: 'Entra e lascia un biglietto' },
   dating2: { f: 'video/Ubi-tutorial-dating-conoscersi.mp4', s: 33, n: 'Rispondi e conoscetevi' },
@@ -3367,7 +3367,7 @@ async function adminNfcTab(box) {
     const isCassa = /^#\/cassa\//.test(t.target || ''), isPin = /^#\/c\//.test(t.target || '');
     const kind = !t.target ? (t.code[0] === 'C' ? 'cassa' : 'pin') : isCassa ? 'cassa' : isPin ? 'pin' : 'link';
     ed.innerHTML = `<div class="card" style="margin:8px 0">
-      <label>Nome (per te)</label><input data-k="label" maxlength="60" value="${esc(t.label || '')}" placeholder="Es. Pub Kymera · bancone">
+      <label>Nome (per te)</label><input data-k="label" maxlength="60" value="${esc(t.label || '')}" placeholder="Es. Pub La Lanterna · bancone">
       <label>Negozio (per sapere di chi sono i tocchi)</label><select data-k="biz"><option value="">—</option>${shops.map((s2) => `<option value="${esc(s2.id)}" ${s2.id === t.business_id ? 'selected' : ''}>${esc(s2.name)}</option>`).join('')}</select>
       <label>Dove porta</label><div class="seg" data-k="kind"><button type="button" data-v="pin">📍 Pin / vetrina</button><button type="button" data-v="cassa">🧾 Cassa</button><button type="button" data-v="link">🔗 Link</button><button type="button" data-v="off">⚪ Spento</button></div>
       <div data-k="pinbox"><label>Link del pin (es. la vetrina del negozio)</label><input data-k="pin" placeholder="https://ubipin.it/#/c/…" value="${isPin ? 'https://ubipin.it/' + esc(t.target) : ''}"></div>
@@ -3692,7 +3692,7 @@ async function adminAdsTab(box) {
   const shareOf = (a) => adCopies(a) * adSecs(a);
   const liveOthers = () => ads.filter((a) => adLive(a) && a.id !== editing);
   box.innerHTML = `<div class="card"><form id="af"><h2 id="aft">Nuovo banner</h2>
-      <label for="at">Nome</label><input id="at" maxlength="60" required placeholder="Es. Kymera">
+      <label for="at">Nome</label><input id="at" maxlength="60" required placeholder="Es. La Lanterna">
       <label for="ab">Testo breve</label><input id="ab" maxlength="120" placeholder="Es. Birre artigianali in centro">
       <label for="al">Link (sito, Instagram, mappa…)</label><input id="al" type="url" placeholder="https://…">
       <label for="ac">Colore di sfondo</label><input id="ac" type="color" value="#1f3a5f">
@@ -3719,7 +3719,7 @@ async function adminAdsTab(box) {
       return `<div class="card" data-id="${esc(a.id)}">${adCard(a, !a.active ? 'Spento' : adLive(a) ? 'Attivo' : 'Scaduto', false)}
       <p class="small muted" style="margin:6px 2px 0">${esc(info)}</p>
       <div class="actions"><button class="ghost" data-a="edit">✏️ Modifica</button><button class="ghost" data-a="toggle">${a.active ? '⏸ Spegni' : '▶️ Accendi'}</button><button class="danger" data-a="del">🗑</button></div>
-      <button type="button" class="ghost full" data-a="gift" style="margin-top:6px">🎁 Trasforma in regalo</button><div class="giftbox"></div></div>`; }).join('') || '<div class="card center muted">Nessun banner. Crea il primo qui sopra (es. Chiara, Kymera).</div>'}</div>`;
+      <button type="button" class="ghost full" data-a="gift" style="margin-top:6px">🎁 Trasforma in regalo</button><div class="giftbox"></div></div>`; }).join('') || '<div class="card center muted">Nessun banner. Crea il primo qui sopra (es. Chiara, La Lanterna).</div>'}</div>`;
   const old = () => ads.find((a) => a.id === editing);
   const cur = () => ({ title: $('#at').value.trim() || 'Nome del negozio', body: $('#ab').value.trim(), link_url: $('#al').value.trim(), color: $('#ac').value,
     plan: st.plan, copies: st.copies, seconds: st.seconds, vetrina_slug: st.vet ? vetrinaSlug($('#avs').value) || 'xxxx' : null,
@@ -3856,11 +3856,11 @@ const ADMIN_GUIDE = `<div class="aguide">
 <p class="small">Tanti banner insieme: chiedimi il comando SQL unico.</p>${videoBtn('a_banner')}</details>
 
 <details><summary>5b · La vetrina del negozio</summary>
-<p>Un <b>pin dentro il negozio</b>, collegato al suo banner: il banner fa venire voglia, la vetrina porta la persona sul posto. Esempio: Bar Smile.</p>
+<p>Un <b>pin dentro il negozio</b>, collegato al suo banner: il banner fa venire voglia, la vetrina porta la persona sul posto. Esempio: Bar del Sorriso.</p>
 <ol><li><b>Al bar</b>, dentro il locale: «Lascia un contenuto» → foto o video dell'offerta (es. «Mostra questo pin alla cassa: il secondo caffè è offerto da noi»).</li>
-<li>Titolo «Caffè offerto al Bar Smile», indizio «In piazza, di fronte alla chiesa», tag <b>vetrina</b>, visibile a <b>tutti</b>. Fissa nel luogo.</li>
+<li>Titolo «Caffè offerto al Bar del Sorriso», indizio «In piazza, di fronte alla chiesa», tag <b>vetrina</b>, visibile a <b>tutti</b>. Fissa nel luogo.</li>
 <li>Copia il link del pin.</li>
-<li><b>📣 Banner</b> → ✏️ Modifica il banner del Bar Smile → accendi <b>📍 Vetrina</b> → incolla il link → Salva.</li></ol>
+<li><b>📣 Banner</b> → ✏️ Modifica il banner del Bar del Sorriso → accendi <b>📍 Vetrina</b> → incolla il link → Salva.</li></ol>
 <p><b>Cosa vede l'utente</b>: il banner con «📍 Vetrina · scopri l'offerta sul posto»; il tocco apre la pagina del pin (mappa e indicazioni, offerta chiusa); sulla mappa l'icona 🏪; quando entra nel bar il pin si sblocca e mostra l'offerta alla cassa.</p>
 <p><b>Cosa dici al negozio</b>: «Ogni mese ti dico quante persone sono entrate grazie a Ubi». Il numero è in <b>📊 Pin</b>: gli sblocchi della vetrina. L'offerta si cambia modificando il pin, il banner resta uguale.</p>
 <p><b>Limite</b>: funziona sulla fiducia (alla cassa guardano il pin aperto; non c'è un controllo contro screenshot o ripetizioni). Va bene per offerte piccole. Per regali di valore usa le <b>campagne regalo</b> con codice unico e 🧾 Cassa.</p>

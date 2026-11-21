@@ -11,13 +11,13 @@ for i in range(18):
     'card_code':code(8),'claim_token':'TOKEN'+str(i).zfill(11) if i else 'K7RD9QXAMPLE0000','lat':C[0]+r*math.cos(a)/111320,'lng':C[1]+r*math.sin(a)/(111320*math.cos(math.radians(C[0]))),'holder_id':None,'expires_at':None,'created_at':'2026-11-20T10:00:00Z'})
 db={'user':{'id':A,'email':'andrea@x.it'},'accounts':{},'unlocks':[],'contents':[],
  'profiles':{A:{'display_name':'Andrea','privacy_version':'2026-11-16b'},G:{'display_name':'Giulia','privacy_version':'2026-11-16b'}},
- 'biz':[{'id':'b1','name':'Garden Bonfanti','address':"San Paolo d'Argon",'enabled':True,'hide_campaigns':False,'cashier_token':'CASSA1','pin':'2468','lat':C[0],'lng':C[1]}],
+ 'biz':[{'id':'b1','name':'Garden dei Fiori','address':"Valfiorita",'enabled':True,'hide_campaigns':False,'cashier_token':'CASSA1','pin':'2468','lat':C[0],'lng':C[1]}],
  'camps':[{'id':'c1','business_id':'b1','title':'Natale 2026','theme':'natale','kind':'omaggio','opens_at':'2026-11-01T00:00:00Z','expires_at':'2027-01-08T22:59:00Z','lat':C[0],'lng':C[1],'radius_m':50,'intro':'Vieni a sbloccare il tuo regalo di Natale','created_at':'2026-11-01T00:00:00Z'}],
  'gifts':gifts,'items':[]}
 async def main():
   R=Rec('/home/claude/video/campagne'); await R.start(db, C)
   R.title('Campagne regalo', 'Come funziona per i tuoi clienti')
-  R.card('ticket', 3.2, cap=[1,'In cassa il cliente riceve un biglietto'], code='K7RD-9QXA', shop='Garden Bonfanti')
+  R.card('ticket', 3.2, cap=[1,'In cassa il cliente riceve un biglietto'], code='K7RD-9QXA', shop='Garden dei Fiori')
   R.caption(2,'Inquadra il QR: il regalo è suo')
   await R.go('#/dono/K7RD9QXAMPLE0000', wait=250)
   await R.seq(ms=2000, hold=1.6)

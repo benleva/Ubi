@@ -6,7 +6,7 @@ G = (45.6905, 9.8012); TIT = 'u_tit'
 def db():
     return {'user': {'id': TIT, 'email': 'marco@esempio.it'}, 'admin': False, 'accounts': {}, 'unlocks': [], 'contents': [], 'book': {},
             'profiles': {TIT: {'display_name': 'Marco', 'privacy_version': '2026-11-16b'}},
-            'biz': [{'id': 'b1', 'name': 'Garden Bonfanti', 'address': "San Paolo d'Argon", 'enabled': True, 'hide_campaigns': False, 'cashier_token': 'CASSA1', 'pin': '2468', 'lat': G[0], 'lng': G[1]}],
+            'biz': [{'id': 'b1', 'name': 'Garden dei Fiori', 'address': "Valfiorita", 'enabled': True, 'hide_campaigns': False, 'cashier_token': 'CASSA1', 'pin': '2468', 'lat': G[0], 'lng': G[1]}],
             'items': [{'id': 'i1', 'business_id': 'b1', 'name': 'Stella di Natale mignon', 'value_label': '6 €', 'active': True, 'sort': 0},
                       {'id': 'i2', 'business_id': 'b1', 'name': 'Mazzo di tulipani', 'value_label': '12 €', 'active': True, 'sort': 1}],
             'camps': [], 'gifts': [], 'members': []}

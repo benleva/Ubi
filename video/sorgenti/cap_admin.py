@@ -16,8 +16,8 @@ async def negozio():
     await R.go('#/admin/negozi', wait=1200)
     await R.tap('#bnew', after=600)
     R.caption(2, 'Nome, indirizzo e posizione: «Qui»')
-    await R.type('#sname', 'Garden Bonfanti', chunks=3, dur=0.3)
-    await R.type('#saddr', "Via Roma 1, San Paolo d'Argon", chunks=3, dur=0.3)
+    await R.type('#sname', 'Garden dei Fiori', chunks=3, dur=0.3)
+    await R.type('#saddr', "Via Roma 1, Valfiorita", chunks=3, dur=0.3)
     await R.tap('#shere', after=900)
     R.caption(3, 'Scegli il PIN della Cassa e salva')
     await R.pg.evaluate("document.querySelector('#spin').scrollIntoView({block:'center'})"); await R.pg.wait_for_timeout(300)
@@ -39,7 +39,7 @@ async def negozio():
     await R.still(1.6)
     # il titolare si collega (fuori scena), poi l'amministratore lo vede nell'elenco
     d = await R.pg.evaluate("JSON.parse(localStorage.getItem('ubi_demo'))")
-    await R.pg.evaluate("(()=>{const d=JSON.parse(localStorage.getItem('ubi_demo'));d.profiles.u_tit={display_name:'Marco Bonfanti',privacy_version:'2026-11-16b'};d.members=[{business_id:d.biz[0].id,user_id:'u_tit',since:new Date().toISOString()}];localStorage.setItem('ubi_demo',JSON.stringify(d));})()")
+    await R.pg.evaluate("(()=>{const d=JSON.parse(localStorage.getItem('ubi_demo'));d.profiles.u_tit={display_name:'Marco Fiori',privacy_version:'2026-11-16b'};d.members=[{business_id:d.biz[0].id,user_id:'u_tit',since:new Date().toISOString()}];localStorage.setItem('ubi_demo',JSON.stringify(d));})()")
     R.caption(7, 'Quando il titolare si collega, lo vedi qui')
     await R.go('#/admin/negozi', reload=True, wait=1500)
     await R.pg.locator('.shop summary', has_text='Cassa').first.click(); await R.pg.wait_for_timeout(300)
@@ -53,7 +53,7 @@ async def negozio():
     R.tl.append(END); await R.stop()
 
 async def campagna():
-    biz = [{'id': 'b1', 'name': 'Garden Bonfanti', 'address': "San Paolo d'Argon", 'enabled': True, 'hide_campaigns': False, 'cashier_token': 'CASSA1', 'pin': '2468', 'lat': G[0], 'lng': G[1]}]
+    biz = [{'id': 'b1', 'name': 'Garden dei Fiori', 'address': "Valfiorita", 'enabled': True, 'hide_campaigns': False, 'cashier_token': 'CASSA1', 'pin': '2468', 'lat': G[0], 'lng': G[1]}]
     items = [{'id': 'i1', 'business_id': 'b1', 'name': 'Stella di Natale mignon', 'value_label': '6 €', 'meaning': 'Auguri di gioia e di un anno luminoso', 'active': True}]
     R = Rec('/home/claude/video/a_campagna'); await R.start(base({'biz': biz, 'items': items, 'camps': [], 'gifts': []}), G)
     R.tl.append({'t': 'title', 'title': 'Creare una campagna regalo', 'sub': 'Guida dell\'amministratore', 'dur': 2.2, 'icon': '🎄'})
@@ -85,8 +85,8 @@ async def campagna():
     R.tl.append(END); await R.stop()
 
 async def banner():
-    old = [{'id': 'x1', 'title': 'Pub Kymera', 'body': 'Birre artigianali in centro', 'link_url': 'https://example.com', 'color': '#7a2e1f', 'active': True, 'plan': 'base', 'copies': 1, 'seconds': 9},
-           {'id': 'x2', 'title': 'Garden Bonfanti', 'body': 'Stelle di Natale', 'link_url': 'https://example.org', 'color': '#1e7d45', 'active': True, 'plan': 'plus', 'copies': 2, 'seconds': 15}]
+    old = [{'id': 'x1', 'title': 'Pub La Lanterna', 'body': 'Birre artigianali in centro', 'link_url': 'https://example.com', 'color': '#7a2e1f', 'active': True, 'plan': 'base', 'copies': 1, 'seconds': 9},
+           {'id': 'x2', 'title': 'Garden dei Fiori', 'body': 'Stelle di Natale', 'link_url': 'https://example.org', 'color': '#1e7d45', 'active': True, 'plan': 'plus', 'copies': 2, 'seconds': 15}]
     R = Rec('/home/claude/video/a_banner'); await R.start(base({'ads': old}), G)
     R.tl.append({'t': 'title', 'title': 'Creare un banner', 'sub': 'Guida dell\'amministratore', 'dur': 2.2, 'icon': '📣'})
     R.caption(1, 'Admin → Banner: nome, testo, link e colore')
@@ -130,7 +130,7 @@ async def caccia():
     await R.go('#/', wait=1500)
     await R.tap('a[href="#/cacce"]', after=1000)
     R.caption(2, 'Nome, regalo per chi completa, quanti regali')
-    await R.type('#ht', 'La birra del campanile', chunks=3, dur=0.3)
+    await R.type('#ht', 'La merenda del campanile', chunks=3, dur=0.3)
     await R.type('#hp', 'Una birra media, a chi completa entro il 31/12', chunks=3, dur=0.3)
     await R.tap('form button[type="submit"]', after=1300)
     R.caption(3, '«Aggiungi la tappa 1»: il punto di partenza')

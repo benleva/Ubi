@@ -356,7 +356,7 @@ const D = [
   ['(es. 3): ognuna è un pin con un indizio. La tappa successiva compare solo dopo aver trovato la precedente.', '(e.g. 3): each is a pin with a clue. The next stage appears only after finding the previous one.'],
   [': lo verifichi qui e lo segni come ritirato.', ': you check it here and mark it as collected.'],
   ['Nuova caccia', 'New hunt'], ['Premio', 'Prize'], ['Numero massimo di vincitori', 'Maximum number of winners'], ['Crea la caccia', 'Create the hunt'],
-  ['Es. La caccia del Kymera', 'E.g. The Kymera hunt'], ['Es. Una birra media o una maglietta', 'E.g. A medium beer or a T-shirt'],
+  ['Es. La caccia della Lanterna', 'E.g. The Lanterna hunt'], ['Es. Una birra media o una maglietta', 'E.g. A medium beer or a T-shirt'],
   ['Nessuna caccia ancora.', 'No hunts yet.'], ['Caccia non trovata.', 'Hunt not found.'], ['Tappe', 'Stages'],
   ['Nessuna tappa: aggiungi la prima.', 'No stages: add the first one.'], ['＋ Aggiungi la tappa', '＋ Add the stage'],
   ['✅ Verifica un codice premio', '✅ Check a prize code'], ['Vincitori', 'Winners'], ['Es. A1B2C3', 'E.g. A1B2C3'],

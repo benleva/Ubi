@@ -4,7 +4,7 @@ from cap_lib import Rec
 C=(45.9205,9.9512); M='u_m'; L='u_l'
 db={'user':{'id':M,'email':'marco@x.it'},'accounts':{},'unlocks':[],'contents':[],
  'profiles':{M:{'display_name':'Marco','privacy_version':'2026-11-16b'},L:{'display_name':'Luca','privacy_version':'2026-11-16b'}},
- 'biz':[{'id':'b1','name':'Bar Smile','address':'Ardesio','enabled':True,'hide_campaigns':False,'cashier_token':'CASSA2','pin':'1357','lat':C[0],'lng':C[1]}],
+ 'biz':[{'id':'b1','name':'Bar del Sorriso','address':'Valfiorita','enabled':True,'hide_campaigns':False,'cashier_token':'CASSA2','pin':'1357','lat':C[0],'lng':C[1]}],
  'items':[{'id':'i1','business_id':'b1','name':'Caffè','value_label':'1,20 €','active':True},{'id':'i2','business_id':'b1','name':'Birra media','value_label':'5 €','active':True},
           {'id':'i3','business_id':'b1','name':'Hamburger e patatine','value_label':'12 €','active':True},{'id':'i4','business_id':'b1','name':'Aperitivo per due','value_label':'15 €','active':True}],
  'camps':[],'gifts':[]}
