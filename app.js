@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210231';
+import { CONFIG } from './config.js?v=202611210236';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210231';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210236';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.84';
+const APP_VERSION = 'v.85';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -4511,6 +4511,29 @@ function viewFaq(arg) {
   if (arg && $(`#faq-${arg}`)) $(`#faq-${arg}`).scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0);
 }
 
+// ======================= AGGIORNAMENTI =======================
+// Il telefono (o il browser di WhatsApp) può tenere in memoria la versione vecchia: all'avvio e quando si torna
+// sull'app controlliamo index.html senza cache; se il numero di app.js è cambiato, compare la barra «Aggiorna».
+const myBuild = (document.querySelector('script[src*="app.js"]')?.getAttribute('src').match(/v=(\d+)/) || [])[1] || '';
+let updShown = false;
+async function checkUpdate() {
+  if (!myBuild || updShown || !navigator.onLine) return;
+  try {
+    const html = await (await fetch(`index.html?nocache=${Date.now()}`, { cache: 'no-store' })).text();
+    const v = (html.match(/app\.js\?v=(\d+)/) || [])[1];
+    if (!v || v === myBuild) return;
+    updShown = true;
+    const bar = document.createElement('div'); bar.className = 'updbar';
+    bar.innerHTML = `<span>✨ ${T2('È uscita una nuova versione di Ubi', 'A new version of Ubi is out')}</span><button type="button">${T2('Aggiorna', 'Update')}</button>`;
+    bar.querySelector('button').onclick = () => { location.replace(`${location.pathname}?v=${v}${location.hash}`); };
+    document.body.appendChild(bar);
+  } catch { /* offline o rete lenta: riproviamo dopo */ }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+setInterval(checkUpdate, 10 * 60 * 1000);
+// dopo un aggiornamento togliamo ?v=… dall'indirizzo
+if (/[?&]v=\d+/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash);
+
 // ======================= AVVIO =======================
 (async () => {
   try {
@@ -4521,6 +4544,7 @@ function viewFaq(arg) {
     window.addEventListener('hashchange', route);
     appReady = true;
     await route();
+    setTimeout(checkUpdate, 4000);
   } catch (err) {
     app.innerHTML = `<div class="msg err">Errore di avvio: ${errText(err)}</div>`;
   }
