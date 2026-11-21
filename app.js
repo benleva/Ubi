@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211726';
+import { CONFIG } from './config.js?v=202611211743';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211726';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211743';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.103';
+const APP_VERSION = 'v.104';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -42,10 +42,12 @@ const PIN_ICONS = [
   ['birra', '🍺', '#b7791f', 'Birra'], ['vino', '🍷', '#7b1f3a', 'Calice di vino'], ['caffe', '☕', '#6d4c41', 'Tazzina di caffè'], ['torta', '🍰', '#c2185b', 'Fetta di torta'],
   ['patatine', '🍟', '#e0a800', 'Patatine fritte'], ['hamburger', '🍔', '#a0522d', 'Hamburger'], ['pizza', '🍕', '#d35400', 'Pizza'],
   ['libro', '📖', '#5b4b8a', 'Libro'], ['cuore', '❤️', '#e91e63', 'Amore'], ['stella', '⭐', '#f1a90f', 'Stella'],
-  ['musica', '🎵', '#7b1fa2', 'Musica'], ['sport', '⚽', '#37474f', 'Sport'], ['montagna', '⛰️', '#546e7a', 'Montagna'], ['info', 'ℹ️', '#1f3a5f', 'Informazioni']];
+  ['logo', '🏪', '#ffffff', 'Logo del negozio'], ['musica', '🎵', '#7b1fa2', 'Musica'], ['sport', '⚽', '#37474f', 'Sport'], ['montagna', '⛰️', '#546e7a', 'Montagna'], ['info', 'ℹ️', '#1f3a5f', 'Informazioni']];
 const pinIcon = (c) => { const t = (c.tags || []).find((x) => x.startsWith('ico-')); return t ? PIN_ICONS.find((i) => i[0] === t.slice(4)) || null : null; };
+const LOGO_CACHE = new Map();   // slug del pin -> logo del negozio collegato
 const shownTags = (tags) => (tags || []).filter((t) => !t.startsWith('ico-'));
-const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : pinIcon(c) && !c.is_dating ? iconBadge(pinIcon(c)[1], pinIcon(c)[2], pinIcon(c)[3], extra) : isVetrina(c) && !c.is_dating ? iconBadge('🏪', '#e8743b', 'Vetrina di un negozio', extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
+const logoBadge = (c, extra = '') => `<span class="tico tlogo ${extra}" style="background:#fff" title="Logo del negozio">${c.logo_url ? `<img src="${esc(c.logo_url)}" alt="">` : '🏪'}</span>`;
+const pinBadge = (c, extra = '') => (c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : pinIcon(c) && !c.is_dating ? (pinIcon(c)[0] === 'logo' ? logoBadge(c, extra) : iconBadge(pinIcon(c)[1], pinIcon(c)[2], pinIcon(c)[3], extra)) : isVetrina(c) && !c.is_dating ? iconBadge('🏪', '#e8743b', 'Vetrina di un negozio', extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
   : c.unlock_at && Date.parse(c.unlock_at) > Date.now() ? iconBadge('⏳', '#8a6d3b', 'Capsula del tempo', extra)
   : badge(c.media_type, extra));
 const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
@@ -368,6 +370,7 @@ async function supabaseBackend() {
     async setSignupSource(slug) { try { must(await sb.rpc('set_signup_source', { p_slug: slug })); } catch { /* database non aggiornato */ } },
     // --- clienti dei negozi: pin collegati e domanda «Sei già nostro cliente?»
     async pinBusiness(slug) { try { return (must(await sb.rpc('pin_business', { p_slug: slug })) || [])[0] || null; } catch { return null; } },
+    async pinLogos(slugs) { return must(await sb.rpc('pin_logos', { p_slugs: slugs })) || []; },
     async myCustomerAnswer(bid) { try { return must(await sb.rpc('my_customer_answer', { p_business: bid })); } catch { return 'nd'; } },
     async setCustomerAnswer(bid, a) { must(await sb.rpc('set_customer_answer', { p_business: bid, p_answer: a })); },
     async adminSetPinBusiness(slug, bid) { must(await sb.rpc('admin_set_pin_business', { p_slug: slug, p_business: bid || null })); },
@@ -649,6 +652,7 @@ function demoBackend() {
     async setSignupSource() {},
     async pinBusiness(slug) { const c = db.contents.find((x) => x.share_slug === slug); const b = c && c.business_id && (db.biz || []).find((x) => x.id === c.business_id && x.enabled !== false);
       return b ? { business_id: b.id, name: b.name, logo_url: b.logo_url || null, category: b.category || null } : null; },
+    async pinLogos(slugs) { return db.contents.filter((c) => slugs.includes(c.share_slug) && c.business_id).map((c) => ({ slug: c.share_slug, logo_url: ((db.biz || []).find((b) => b.id === c.business_id) || {}).logo_url || null })).filter((x) => x.logo_url); },
     async myCustomerAnswer(bid) { return ((db.cust || {})[db.user?.id] || {})[bid] || null; },
     async setCustomerAnswer(bid, a) { if (!db.user) throw new Error('Accesso richiesto'); db.cust = db.cust || {}; const m = (db.cust[db.user.id] = db.cust[db.user.id] || {}); if (!m[bid]) m[bid] = a; save(); },
     async adminSetPinBusiness(slug, bid) { const c = db.contents.find((x) => x.share_slug === slug); if (!c) throw new Error('Pin non trovato'); c.business_id = bid || null; save(); },
@@ -1165,6 +1169,10 @@ async function homeMap(opts = {}) {
     try {
       rows = await B.mapContents({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() });
       if (!document.body.contains(el)) return;
+      // icona «Logo del negozio»: chiedo i loghi che mancano (una volta sola per pin)
+      const need = rows.filter((c) => (c.tags || []).includes('ico-logo') && !LOGO_CACHE.has(c.share_slug)).map((c) => c.share_slug);
+      if (need.length) { try { (await B.pinLogos(need)).forEach((x) => LOGO_CACHE.set(x.slug, x.logo_url)); } catch { /* SQL non ancora lanciato */ } need.forEach((k) => { if (!LOGO_CACHE.has(k)) LOGO_CACHE.set(k, null); }); }
+      rows.forEach((c) => { if (LOGO_CACHE.get(c.share_slug)) c.logo_url = LOGO_CACHE.get(c.share_slug); });
       const shownCount = draw();
       const fit = rows.filter((c) => !opts.dating || c.is_dating);
       if (first && fit.length && !lastView && !me) {
@@ -1468,7 +1476,7 @@ async function viewNew(ed = null, opts = {}) {
       <div class="chips" id="tags"></div>
       <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="newtag" maxlength="24" placeholder="Aggiungi un tag tuo…" enterkeyhint="done">
         <button id="addtag" type="button" class="ghost" style="flex:0 0 auto">＋</button></div>
-      ${dating ? '' : `<label>Icona sulla mappa</label><div class="icopick" id="icopick"></div>`}
+      ${dating ? '' : `<label>Icona sulla mappa</label><div class="icopick" id="icopick"></div><p class="muted small">Il cerchio bianco 🏪 è il <b>logo del negozio</b>: compare quando il pin è collegato a un negozio con il logo (Admin → Negozi).</p>`}
     </div>
     <div class="card" ${dating || hunt ? 'hidden' : ''}><h2>⏳ Capsula del tempo <span class="muted small">(facoltativo)</span></h2>
       <label class="inline"><input type="checkbox" id="capsule" ${capsuleOn ? 'checked' : ''}><span>Si può aprire solo <b>da una data e un'ora</b> nel futuro (compleanni, anniversari, «da aprire tra 10 anni»…)</span></label>
@@ -1912,6 +1920,7 @@ async function viewContent(slug, user) {
   const biz = t.is_dating ? null : await B.pinBusiness(slug);
   if (biz && !user) store.set('ubi_biz_src', JSON.stringify({ ...biz, t: Date.now() }));
   setPubTheme(biz);
+  if (biz && biz.logo_url) t.logo_url = biz.logo_url;
   if (t.hunt_locked && !t.is_owner) {
     app.innerHTML = `<h1>🗺️ <span translate="no">${esc(t.title)}</span></h1><div class="card center"><p style="font-size:42px;margin:0">🔒</p>
       <p>Questa è la <b>tappa ${t.hunt_step}</b> della caccia al tesoro «${esc(t.hunt_title || '')}».</p>
@@ -1926,7 +1935,7 @@ async function viewContent(slug, user) {
   const capLine = opensAt ? `<div class="msg info small">⏳ Capsula del tempo · si apre dal <b>${opensAt.toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</b> alle <b>${opensAt.toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' })}</b>${t.open_anywhere ? ', anche da lontano' : ', sul posto'}</div>` : '';
   const header0 = t.is_dating
     ? `<h1>${datingBadge(t.gender)} <span translate="no">${esc(t.title)}</span></h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
-    : `<h1>${pinIcon(t) ? iconBadge(pinIcon(t)[1], pinIcon(t)[2], pinIcon(t)[3]) : badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
+    : `<h1>${pinIcon(t) ? (pinIcon(t)[0] === 'logo' ? logoBadge(t) : iconBadge(pinIcon(t)[1], pinIcon(t)[2], pinIcon(t)[3])) : badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const bb = biz ? bizBar(biz) : '';
   const header = bb + header0 + huntLine + capLine;
   const player = t.hunt_id && !t.is_owner;
