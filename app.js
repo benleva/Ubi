@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211623';
+import { CONFIG } from './config.js?v=202611211634';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211623';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211634';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.95';
+const APP_VERSION = 'v.96';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -39,7 +39,8 @@ const STELLA_SVG = '<svg viewBox="-12 -12 24 24" width="78%" height="78%" aria-h
 const PIN_ICONS = [
   ['stella-natale', STELLA_SVG, '#c62828', 'Stella di Natale'], ['albero', '🎄', '#1e7d45', 'Albero di Natale'], ['regalo', '🎁', '#c0392b', 'Regalo'],
   ['fiore', '🌸', '#d6517d', 'Fiore'], ['pianta', '🪴', '#2e7d32', 'Pianta'], ['negozio', '🏪', '#e8743b', 'Negozio'],
-  ['caffe', '☕', '#6d4c41', 'Caffè'], ['birra', '🍺', '#b7791f', 'Birra'], ['pizza', '🍕', '#d35400', 'Cibo'],
+  ['birra', '🍺', '#b7791f', 'Birra'], ['vino', '🍷', '#7b1f3a', 'Calice di vino'], ['caffe', '☕', '#6d4c41', 'Tazzina di caffè'], ['torta', '🍰', '#c2185b', 'Fetta di torta'],
+  ['patatine', '🍟', '#e0a800', 'Patatine fritte'], ['hamburger', '🍔', '#a0522d', 'Hamburger'], ['pizza', '🍕', '#d35400', 'Pizza'],
   ['libro', '📖', '#5b4b8a', 'Libro'], ['cuore', '❤️', '#e91e63', 'Amore'], ['stella', '⭐', '#f1a90f', 'Stella'],
   ['musica', '🎵', '#7b1fa2', 'Musica'], ['sport', '⚽', '#37474f', 'Sport'], ['montagna', '⛰️', '#546e7a', 'Montagna'], ['info', 'ℹ️', '#1f3a5f', 'Informazioni']];
 const pinIcon = (c) => { const t = (c.tags || []).find((x) => x.startsWith('ico-')); return t ? PIN_ICONS.find((i) => i[0] === t.slice(4)) || null : null; };
