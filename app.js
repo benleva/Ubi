@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611211556';
+import { CONFIG } from './config.js?v=202611211601';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211556';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611211601';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.93';
+const APP_VERSION = 'v.94';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -261,6 +261,7 @@ async function supabaseBackend() {
     async giftAccept(t) { return must(await sb.rpc('gift_accept', { p_token: t })); },
     async giftTrees(b) { return must(await sb.rpc('map_gift_trees', { s: b.s, w: b.w, n: b.n, e: b.e })) || []; },
     async cashierInfo(t, pin) { return must(await sb.rpc('cashier_info', { p_token: t, p_pin: pin })); },
+    async cashierStats(t, pin) { try { return must(await sb.rpc('cashier_stats', { p_token: t, p_pin: pin })); } catch { return null; } },   // null se il database non è aggiornato
     async cashierCheck(t, pin, code, redeem = false) { return must(await sb.rpc('cashier_check', { p_token: t, p_pin: pin, p_code: code, p_redeem: redeem })); },
     async cashierExtend(t, pin, code, days) { return must(await sb.rpc('cashier_extend', { p_token: t, p_pin: pin, p_code: code, p_days: days })); },
     async cashierIssue(t, pin, item, days = 180) { return must(await sb.rpc('cashier_issue', { p_token: t, p_pin: pin, p_item: item, p_days: days })); },
@@ -2749,8 +2750,20 @@ async function viewCashier(token) {
         <div class="msg info small">${T2('Il catalogo è ancora vuoto: chiedi a Ubi di aggiungere gli articoli.', 'The catalogue is still empty: ask Ubi to add the items.')}</div></div>`}
       ${info.campaigns.length ? `<div class="card"><h2>📊 ${T2('Numeri', 'Numbers')}</h2>${info.campaigns.map((c) => `<p><b>${themeOf(c.theme).e} ${esc(c.title)}</b><br>
         <span class="small">${c.kind === 'omaggio' ? `${T2('Biglietti', 'Cards')}: ${c.total} · ${T2('attivati', 'activated')}: ${c.claimed} · ` : `${T2('Venduti', 'Sold')}: ${c.total} · `}${T2('regalati ad altri', 'given to others')}: ${c.gifted} · ${T2('aperti', 'opened')}: ${c.unlocked} · ${T2('ritirati', 'collected')}: <b>${c.redeemed}</b>${c.redeemed_gifted ? ` (${c.redeemed_gifted} ${T2('da chi l\'ha ricevuto in regalo', 'by gift recipients')})` : ''}</span></p>`).join('')}</div>` : ''}
+      <div id="cstats"></div>
       ${videoBtn('cassa')}
       <p class="center small">${linked ? `<a href="#/">← ${T2('Torna a Ubi', 'Back to Ubi')}</a> · <a href="#" id="cunlink">${T2('Scollega dal mio account', 'Unlink from my account')}</a>` : `<a href="#" id="cexit">${T2('Esci dalla cassa', 'Leave the till')}</a>`}</p></div>`;
+    // I numeri del negozio su Ubi: pin, nuovi iscritti, «Sei già cliente?», NFC (solo totali)
+    B.cashierStats(token, pin).then((st) => {
+      const box = $('#cstats'); if (!box || !st || st.status === 'error') return;
+      const c = st.customers || {}, tot = ['abituali', 'occasionali', 'nuovi', 'non_detto'].reduce((n, k) => n + (+c[k] || 0), 0);
+      if (!(st.pins || []).length && !tot && !(st.nfc && st.nfc.total)) return;
+      box.innerHTML = `<div class="card"><h2>👥 ${T2('I vostri clienti su Ubi', 'Your customers on Ubi')}</h2>
+        ${tot ? `<p><b>${tot}</b> ${T2('risposte a «Sei già cliente?»', 'answers to «Already a customer?»')}:<br><span class="small">${c.abituali} ${T2('abituali', 'regular')} · ${c.occasionali} ${T2('occasionali', 'occasional')} · <b>${c.nuovi} ${T2('nuovi', 'new')}</b> · ${c.non_detto} ${T2('non detto', 'not said')}</span></p>` : ''}
+        ${(st.pins || []).length ? `<p class="small" style="margin-bottom:4px"><b>📍 ${T2('I vostri pin', 'Your pins')}</b></p>${st.pins.map((x) => `<div class="row small" style="align-items:center"><span style="flex:1">${esc(x.title)}</span><span>${x.unlocks} ${T2('sblocchi', 'unlocks')} · ${x.signups} ${T2('nuovi iscritti', 'sign-ups')}</span></div>`).join('')}` : ''}
+        ${st.nfc && st.nfc.total ? `<p class="small">📱 ${T2('Tocchi NFC', 'NFC taps')}: <b>${st.nfc.total}</b> (${st.nfc.last30} ${T2('negli ultimi 30 giorni', 'in the last 30 days')})</p>` : ''}
+        <p class="muted small">${T2('Solo numeri: Ubi non vi passa nomi né email dei clienti.', 'Numbers only: Ubi never shares customer names or emails.')}</p></div>`;
+    }).catch(() => {});
     if ($('#cexit')) $('#cexit').onclick = (e) => { e.preventDefault(); try { sessionStorage.removeItem(KEY); } catch { /* niente */ } pin = null; askPin(); };
     if ($('#cunlink')) $('#cunlink').onclick = async (e) => { e.preventDefault(); const a = e.target;
       if (a.dataset.c !== '1') { a.dataset.c = '1'; a.textContent = T2('Conferma: scollega (servirà di nuovo il PIN)', 'Confirm: unlink (PIN needed again)'); return; }
@@ -3108,6 +3121,12 @@ function demoGifts(getDb, save) {
       return Object.entries(db.nfc).sort().map(([code, t]) => ({ code, label: t.label, target: t.target || null, business_id: t.business_id || null, taps: (t.hits || []).length, taps30: (t.hits || []).filter((x) => x > m30).length, last_tap: (t.hits || []).length ? new Date(Math.max(...t.hits)).toISOString() : null })); },
     async adminNfcSave(t) { const db = getDb(); db.nfc = db.nfc || {}; const c = String(t.code).toUpperCase(); db.nfc[c] = { ...(db.nfc[c] || {}), label: t.label, target: t.target || null, business_id: t.business_id || null }; save(); },
     async adminNfcDelete(code) { const db = getDb(); delete (db.nfc || {})[code]; save(); },
+    async cashierStats(t, pin) { const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err }; const db = getDb();
+      const cs = { abituali: 0, occasionali: 0, nuovi: 0, non_detto: 0 };
+      Object.values(db.cust || {}).forEach((m) => { const x = m[a.b.id]; if (x) cs[{ abituale: 'abituali', occasionale: 'occasionali', nuovo: 'nuovi', nd: 'non_detto' }[x]]++; });
+      const taps = Object.values(db.nfc || {}).filter((n) => n.business_id === a.b.id).flatMap((n) => n.hits || []);
+      return { pins: (db.contents || []).filter((c) => c.business_id === a.b.id).map((c) => ({ title: c.title, unlocks: (db.unlocks || []).filter((u) => u.c === c.id).length,
+        signups: Object.values(db.profiles || {}).filter((p) => p.signup_slug === c.share_slug).length })), customers: cs, nfc: { total: taps.length, last30: taps.filter((x) => x > Date.now() - 30 * 864e5).length } }; },
     async cashierInfo(t, pin) { const a = auth(t, pin); if (a.err) return { status: 'error', message: a.err };
       return { business: a.b.name, items: D().items.filter((i) => i.business_id === a.b.id && i.active).map((i) => ({ id: i.id, name: i.name, value: i.value_label })),
         campaigns: D().camps.filter((c) => c.business_id === a.b.id).map(stats) }; },
