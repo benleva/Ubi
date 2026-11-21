@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611210216';
+import { CONFIG } from './config.js?v=202611210220';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210216';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611210220';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.81';
+const APP_VERSION = 'v.82';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2731,7 +2731,7 @@ async function adminShopsTab(box) {
         ${b.items.map((it) => `<div class="row small citem"><span style="flex:1">${it.active ? '' : '🚫 '}<b>${esc(it.name)}</b> ${esc(it.value_label || '')}${it.meaning ? `<br><span class="muted">${esc(it.meaning)}</span>` : ''}</span>
           <button type="button" class="ghost" data-a="itemtoggle" data-id="${esc(it.id)}" data-on="${it.active ? 1 : 0}" style="flex:0 0 auto">${it.active ? 'Togli' : 'Rimetti'}</button></div>`).join('')}
         <input data-a="iname" placeholder="Nome (es. Birra media, Stella di Natale mignon)"><input data-a="ivalue" placeholder="Valore indicativo (es. 5 €)">
-        <input data-a="imeaning" placeholder="Significato / descrizione (facoltativo)"><input data-a="iimage" placeholder="Foto: link https (facoltativo)">
+        <input data-a="imeaning" placeholder="Significato / descrizione (facoltativo)"><label class="small" style="margin-top:6px">Foto dell'articolo (facoltativa)</label><input data-a="iimage" type="file" accept="image/*"><div data-a="iprev" class="adprev"></div>
         <button type="button" data-a="additem">＋ Aggiungi al catalogo</button></details>
       <details ${b.campaigns.length ? 'open' : ''}><summary>🎄 Campagne (${b.campaigns.length})</summary>
         ${b.campaigns.map((c) => `<div class="camp"><b>${themeOf(c.theme).e} ${esc(c.title)}</b> <span class="small muted">${c.kind === 'vendita' ? 'vendite dalla cassa' : `${dLong(c.opens_at)} → ${dLong(c.expires_at)}`}</span><br>
@@ -2743,7 +2743,7 @@ async function adminShopsTab(box) {
         <select data-a="pcat"><option value="">Categoria…</option>${Object.entries(PARTNER_CATS).map(([k, x]) => `<option value="${k}" ${b.p && b.p.category === k ? 'selected' : ''}>${x.e} ${x.n}</option>`).join('')}</select>
         <input data-a="pcity" maxlength="60" placeholder="Paese / città" value="${esc(b.p?.city || '')}">
         <input data-a="pblurb" maxlength="200" placeholder="Una frase sul negozio (max 200)" value="${esc(b.p?.blurb || '')}">
-        <input data-a="plogo" placeholder="Logo: link https (facoltativo)" value="${esc(b.p?.logo_url || '')}">
+        <label class="small" style="margin-top:6px">Logo (facoltativo)</label><div data-a="plprev" class="adprev">${b.p?.logo_url ? `<img class="adthumb" src="${esc(b.p.logo_url)}" alt=""><button type="button" class="ghost small-btn" data-a="plx">✕ Togli</button>` : ''}</div><input data-a="plogo" type="file" accept="image/*">
         <input data-a="pweb" placeholder="Sito o pagina social: https://…" value="${esc(b.p?.website || '')}">
         <button type="button" data-a="psave">Salva dati partner</button></details>
       <div class="row" style="margin-top:8px"><button type="button" class="ghost" data-a="edit">✏️ Modifica dati</button></div>
@@ -2758,9 +2758,21 @@ async function adminShopsTab(box) {
     q('nountil').onclick = async () => { q('until').value = ''; q('until').onchange(); };
     q('copycassa').onclick = async () => { try { await navigator.clipboard.writeText(`${location.origin}${location.pathname}#/cassa/${b.cashier_token}`); q('copycassa').textContent = 'Copiato ✓'; } catch { /* a mano */ } };
     q('savepin').onclick = async () => { const p = q('pin').value.trim(); if (!/^[0-9]{4,8}$/.test(p)) return msg(out, 'Il PIN deve avere da 4 a 8 cifre.'); try { await B.adminBusinessSave({ ...b, pin: p }); msg(out, 'PIN salvato ✓ Comunicalo al negozio a voce, non per email.', 'ok'); q('pin').value = ''; } catch (err) { msg(out, errText(err)); } };
+    // foto caricate dal telefono: ridotte e salvate nell'archivio pubblico dei banner
+    let itemImg = null, logoImg, logoGone = false;
+    const preview = (inp, prev, max, set) => { inp.onchange = async () => { const f = inp.files[0]; if (!f) return;
+      try { const blob = await fitImage(f, max); set(blob); prev.innerHTML = `<img class="adthumb" src="${URL.createObjectURL(blob)}" alt=""><button type="button" class="ghost small-btn">✕ Togli</button>`;
+        prev.querySelector('button').onclick = () => { set(null); inp.value = ''; prev.innerHTML = ''; }; } catch (err) { inp.value = ''; msg(out, errText(err)); } }; };
+    preview(q('iimage'), q('iprev'), 800, (x) => { itemImg = x; });
+    preview(q('plogo'), q('plprev'), 400, (x) => { logoImg = x; logoGone = !x; });
+    if (q('plx')) q('plx').onclick = () => { logoGone = true; logoImg = undefined; q('plprev').innerHTML = ''; };
     q('additem').onclick = async () => {
       if (!q('iname').value.trim()) return msg(out, 'Scrivi il nome dell\'articolo.');
-      try { await B.adminItemSave({ business_id: b.id, name: q('iname').value.trim(), value_label: q('ivalue').value.trim(), meaning: q('imeaning').value.trim(), image_url: q('iimage').value.trim() }); reload(); } catch (err) { msg(out, errText(err)); }
+      const btn = q('additem'); btn.disabled = true;
+      try {
+        const image_url = itemImg ? await B.uploadAdMedia(itemImg) : '';
+        await B.adminItemSave({ business_id: b.id, name: q('iname').value.trim(), value_label: q('ivalue').value.trim(), meaning: q('imeaning').value.trim(), image_url }); reload();
+      } catch (err) { msg(out, errText(err)); btn.disabled = false; }
     };
     card.querySelectorAll('[data-a="itemtoggle"]').forEach((x) => { x.onclick = async () => { try { await B.adminItemSave({ id: x.dataset.id, active: x.dataset.on !== '1' }); reload(); } catch (err) { msg(out, errText(err)); } }; });
     card.querySelectorAll('[data-a="prolong"]').forEach((x) => { x.onclick = async () => {
@@ -2768,7 +2780,7 @@ async function adminShopsTab(box) {
       try { await B.adminCampaignDates(x.dataset.id, null, new Date(`${v}T23:59:00`).toISOString()); reload(); } catch (err) { msg(out, errText(err)); } }; });
     q('newcamp').onclick = () => campaignForm(card.querySelector('.campform'), b, reload);
     q('psave').onclick = async () => {
-      try { await B.adminPartnerSave(b.id, { show_as_partner: q('pshow').checked, category: q('pcat').value, city: q('pcity').value.trim(), blurb: q('pblurb').value.trim(), logo_url: q('plogo').value.trim(), website: q('pweb').value.trim() }); reload(); }
+      try { await B.adminPartnerSave(b.id, { show_as_partner: q('pshow').checked, category: q('pcat').value, city: q('pcity').value.trim(), blurb: q('pblurb').value.trim(), logo_url: logoImg ? await B.uploadAdMedia(logoImg) : logoGone ? '' : b.p?.logo_url || '', website: q('pweb').value.trim() }); reload(); }
       catch (err) { msg(out, errText(err)); }
     };
     q('edit').onclick = () => shopForm(out, b);
