@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611221035';
+import { CONFIG } from './config.js?v=202611221042';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221035';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221042';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.119';
+const APP_VERSION = 'v.120';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -4264,6 +4264,10 @@ const ADMIN_GUIDE = `<div class="aguide">
 <li><b>＋ Mostra</b>: titolo, luogo, quante opere (20 già pronte, da 1 a 40), poi tocchi la mappa nel centro e scegli percorso, cerchio o linea, larghezza e rotazione.</li>
 <li><b>Gestisci la mostra</b>: «Carica tutto insieme» (foto in ordine e schede .json) oppure «Modifica» su ogni opera; «＋ Aggiungi una postazione» / «− Togli l'ultima»; «🟢 Pubblica».</li>
 <li><b>🌍 Clona la mostra</b>: stesse opere in un altro luogo del mondo, con rotazione e grandezza per adattarla allo spazio.</li>
+<li><b>Kit .zip</b>: in «Carica tutto insieme → Foto delle opere» puoi scegliere direttamente lo zip con foto numerate (01, 02…) e schede .json: carica e compila tutto in un colpo.</li>
+<li><b>🔗 Anteprima privata</b> (in Gestisci): link segreto che mostra tutte le opere da qualsiasi luogo, senza iscriversi, anche se la mostra non è pubblicata. Per l'artista, una galleria, uno sponsor. «Nuovo link» annulla il vecchio, «Disattiva» lo spegne.</li>
+<li><b>Ingresso</b>: sulla mappa compare da solo il cartello «🖼️ Ingresso mostra», 20 m prima dell'opera 1; porta alla presentazione.</li>
+<li><b>📰 Kit stampa</b>: nella scheda dell'artista, il link alla sua cartella stampa. Avviso <b>©</b> dell'artista automatico su opere, pagine e anteprima.</li>
 <li><b>Pannello dell'artista</b>: sblocchi per mostra e per opera, commenti, recensioni pubbliche, nuovi iscritti, clic su social e shop, opere dal vivo, «Scarica la tabella per Excel».</li></ol></details>
 <details><summary>6 · Cacce al tesoro</summary>
 <ol><li><b>Profilo → Le mie cacce</b>: nome, premio, numero massimo di vincitori.</li>
@@ -5178,7 +5182,9 @@ const FAQ_GUIDE = [
     <li><b>Ogni opera</b> ha la foto del quadro, la descrizione, il video in cui l'artista la racconta, le sue parole, le eventuali critiche, dove vederla dal vivo e, se è stata venduta, chi l'ha acquistata (solo con il suo permesso).</li>
     <li><b>Recensioni</b>: dopo aver sbloccato un'opera puoi lasciare un commento scritto, una foto, un audio o un videomessaggio. Se vuoi, compare come recensione nella pagina dell'artista, con il tuo nome.</li>
     <li><b>La stessa mostra in tante città</b>: l'artista può portarla a Trieste, a New York e in Australia nello stesso momento.</li>
-    <li>Trovi tutto in home → <b>🎨 Ubi Arte</b>. Sei un artista? Scrivici su WhatsApp al 351 666 1495: la mostra la costruiamo con te.</li></ul>`],
+    <li><b>Da dove si parte</b>: sulla mappa, prima dell'opera 1, c'è il cartello <b>🖼️ Ingresso mostra</b>. Toccalo per leggere la presentazione, poi segui i numeri.</li>
+    <li><b>Diritti d'autore</b>: le opere appartengono all'artista. Non si possono salvare, copiare, riprodurre o usare senza la sua autorizzazione scritta; nelle pagine d'arte la pressione lunga non offre «Salva immagine».</li>
+    <li>Trovi tutto in home → <b>🎨 Ubi Arte</b>. Sei un artista? Tocca <b>«Proponi la tua mostra»</b> nella pagina Ubi Arte, oppure scrivici su WhatsApp al 351 666 1495: la mostra la costruiamo con te.</li></ul>`],
   ['💗 Ubi Dating', `<ol>
     <li>Riservato ai <b>maggiorenni</b>. Si entra da <b>💗 Ubi Dating</b> in home: indichi genere e data di nascita e accetti i consensi. Sei responsabile di ciò che pubblichi e degli incontri che fai.</li>
     <li>Lasci un <b>biglietto</b> in un luogo che ami (meglio un video dal vivo): sulla mappa appare con un pallino <b>rosa</b> (lei) o <b>azzurro</b> (lui), visibile a tutti.</li>
