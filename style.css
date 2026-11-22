@@ -543,3 +543,13 @@ body.artt .card { border-color: #e8dcc0; }
 /* Ubi Arte: diritti d'autore e immagini protette (niente «salva immagine» con la pressione lunga) */
 .artcopy { font-size: .78rem; line-height: 1.4; color: #6b6255; background: #efe7d6; border-left: 3px solid #b08a3e; border-radius: 8px; padding: 8px 10px; margin: 10px 0; }
 body.artt img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
+/* Ubi Arte: ingresso della mostra sulla mappa */
+.artgate { display: flex; flex-direction: column; align-items: center; text-align: center; text-decoration: none; background: #1d1a16; color: #f6f1e7; border: 2px solid #b08a3e; border-radius: 10px; padding: 5px 8px 6px; box-shadow: 0 4px 14px rgba(0,0,0,.35); position: relative; line-height: 1.15; }
+.artgate::after { content: ''; position: absolute; bottom: -9px; left: 50%; margin-left: -8px; border: 8px solid transparent; border-bottom: 0; border-top-color: #b08a3e; }
+.artgate .ag1 { font-size: 9px; letter-spacing: .08em; color: #d9b864; font-weight: 700; }
+.artgate .ag2 { font-family: Georgia, 'Times New Roman', serif; font-size: 13px; font-weight: 700; max-width: 136px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.artgate .ag3 { font-size: 9px; opacity: .8; max-width: 136px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.artgate.sm { padding: 3px 6px 4px; } .artgate.sm .ag2 { font-size: 11px; max-width: 108px; }
+.pvwork { scroll-margin-top: 80px; } #pvintro { scroll-margin-top: 80px; }
+.pvhi { animation: pvhi 1.6s ease; } @keyframes pvhi { 0%, 40% { box-shadow: 0 0 0 4px #b08a3e; } 100% { box-shadow: none; } }
+.artgate.gl::after { left: auto; right: 4px; margin-left: 0; } .artgate.gr::after { left: 4px; margin-left: 0; }

@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611221014';
+import { CONFIG } from './config.js?v=202611221035';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221014';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221035';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.118';
+const APP_VERSION = 'v.119';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -625,6 +625,7 @@ async function supabaseBackend() {
       const path = must(await sb.rpc('reply_remove', { p_id: id }));
       if (path) await sb.storage.from('media').remove([path]);
     },
+    async exhibitionsInBox(b) { return must(await sb.rpc('exhibitions_in_box', { p_min_lat: b.s, p_min_lng: b.w, p_max_lat: b.n, p_max_lng: b.e })) || []; },
     async mapContents(b) {
       const rows = must(await sb.rpc('map_contents', { p_min_lat: b.s, p_min_lng: b.w, p_max_lat: b.n, p_max_lng: b.e })) || [];
       // i miei pin li prendo sempre anche direttamente: la funzione del database ne restituisce al massimo 500 per zona
@@ -650,6 +651,18 @@ async function supabaseBackend() {
   };
   return B;
 }
+
+// ingresso di una mostra: 20 m prima dell'opera 1, dalla parte opposta all'opera 2 (come in exhibitions_in_box)
+const artEntrance = (p1, p2) => {
+  const k = 111320 * Math.cos((p1.lat * Math.PI) / 180);
+  const d = p2 ? Math.hypot((p1.lat - p2.lat) * 111320, (p1.lng - p2.lng) * k) : 0;
+  const g = d > 0.5 ? { lat: p1.lat + ((p1.lat - p2.lat) * 20) / d, lng: p1.lng + ((p1.lng - p2.lng) * 20) / d } : { lat: p1.lat + 20 / 111320, lng: p1.lng };
+  return { ...g, s_lat: p1.lat, s_lng: p1.lng };
+};
+// il cartello sta dalla parte opposta all'opera 1, così non la copre
+const artEntranceIcon = (x, big = true) => { const w = big ? 150 : 120, h = big ? 58 : 46, left = x.s_lng != null && x.lng < x.s_lng;
+  return L.divIcon({ className: '', iconSize: [w, h], iconAnchor: [left ? w - 12 : 12, h],
+  html: `<a class="artgate${big ? '' : ' sm'} ${left ? 'gl' : 'gr'}" href="#/mostra/${esc(x.id)}"><span class="ag1">🖼️ ${T2('INGRESSO MOSTRA', 'EXHIBITION ENTRANCE')}${x.published === false ? ' 🔒' : ''}</span><span class="ag2">${esc(x.title)}</span><span class="ag3">${esc(x.artist || '')}${x.steps ? ` · ${x.steps} ${T2('opere', 'artworks')}` : ''}</span></a>` }); };
 
 // postazione nuova di una mostra: pin nascosto «Opera N», da completare
 const artTag = (a) => String(a.name || '').toLowerCase().replace(/[,;#<>"]/g, '').slice(0, 24).trim() || 'arte';
@@ -989,6 +1002,20 @@ function demoBackend() {
       if (d.passwordAction === 'set') c.password_hash = await sha(d.password);
       if (d.passwordAction === 'remove') c.password_hash = null;
       save(); return c.share_slug;
+    },
+    async exhibitionsInBox(b) {
+      const u = db.user, out = [];
+      for (const e of db.exhibitions || []) {
+        const a = (db.artists || []).find((x) => x.id === e.artist_id) || {};
+        const mine = u && (e.owner_id === u.id || a.user_id === u.id || db.admin);
+        if (!((e.published && a.active) || mine)) continue;
+        const st = db.contents.filter((c) => c.exhibition_id === e.id).sort((x, y) => x.exhibition_step - y.exhibition_step);
+        if (!st.length) continue;
+        const ent = artEntrance(st[0], st[1]);
+        if (st[0].lat < b.s - 0.01 || st[0].lat > b.n + 0.01 || st[0].lng < b.w - 0.01 || st[0].lng > b.e + 0.01) continue;
+        out.push({ id: e.id, title: e.title, place_name: e.place_name, artist: a.name, steps: st.length, published: !!(e.published && a.active), ...ent });
+      }
+      return out;
     },
     async mapContents(b) {
       const u = db.user;
@@ -1425,6 +1452,7 @@ async function homeMap(opts = {}) {
     });
     mapHits(map).set('pins', pinHits);
     if (layer.addLayers) layer.addLayers(mks); else mks.forEach((m) => m.addTo(layer));
+    drawGates();
     // nuvola: tag presenti nella zona, i più usati prima; i selezionati restano sempre visibili
     const count = new Map();
     rows.filter((c) => !opts.dating || c.is_dating).forEach((c) => shownTags(c.tags).forEach((t) => count.set(t, (count.get(t) || 0) + 1)));
@@ -1450,6 +1478,19 @@ async function homeMap(opts = {}) {
     const n = draw();
     msg($('#mm'), rows.length && !n ? 'Nessun pin di questo tipo in questa zona: guarda i numeri sui bottoni, oppure tocca «Tutto».' : '', 'info');
   };
+  let gates = [], gateLayer = null;
+  const drawGates = () => {
+    if (gateLayer) { map.removeLayer(gateLayer); gateLayer = null; }
+    if (opts.dating || !gates.length || map.getZoom() < 14 || !((!showCats.size && !onlyMine) || showCats.has('arte'))) return;
+    gateLayer = L.layerGroup().addTo(map);
+    gates.forEach((x) => L.marker([x.lat, x.lng], { icon: artEntranceIcon(x), zIndexOffset: 2000, title: x.title }).on('click', () => { location.hash = `#/mostra/${x.id}`; }).addTo(gateLayer));
+  };
+  map.on('zoomend', () => drawGates());
+  const loadGates = async (b) => {
+    if (opts.dating || !B.exhibitionsInBox) return;
+    try { gates = await B.exhibitionsInBox({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() }); } catch { gates = []; }   // SQL non ancora lanciato
+    if (document.body.contains(el)) drawGates();
+  };
   let giftLayer = null, giftsFell = false;
   const loadGifts = async (b) => {   // alberi e regali delle campagne: cadono la prima volta, il mio si illumina
     if (opts.dating || !B.giftTrees) return;
@@ -1463,7 +1504,7 @@ async function homeMap(opts = {}) {
   };
   const load = async () => {
     const b = map.getBounds().pad(0.3);
-    loadGifts(b);
+    loadGifts(b); loadGates(b);
     try {
       rows = await B.mapContents({ s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast() });
       if (!document.body.contains(el)) return;
@@ -5285,6 +5326,7 @@ function artHead(art, slug) {
   const a = art.artist; const e = art.exhibition || {};
   return `<a class="artstrip" href="#/artista/${esc(a.slug)}">${artAvatar(a)}<span><b>${esc(a.name)}</b><small>${esc(ART_KINDS[a.kind] || '')}</small></span><span class="artgo">›</span></a>
     <div class="msg info small artline">🎨 ${T2('Opera', 'Artwork')} <b>${art.step || '?'}</b> ${T2('di', 'of')} ${art.steps} · ${T2('mostra', 'exhibition')} <a href="#/mostra/${esc(e.id)}">«${esc(e.title || '')}»</a>${e.place_name ? ` · ${esc(e.place_name)}` : ''}</div>
+    ${art.step === 1 ? `<a class="btn ghost full" href="#/mostra/${esc(e.id)}">📖 ${T2('Leggi la presentazione della mostra', 'Read the exhibition introduction')}</a>` : ''}
     ${artFacts(art.art || {}) ? `<p class="artfacts">${artFacts(art.art)}</p>` : ''}
     ${art.can_preview && !art.full ? `<button class="ghost full artprev" id="artprev" type="button">👁 ${T2("Anteprima dell'artista: apri da qui", "Artist preview: open from here")}</button>` : ''}`;
 }
@@ -5401,9 +5443,9 @@ async function viewArtPreview(token) {
     ${a.bio ? `<div class="card artbio">${linkify(a.bio)}</div>` : ''}
     <section class="arthero ex"><p class="artk">${T2('MOSTRA A CIELO APERTO', 'OPEN-AIR EXHIBITION')}${e.place_name ? ' · ' + esc(e.place_name.toUpperCase()) : ''}</p><h1>${esc(e.title)}</h1>
       ${e.subtitle ? `<p class="arttag">${esc(e.subtitle)}</p>` : ''}<p class="small">${stops.length} ${T2('opere', 'artworks')} · ${T2('sul posto si aprono una alla volta, arrivando vicino', 'on site they open one by one as you get close')}</p></section>
-    ${e.intro ? `<div class="card artbio">${linkify(e.intro)}</div>` : ''}
-    <div id="pvmap" class="map tall"></div>
-    ${stops.map((s) => { const x = s.art || {}; return `<div class="card pvwork">${artBadge(s.step, 'sm')}<h2>${esc(s.title)}</h2>${det(x) ? `<p class="small muted">${det(x)}</p>` : ''}
+    <div id="pvintro">${e.intro ? `<div class="card artbio">${linkify(e.intro)}</div>` : ''}</div>
+    <div id="pvmap" class="map tall"></div><p class="small muted center">${T2('Tocca un numero sulla mappa per vedere l\'opera.', 'Tap a number on the map to see the artwork.')}</p>
+    ${stops.map((s) => { const x = s.art || {}; return `<div class="card pvwork" id="pv-${s.step}">${artBadge(s.step, 'sm')}<h2>${esc(s.title)}</h2>${det(x) ? `<p class="small muted">${det(x)}</p>` : ''}
       ${s.url ? `<img class="pvimg" src="${esc(s.url)}" alt="${esc(s.title)}" loading="lazy">` : `<p class="muted small">${T2('Foto in arrivo', 'Photo coming soon')}</p>`}
       ${s.text ? `<p>${linkify(s.text)}</p>` : ''}${x.comment ? `<p class="small"><b>${T2('L\'artista', 'The artist')}:</b> ${linkify(x.comment)}</p>` : ''}
       ${x.critic ? `<p class="small"><i>${linkify(x.critic)}</i>${x.critic_by ? ` — ${esc(x.critic_by)}` : ''}</p>` : ''}
@@ -5413,8 +5455,12 @@ async function viewArtPreview(token) {
   waitLeaflet().then(() => {
     const el = $('#pvmap'); if (!el || !document.body.contains(el) || !stops.length) return;
     const map = makeMap(el, stops[0].lat, stops[0].lng, 17); if (!map) return;
-    stops.forEach((s) => L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15], html: artBadge(s.step, '') }), title: s.title }).addTo(map));
-    if (stops.length > 1) { L.polyline(stops.map((s) => [s.lat, s.lng]), { color: '#b08a3e', weight: 2, dashArray: '4 6' }).addTo(map); map.fitBounds(stops.map((s) => [s.lat, s.lng]), { padding: [24, 24], maxZoom: 19 }); }
+    const go = (sel) => { const c = $(sel); if (!c) return; c.scrollIntoView({ behavior: 'smooth', block: 'start' }); c.classList.remove('pvhi'); void c.offsetWidth; c.classList.add('pvhi'); };
+    stops.forEach((s) => L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15], html: artBadge(s.step, '') }), title: s.title }).on('click', () => go(`#pv-${s.step}`)).addTo(map));
+    const g = artEntrance(stops[0], stops[1]);
+    L.marker([g.lat, g.lng], { icon: artEntranceIcon({ ...g, id: e.id, title: e.title, artist: a.name, steps: stops.length }, false), zIndexOffset: 2000 }).on('click', () => go('#pvintro')).addTo(map);
+    if (stops.length > 1) L.polyline(stops.map((s) => [s.lat, s.lng]), { color: '#b08a3e', weight: 2, dashArray: '4 6' }).addTo(map);
+    { const g = artEntrance(stops[0], stops[1]); map.fitBounds([...stops.map((s) => [s.lat, s.lng]), [g.lat, g.lng]], g.lng < g.s_lng ? { paddingTopLeft: [130, 60], paddingBottomRight: [30, 30], maxZoom: 19 } : { paddingTopLeft: [30, 60], paddingBottomRight: [130, 30], maxZoom: 19 }); }
   });
 }
 
@@ -5448,7 +5494,10 @@ async function viewExhibition(id) {
     const el = $('#emap'); if (!el || !document.body.contains(el) || !stops.length) return;
     const map = makeMap(el, stops[0].lat, stops[0].lng, 17); if (!map) return;
     stops.forEach((s) => L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15], html: artBadge(s.step, s.unlocked ? 'done' : '') }), title: s.title }).on('click', () => { location.hash = `#/c/${s.slug}`; }).addTo(map));
-    if (stops.length > 1) { L.polyline(stops.map((s) => [s.lat, s.lng]), { color: '#b08a3e', weight: 2, dashArray: '4 6' }).addTo(map); map.fitBounds(stops.map((s) => [s.lat, s.lng]), { padding: [24, 24], maxZoom: 19 }); }
+    { const g = artEntrance(stops[0], stops[1]); L.marker([g.lat, g.lng], { icon: artEntranceIcon({ ...g, id: e.id, title: e.title, artist: a.name, steps: stops.length }, false), zIndexOffset: 2000, interactive: false }).addTo(map);
+}
+    if (stops.length > 1) L.polyline(stops.map((s) => [s.lat, s.lng]), { color: '#b08a3e', weight: 2, dashArray: '4 6' }).addTo(map);
+    { const g = artEntrance(stops[0], stops[1]); map.fitBounds([...stops.map((s) => [s.lat, s.lng]), [g.lat, g.lng]], g.lng < g.s_lng ? { paddingTopLeft: [130, 60], paddingBottomRight: [30, 30], maxZoom: 19 } : { paddingTopLeft: [30, 60], paddingBottomRight: [130, 30], maxZoom: 19 }); }
   });
   getPos().then((pos) => document.querySelectorAll('.exstop').forEach((x) => { const d = x.querySelector('.edist'); if (d.textContent === '🔒') d.textContent = fmtDist(distanceM(pos.lat, pos.lng, +x.dataset.lat, +x.dataset.lng)); })).catch(() => {});
 }
