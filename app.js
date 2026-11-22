@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611220929';
+import { CONFIG } from './config.js?v=202611220944';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611220929';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611220944';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.113';
+const APP_VERSION = 'v.114';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -5243,7 +5243,7 @@ function viewFaq(arg) {
 const setArtTheme = (on) => document.body.classList.toggle('artt', !!on);
 const artSrc = () => { try { const a = JSON.parse(store.get('ubi_art_src') || 'null'); return a && Date.now() - (a.t || 0) < 7 * 864e5 ? a : null; } catch { return null; } };
 const ART_KINDS = { pittore: 'Pittore', scultore: 'Scultore', fotografo: 'Fotografo', illustratore: 'Illustratore', artista: 'Artista' };
-const ART_SOCIALS = [['instagram', 'Instagram', '📸'], ['facebook', 'Facebook', '📘'], ['youtube', 'YouTube', '▶️'], ['tiktok', 'TikTok', '🎵'], ['linkedin', 'LinkedIn', '💼'], ['sito', 'Sito', '🌐']];
+const ART_SOCIALS = [['instagram', 'Instagram', '📸'], ['facebook', 'Facebook', '📘'], ['youtube', 'YouTube', '▶️'], ['tiktok', 'TikTok', '🎵'], ['linkedin', 'LinkedIn', '💼'], ['sito', 'Sito', '🌐'], ['stampa', 'Kit stampa', '📰']];
 const ART_WA = 'https://wa.me/393516661495?text=' + encodeURIComponent('Ciao, sono un artista e vorrei la mia mostra su Ubi Arte.');
 const artStepOf = (c) => { const t = (c.tags || []).find((x) => /^art-\d+$/.test(x)); return t ? +t.slice(4) : null; };
 const isArt = (c) => (c.tags || []).includes('arte');
@@ -5704,7 +5704,7 @@ async function viewArtApply(user) {
     <div class="card"><h3>📞 ${T2('Contatti', 'Contacts')}</h3>
       ${f('rph', T2('Telefono o WhatsApp', 'Phone or WhatsApp') + ' *', '+39 …', 'tel')}${f('re', 'Email', '', 'email', user.email || '')}
       ${f('rw', T2('Sito web', 'Website'), 'https://…', 'url')}${f('rig', 'Instagram', 'https://instagram.com/…', 'url')}${f('rfb', 'Facebook', 'https://facebook.com/…', 'url')}
-      ${f('ryt', T2('YouTube o TikTok', 'YouTube or TikTok'), 'https://…', 'url')}${f('rsh', T2('Shop online o opere in vendita', 'Online shop'), 'https://…', 'url')}</div>
+      ${f('ryt', T2('YouTube o TikTok', 'YouTube or TikTok'), 'https://…', 'url')}${f('rsh', T2('Shop online o opere in vendita', 'Online shop'), 'https://…', 'url')}${f('rks', T2('Kit stampa (link sul tuo sito)', 'Press kit (link)'), 'https://…', 'url')}</div>
     <div class="card"><h3>🎨 ${T2('La tua arte', 'Your art')}</h3>
       <label for="rb">${T2('Breve descrizione artistica', 'Short artistic statement')} *</label><textarea id="rb" rows="5" maxlength="1500" placeholder="${T2('Cosa dipingi o crei, la tua tecnica, cosa vuoi raccontare. Bastano poche righe.', 'What you create, your technique.')}"></textarea>
       <label>${T2('Il tuo ritratto', 'Your portrait')}</label><input type="file" id="rp" accept="image/*"><div id="rpp" class="artworks n1" style="max-width:140px"></div>
@@ -5730,7 +5730,7 @@ async function viewArtApply(user) {
     if (v('#rb').length < 20) return msg($('#rm'), T2('Scrivi qualche riga sulla tua arte.', 'Write a few lines about your art.'));
     if (!st.works.length) return msg($('#rm'), T2('Aggiungi almeno una foto delle tue opere.', 'Add at least one photo.'));
     if (!$('#rauth').checked || !$('#rcons').checked) return msg($('#rm'), T2('Spunta le due caselle per inviare.', 'Tick both boxes.'));
-    const socials = {}; [['instagram', '#rig'], ['facebook', '#rfb'], ['youtube', '#ryt']].forEach(([k, id]) => { if (v(id)) socials[k] = v(id); });
+    const socials = {}; [['instagram', '#rig'], ['facebook', '#rfb'], ['youtube', '#ryt'], ['stampa', '#rks']].forEach(([k, id]) => { if (v(id)) socials[k] = v(id); });
     const b = $('#rsend'); b.disabled = true; b.textContent = T2('Invio le foto…', 'Uploading…');
     try {
       await B.artRequestSend({ name: v('#rn'), stage_name: v('#rsn') || null, kind: $('#rk').value, city: v('#rc') || null, email: v('#re') || null, phone: v('#rph'),
