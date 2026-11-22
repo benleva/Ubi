@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611220853';
+import { CONFIG } from './config.js?v=202611220908';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611220853';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611220908';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.111';
+const APP_VERSION = 'v.112';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -398,6 +398,25 @@ async function supabaseBackend() {
       }
       return ne;
     },
+    // candidature degli artisti
+    async artRequestMine() { try { return (must(await sb.from('artist_requests').select('id,status,created_at,name').eq('user_id', (await B.user()).id).order('created_at', { ascending: false }).limit(1)) || [])[0] || null; } catch { return null; } },
+    async artRequestSend(d) {
+      const u = await B.user(); const stamp = Date.now(); const up = [];
+      const put = async (blob, n) => { const path = `${u.id}/candidatura/${stamp}-${n}.jpg`; must(await sb.storage.from('media').upload(path, blob, { contentType: 'image/jpeg', upsert: false })); up.push(path); return path; };
+      try {
+        const portrait_path = d.portrait ? await put(d.portrait, 'ritratto') : null;
+        const works = []; for (let i = 0; i < d.works.length; i++) works.push({ path: await put(d.works[i].blob, 'opera-' + (i + 1)), title: d.works[i].title || '' });
+        const { portrait: _p, works: _w, ...rest } = d;
+        must(await sb.from('artist_requests').insert({ ...rest, user_id: u.id, portrait_path, works }));
+      } catch (err) { if (up.length) await sb.storage.from('media').remove(up); throw err; }
+    },
+    async adminArtRequests() {
+      const rows = must(await sb.from('artist_requests').select('*').order('created_at', { ascending: false })) || [];
+      const paths = rows.flatMap((r) => [r.portrait_path, ...(r.works || []).map((w) => w.path)]).filter(Boolean);
+      const urls = {}; if (paths.length) { const res = await sb.storage.from('media').createSignedUrls(paths, 3600); (res.data || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; }); }
+      return rows.map((r) => ({ ...r, portrait_url: urls[r.portrait_path] || null, works: (r.works || []).map((w) => ({ ...w, url: urls[w.path] || null })) }));
+    },
+    async adminArtRequestSet(id, patch) { must(await sb.from('artist_requests').update(patch).eq('id', id)); },
     // Copia la caccia con tutte le tappe (stesse foto, testi, indizi e risposte), spostata di dlat/dlng.
     // Le foto vengono copiate nella cartella del nuovo pin, così chi gioca la copia le può vedere.
     async duplicateHunt(id, { title, dlat, dlng }) {
@@ -814,6 +833,16 @@ function demoBackend() {
       stops.forEach((c, i) => db.contents.push({ ...c, id: crypto.randomUUID(), share_slug: hex(5), exhibition_id: ne.id, visibility: 'hidden', lat: points[i].lat, lng: points[i].lng, recipients: [], owner_id: db.user.id }));
       save(); return ne;
     },
+    // candidature (demo: foto salvate come immagini nel telefono)
+    async artRequestMine() { return (db.requests || []).filter((r) => r.user_id === db.user?.id).slice(-1)[0] || null; },
+    async artRequestSend(d) {
+      const toUrl = (b) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(b); });
+      const { portrait, works, ...rest } = d;
+      (db.requests = db.requests || []).push({ ...rest, id: crypto.randomUUID(), user_id: db.user.id, status: 'nuova', created_at: new Date().toISOString(),
+        portrait_url: portrait ? await toUrl(portrait) : null, works: await Promise.all(works.map(async (w) => ({ title: w.title, url: await toUrl(w.blob) }))) }); save();
+    },
+    async adminArtRequests() { return [...(db.requests || [])].reverse(); },
+    async adminArtRequestSet(id, patch) { Object.assign((db.requests || []).find((r) => r.id === id) || {}, patch); save(); },
     async listHunts() { return (db.hunts || []).filter((h) => h.owner_id === db.user?.id); },
     async getHunt(id) { return (db.hunts || []).find((h) => h.id === id) || null; },
     async createHunt(h) { const x = { id: crypto.randomUUID(), owner_id: db.user.id, created_at: new Date().toISOString(), ...h }; (db.hunts = db.hunts || []).push(x); save(); return x; },
@@ -1042,6 +1071,7 @@ async function routeInner() {
   if (page === 'recensioni' && arg) return viewArtReviews(arg);
   const user = await B.user();
   if (page === 'artista' && arg) return viewArtist(arg, user);
+  if (page === 'arte' && arg === 'candidati') return viewArtApply(user);
   // La caccia in corso e le tappe fatte appartengono all'account, non al telefono: se cambia l'account, si azzerano
   if (user && store.get('ubi_hunt_uid') !== user.id) {
     store.set('ubi_hunt_focus', null);
@@ -2923,7 +2953,7 @@ function giftSendPanel(g) {
         ${groups.map((k) => `<p class="small gk">${{ natale: T2('Natale', 'Christmas'), piante: T2('Piante e fiori', 'Plants and flowers'), amici: T2('Amici', 'Friends'), amore: T2('Amore', 'Love'), grazie: T2('Grazie', 'Thank you') }[k]}</p>
           ${(ideas[k] || []).map((x) => `<button type="button" class="gidea" data-i="${esc(x)}">${esc(x)}</button>`).join('')}`).join('')}</details>
       <label for="gfrom">${T2('Firma', 'Signature')}</label><input id="gfrom" maxlength="60" value="${esc(prof?.display_name || '')}">
-      <label class="check"><input type="checkbox" id="ganon"> ${T2('Resta anonimo: «da qualcuno che ti vuole bene»', 'Stay anonymous: «from someone who cares about you»')}</label>
+      <label class="inline"><input type="checkbox" id="ganon"> ${T2('Resta anonimo: «da qualcuno che ti vuole bene»', 'Stay anonymous: «from someone who cares about you»')}</label>
       <button class="full giftbtn" type="button" id="gmake">🎁 ${T2('Crea il link del regalo', 'Create the gift link')}</button><div id="gsm"></div>`;
     const ta = $('#gtxt');
     ta.oninput = () => { $('#gtn').textContent = ta.value.length; };
@@ -3202,8 +3232,8 @@ async function adminShopsTab(box) {
       <div class="row" style="align-items:center"><h2 style="margin:0;flex:1">${esc(b.name)}</h2>
         <span class="pill ${b.active ? 'on' : 'off'}">${b.active ? 'attivo' : 'sospeso'}</span></div>
       <p class="small muted">${esc(b.address || '')}</p>
-      <label class="check"><input type="checkbox" data-a="en" ${b.enabled ? 'checked' : ''}> <b>Area riservata attiva</b></label>
-      <label class="check"><input type="checkbox" data-a="hide" ${b.hide_campaigns ? 'checked' : ''}> Nascondi anche i doni dalla mappa (casi gravi)</label>
+      <label class="inline"><input type="checkbox" data-a="en" ${b.enabled ? 'checked' : ''}> <b>Area riservata attiva</b></label>
+      <label class="inline"><input type="checkbox" data-a="hide" ${b.hide_campaigns ? 'checked' : ''}> Nascondi anche i doni dalla mappa (casi gravi)</label>
       <div class="row" style="align-items:center"><label style="flex:0 0 auto;margin:0">Attivo fino al</label><input type="date" data-a="until" value="${esc(b.active_until || '')}" min="${today}"><button type="button" class="ghost" data-a="nountil" style="flex:0 0 auto">✕</button></div>
       ${b.active_until && b.active_until < today ? '<div class="msg warn small">Scaduto: il servizio è sospeso da solo.</div>' : ''}
       <details><summary>🧾 Cassa ${b.has_pin ? '' : '<span class="pill off">manca il PIN</span>'}</summary>
@@ -3231,7 +3261,7 @@ async function adminShopsTab(box) {
           ${c.kind === 'omaggio' ? `<div class="row"><a class="btn ghost" href="#/admin/biglietti/${esc(c.id)}">🖨️ Biglietti</a><button type="button" class="ghost" data-a="prolong" data-id="${esc(c.id)}" data-exp="${esc(c.expires_at)}">⏰ Cambia scadenza</button></div>` : ''}</div>`).join('')}
         <button type="button" class="full" data-a="newcamp">＋ Nuova campagna</button><div class="campform"></div></details>
       <details><summary>⭐ Partner (pagina «Per le attività») ${b.p && b.p.show_as_partner ? '<span class="pill on">visibile</span>' : ''}</summary>
-        <label class="check"><input type="checkbox" data-a="pshow" ${b.p && b.p.show_as_partner ? 'checked' : ''}> <b>Mostra tra i partner</b> (solo con il loro consenso)</label>
+        <label class="inline"><input type="checkbox" data-a="pshow" ${b.p && b.p.show_as_partner ? 'checked' : ''}> <b>Mostra tra i partner</b> (solo con il loro consenso)</label>
         <select data-a="pcat"><option value="">Categoria…</option>${Object.entries(PARTNER_CATS).map(([k, x]) => `<option value="${k}" ${b.p && b.p.category === k ? 'selected' : ''}>${x.e} ${x.n}</option>`).join('')}</select>
         <input data-a="pcity" maxlength="60" placeholder="Paese / città" value="${esc(b.p?.city || '')}">
         <input data-a="pblurb" maxlength="200" placeholder="Una frase sul negozio (max 200)" value="${esc(b.p?.blurb || '')}">
@@ -4499,7 +4529,7 @@ async function replySection(t, slug, box) {
     <div id="rprev" class="preview"></div>
     <label for="rtxt">Messaggio <span class="muted small">(facoltativo se alleghi un file)</span></label>
     <textarea id="rtxt" maxlength="1000" rows="4" placeholder="${t.is_dating ? 'Es. Anch\'io salgo qui ogni estate…' : 'Es. Che bel ricordo, grazie!'}"></textarea>
-    ${artPin ? `<label class="check"><input type="checkbox" id="rpub" checked> ${T2("Pubblicala nella pagina dell'artista, con il tuo nome", "Show it on the artist's page, with your name")}</label>` : ''}
+    ${artPin ? `<label class="inline"><input type="checkbox" id="rpub" checked> ${T2("Pubblicala nella pagina dell'artista, con il tuo nome", "Show it on the artist's page, with your name")}</label>` : ''}
     <div id="rm"></div><button class="full accent" id="rsend">Invia la risposta</button></div>`;
   const st = { file: null, media_type: null, duration: null };
   const pick = async (f) => {
@@ -5252,11 +5282,12 @@ async function artSheet(slug, box) {
     ${x.sold_to ? `<div class="card artsold">🏛️ ${T2('Opera acquistata da', 'Artwork acquired by')} <b>${esc(x.sold_to)}</b></div>` : ''}
     ${x.live ? `<div class="card"><h3>📍 ${T2('Dove vederla dal vivo', 'Where to see it live')}</h3><p>${linkify(x.live)}</p></div>` : ''}
     <div class="card artfollow"><h3>${T2('Ti è piaciuta?', 'Did you like it?')}</h3><p class="muted small">${T2('Segui', 'Follow')} ${esc(a.name)}${T2(' e scopri le sue altre mostre.', ' and discover the other exhibitions.')}</p>
-      ${artSocialBtns(a, slug)}${artShopBtn(a, slug)}<a class="btn ghost full" href="#/artista/${esc(a.slug)}">🎨 ${T2('La pagina di', 'The page of')} ${esc(a.name)}</a></div>
+      ${artSocialBtns(a, slug)}${artShopBtn(a, slug)}<a class="btn ghost full" href="#/artista/${esc(a.slug)}">🎨 ${T2('La pagina di', 'The page of')} ${esc(a.name)}</a>
+      <p class="small center" style="margin:8px 0 0"><a href="#/arte/candidati">${T2('Sei un artista? Porta la tua mostra su Ubi', 'Are you an artist? Bring your exhibition to Ubi')} →</a></p></div>
     ${nx ? `<div class="card artnext"><h3>➡️ ${T2('Prossima opera', 'Next artwork')}: ${nx.step}</h3><p><b>${esc(nx.title)}</b></p>
       <a class="btn full accent" href="#/c/${esc(nx.slug)}">${T2('Vai alla prossima opera', 'Go to the next artwork')}</a>
       <a class="btn ghost full" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${nx.lat},${nx.lng}&travelmode=walking">${T2('Indicazioni a piedi', 'Walking directions')} ↗</a></div>`
-      : `<div class="card artnext center"><h3>🎉 ${T2('Hai visto tutta la mostra!', 'You have seen the whole exhibition!')}</h3><p class="muted small">${T2('Lascia una recensione qui sotto: la leggerà anche chi verrà dopo di te.', 'Leave a review below: the next visitors will read it too.')}</p></div>`}`;
+      : `<div class="card artnext center"><h3>🎉 ${T2('Hai visto tutta la mostra!', 'You have seen the whole exhibition!')}</h3><p class="small"><a href="#/arte/candidati">🎨 ${T2('Sei un artista? Porta anche tu la tua mostra su Ubi', 'Are you an artist? Bring your exhibition to Ubi')}</a></p><p class="muted small">${T2('Lascia una recensione qui sotto: la leggerà anche chi verrà dopo di te.', 'Leave a review below: the next visitors will read it too.')}</p></div>`}`;
 }
 
 // ---------- Sezione Arte
@@ -5271,7 +5302,8 @@ async function viewArte() {
       <small class="muted">${a.exhibitions} ${a.exhibitions === 1 ? T2('mostra', 'exhibition') : T2('mostre', 'exhibitions')}</small></span><span class="artgo">›</span></a>`).join('')
       : `<div class="card muted center">${T2('Le prime mostre stanno arrivando.', 'The first exhibitions are coming.')}</div>`}
     <div class="card artjoin"><h3>${T2('Sei un artista?', 'Are you an artist?')}</h3><p class="small">${T2('Porta le tue opere in una piazza, in un parco o in un locale, anche in più città insieme. Ti aiutiamo noi a costruire la mostra.', 'Bring your artworks to a square, a park or a venue, even in many cities at once. We help you build the exhibition.')}</p>
-      <a class="btn full accent" href="${ART_WA}" target="_blank" rel="noopener">💬 ${T2('Scrivici su WhatsApp', 'Message us on WhatsApp')}</a></div>
+      <a class="btn full accent" href="#/arte/candidati">📝 ${T2('Proponi la tua mostra', 'Propose your exhibition')}</a>
+      <a class="btn full ghost" href="${ART_WA}" target="_blank" rel="noopener" style="margin-top:8px">💬 ${T2('Scrivici su WhatsApp', 'Message us on WhatsApp')}</a></div>
     <a class="btn ghost full" href="#/">${T2('Torna a Ubi', 'Back to Ubi')}</a>`;
 }
 
@@ -5540,7 +5572,7 @@ async function viewArtStop(slug) {
       ${f('ocb', T2('Firma della critica', 'Review by'), x.critic_by, 'Nome, testata', 120)}</div>
     <div class="card"><h3>🏛️ ${T2('Vendita e dal vivo', 'Sold and live')}</h3>
       ${f('os', T2('Opera acquistata da', 'Acquired by'), x.sold_to, 'Es. Fondazione…', 120)}
-      <label class="check"><input type="checkbox" id="osok" ${x.sold_to ? 'checked' : ''}> ${T2("Chi l'ha acquistata ha autorizzato a scrivere il suo nome", 'The buyer agreed to show the name')}</label>
+      <label class="inline"><input type="checkbox" id="osok" ${x.sold_to ? 'checked' : ''}> ${T2("Chi l'ha acquistata ha autorizzato a scrivere il suo nome", 'The buyer agreed to show the name')}</label>
       ${ta('ol', T2('Dove vederla dal vivo', 'Where to see it live'), x.live, T2('Es. Museo…, via…, fino al 31 marzo', 'E.g. Museum…'), 2)}</div>
     <div class="card"><h3>📍 ${T2('Posizione', 'Position')}</h3><div id="omap" class="map"></div><p class="muted small">${T2('Trascina il segnaposto o tocca la mappa.', 'Drag the marker or tap the map.')}</p>
       <label>${T2('Si sblocca entro', 'Unlocks within')} <span class="range-out" id="orv">${c.unlock_radius_m} m</span></label><input id="or" type="range" min="5" max="100" step="5" value="${c.unlock_radius_m}"></div>
@@ -5639,12 +5671,114 @@ async function viewArtDashboard(slug) {
   };
 }
 
+
+// ---------- Candidatura: artisti che vogliono la loro mostra su Ubi Arte
+const REQ_STATUS = { nuova: ['🆕', 'Nuova'], contattato: ['📞', 'Contattato'], accettata: ['✅', 'Accettata'], rifiutata: ['✕', 'Non adatta'] };
+async function viewArtApply(user) {
+  setArtTheme(true);
+  const intro = `<section class="arthero"><p class="artk">UBI ARTE · PER GLI ARTISTI</p><h1>${T2('La tua mostra, ovunque nel mondo', 'Your exhibition, anywhere in the world')}</h1>
+    <p>${T2('Le tue opere in una piazza, in un parco o in un locale: si aprono solo quando le persone ci arrivano. La stessa mostra può essere in più città insieme. Raccontaci chi sei: la costruiamo con te.', 'Your artworks in a square, a park or a venue, unlocked on site. Tell us about you: we build it with you.')}</p></section>`;
+  if (!user) {
+    app.innerHTML = `${intro}<div class="card"><ul class="small"><li>${T2('La tua pagina d\'artista, con social e shop', 'Your artist page with socials and shop')}</li><li>${T2('Le mostre a cielo aperto con i tuoi quadri, i video e le tue parole', 'Open-air exhibitions with your works')}</li><li>${T2('Un pannello con i numeri: chi ti ha scoperto, dove, quali opere', 'A dashboard with your numbers')}</li></ul>
+      <button class="full accent" id="alog">${T2('Registrati e invia la candidatura', 'Sign up and apply')}</button><p class="muted small center">${T2('Ubi è gratis.', 'Ubi is free.')}</p></div>`;
+    $('#alog').onclick = () => { setPending('#/arte/candidati'); viewLogin('', 'signup'); };
+    return;
+  }
+  if (!(await ensureProfile())) { setPending('#/arte/candidati'); return viewConsent(); }
+  const mine = await B.artRequestMine();
+  if (mine) {
+    const st = REQ_STATUS[mine.status] || REQ_STATUS.nuova;
+    app.innerHTML = `${intro}<div class="card center"><p style="font-size:40px;margin:0">${st[0]}</p><h2>${T2('Candidatura inviata', 'Application sent')}</h2>
+      <p>${T2('L\'hai inviata il', 'Sent on')} ${new Date(mine.created_at).toLocaleDateString(LOC)} · ${T2('stato', 'status')}: <b>${st[1]}</b></p>
+      <p class="muted small">${T2('Ti contattiamo noi per telefono o WhatsApp. Per qualsiasi cosa: 351 666 1495.', 'We will contact you.')}</p>
+      <a class="btn full accent" href="${ART_WA}" target="_blank" rel="noopener">💬 WhatsApp</a></div><a class="btn ghost full" href="#/arte">← Ubi Arte</a>`;
+    return;
+  }
+  const prof = await B.profile().catch(() => null);
+  const f = (id, label, ph = '', type = 'text', val = '') => `<label for="${id}">${label}</label><input id="${id}" type="${type}" maxlength="200" placeholder="${esc(ph)}" value="${esc(val)}">`;
+  app.innerHTML = `${intro}
+    <div class="card"><h3>👤 ${T2('Chi sei', 'About you')}</h3>
+      ${f('rn', T2('Nome e cognome', 'Full name') + ' *', 'Es. Maria Rossi', 'text', prof?.display_name || '')}${f('rsn', T2('Nome d\'arte', 'Artist name') + ` <span class="muted small">(${T2('se diverso', 'if different')})</span>`)}
+      <label for="rk">${T2('Che artista sei', 'Kind of artist')}</label><select id="rk">${Object.entries(ART_KINDS).map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select>
+      ${f('rc', T2('Città', 'City'), 'Es. Trieste')}</div>
+    <div class="card"><h3>📞 ${T2('Contatti', 'Contacts')}</h3>
+      ${f('rph', T2('Telefono o WhatsApp', 'Phone or WhatsApp') + ' *', '+39 …', 'tel')}${f('re', 'Email', '', 'email', user.email || '')}
+      ${f('rw', T2('Sito web', 'Website'), 'https://…', 'url')}${f('rig', 'Instagram', 'https://instagram.com/…', 'url')}${f('rfb', 'Facebook', 'https://facebook.com/…', 'url')}
+      ${f('ryt', T2('YouTube o TikTok', 'YouTube or TikTok'), 'https://…', 'url')}${f('rsh', T2('Shop online o opere in vendita', 'Online shop'), 'https://…', 'url')}</div>
+    <div class="card"><h3>🎨 ${T2('La tua arte', 'Your art')}</h3>
+      <label for="rb">${T2('Breve descrizione artistica', 'Short artistic statement')} *</label><textarea id="rb" rows="5" maxlength="1500" placeholder="${T2('Cosa dipingi o crei, la tua tecnica, cosa vuoi raccontare. Bastano poche righe.', 'What you create, your technique.')}"></textarea>
+      <label>${T2('Il tuo ritratto', 'Your portrait')}</label><input type="file" id="rp" accept="image/*"><div id="rpp" class="artworks n1" style="max-width:140px"></div>
+      <label>${T2('Foto delle tue opere', 'Photos of your works')} <span class="muted small">(${T2('fino a 8', 'up to 8')})</span></label><input type="file" id="ro" accept="image/*" multiple><div id="rop" class="artworks"></div></div>
+    <div class="card"><label class="inline"><input type="checkbox" id="rauth"> ${T2('Dichiaro di essere l\'autore delle opere che invio', 'I am the author of these works')}</label>
+      <label class="inline"><input type="checkbox" id="rcons"> ${T2('Acconsento al trattamento dei miei dati per essere ricontattato', 'I agree to be contacted')} (<a href="privacy.html" target="_blank">${T2('informativa', 'privacy')}</a>)</label>
+      <p class="muted small">${T2('Le foto servono solo a valutare la proposta: nulla viene pubblicato senza un accordo firmato con te.', 'Nothing is published without a signed agreement.')}</p>
+      <div id="rm"></div><button class="full accent" id="rsend">📨 ${T2('Invia la candidatura', 'Send application')}</button></div>
+    <a class="btn ghost full" href="#/arte">← Ubi Arte</a>`;
+  const st = { portrait: null, works: [] };
+  const titleOf = (name) => name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim();
+  $('#rp').onchange = async (e) => { const fl = e.target.files[0]; if (!fl) return; st.portrait = await fitImage(fl, 1200); $('#rpp').innerHTML = `<figure><img src="${URL.createObjectURL(st.portrait)}" alt=""></figure>`; };
+  $('#ro').onchange = async (e) => {
+    const files = [...e.target.files].slice(0, 8); st.works = [];
+    for (const fl of files) st.works.push({ blob: await fitImage(fl, 1600), title: titleOf(fl.name) });
+    $('#rop').innerHTML = st.works.map((w) => `<figure><img src="${URL.createObjectURL(w.blob)}" alt=""><figcaption>${esc(w.title)}</figcaption></figure>`).join('');
+    if (e.target.files.length > 8) msg($('#rm'), T2('Ho preso le prime 8 foto.', 'I kept the first 8 photos.'), 'info');
+  };
+  $('#rsend').onclick = async () => {
+    const v = (id) => $(id).value.trim();
+    if (v('#rn').length < 2) return msg($('#rm'), T2('Scrivi nome e cognome.', 'Write your name.'));
+    if (v('#rph').replace(/\D/g, '').length < 6) return msg($('#rm'), T2('Scrivi un telefono: ti contattiamo lì.', 'Write a phone number.'));
+    if (v('#rb').length < 20) return msg($('#rm'), T2('Scrivi qualche riga sulla tua arte.', 'Write a few lines about your art.'));
+    if (!st.works.length) return msg($('#rm'), T2('Aggiungi almeno una foto delle tue opere.', 'Add at least one photo.'));
+    if (!$('#rauth').checked || !$('#rcons').checked) return msg($('#rm'), T2('Spunta le due caselle per inviare.', 'Tick both boxes.'));
+    const socials = {}; [['instagram', '#rig'], ['facebook', '#rfb'], ['youtube', '#ryt']].forEach(([k, id]) => { if (v(id)) socials[k] = v(id); });
+    const b = $('#rsend'); b.disabled = true; b.textContent = T2('Invio le foto…', 'Uploading…');
+    try {
+      await B.artRequestSend({ name: v('#rn'), stage_name: v('#rsn') || null, kind: $('#rk').value, city: v('#rc') || null, email: v('#re') || null, phone: v('#rph'),
+        website: v('#rw') || null, socials, shop_url: v('#rsh') || null, bio: v('#rb'), consent: true, portrait: st.portrait, works: st.works });
+      viewArtApply(user);
+    } catch (err) { msg($('#rm'), errText(err)); b.disabled = false; b.textContent = T2('Invia la candidatura', 'Send application'); }
+  };
+}
+async function adminArtRequestsBox(box, reloadAll) {
+  let list = []; try { list = await B.adminArtRequests(); } catch { box.innerHTML = '<div class="msg info small">Candidature: esegui il SQL 20261122110000_arte_candidature.sql.</div>'; return; }
+  const nuove = list.filter((r) => r.status === 'nuova').length;
+  const wa = (ph) => 'https://wa.me/' + ph.replace(/\D/g, '').replace(/^(?!39)(\d{9,10})$/, '39$1');
+  box.innerHTML = `<div class="card"><h3>📝 Candidature degli artisti ${nuove ? `<span class="msg info small" style="display:inline;padding:2px 8px">${nuove} nuove</span>` : ''}</h3>
+    <p class="small muted">Arrivano dalla pagina <a href="#/arte/candidati">Ubi Arte → Proponi la tua mostra</a>.</p>
+    ${list.length ? list.map((r) => `<div class="card" style="margin:8px 0" data-id="${esc(r.id)}"><div class="row" style="align-items:center">${r.portrait_url ? `<img class="artav lg" src="${esc(r.portrait_url)}" alt="">` : '<span class="artav lg artav0">🎨</span>'}
+        <div style="flex:1"><b>${esc(r.name)}</b>${r.stage_name ? ` · <i>${esc(r.stage_name)}</i>` : ''}<div class="small muted">${esc(ART_KINDS[r.kind] || '')}${r.city ? ' · ' + esc(r.city) : ''} · ${new Date(r.created_at).toLocaleDateString(LOC)}</div></div></div>
+      <p class="small">${esc(r.bio)}</p>
+      ${(r.works || []).length ? `<div class="artworks">${r.works.map((w) => `<figure>${w.url ? `<a href="${esc(w.url)}" target="_blank"><img src="${esc(w.url)}" alt=""></a>` : ''}<figcaption>${esc(w.title || '')}</figcaption></figure>`).join('')}</div>` : ''}
+      <div class="row small" style="flex-wrap:wrap;gap:6px"><a class="btn ghost" href="tel:${esc(r.phone)}">📞 ${esc(r.phone)}</a><a class="btn ghost" href="${wa(r.phone)}" target="_blank" rel="noopener">💬 WhatsApp</a>${r.email ? `<a class="btn ghost" href="mailto:${esc(r.email)}">✉️ Email</a>` : ''}
+        ${[['sito', r.website], ...Object.entries(r.socials || {}), ['shop', r.shop_url]].filter(([, u]) => u).map(([k, u]) => `<a class="btn ghost" href="${esc(u)}" target="_blank" rel="noopener">${esc(k)} ↗</a>`).join('')}</div>
+      <label>Stato</label><select data-a="st">${Object.entries(REQ_STATUS).map(([k, [e, n]]) => `<option value="${k}" ${r.status === k ? 'selected' : ''}>${e} ${n}</option>`).join('')}</select>
+      <label>Note (solo per te)</label><textarea data-a="nt" rows="2">${esc(r.notes || '')}</textarea>
+      <div class="row"><button class="ghost" data-a="save">Salva</button><button data-a="mk">🎨 Crea l'artista</button></div><div class="rqm"></div></div>`).join('') : '<p class="muted small">Ancora nessuna candidatura.</p>'}</div>`;
+  box.querySelectorAll('[data-id]').forEach((c) => {
+    const r = list.find((x) => x.id === c.dataset.id); const out = c.querySelector('.rqm');
+    c.querySelector('[data-a="save"]').onclick = async () => { try { await B.adminArtRequestSet(r.id, { status: c.querySelector('[data-a="st"]').value, notes: c.querySelector('[data-a="nt"]').value.trim() || null }); msg(out, 'Salvato ✓', 'ok'); } catch (err) { msg(out, errText(err)); } };
+    c.querySelector('[data-a="mk"]').onclick = async (e) => {
+      const b = e.target; b.disabled = true; b.textContent = 'Preparo la pagina…';
+      try {
+        const copy = async (u) => (u ? B.uploadAdMedia(await fitImage(await (await fetch(u)).blob(), 1400)) : null);
+        const works = []; for (const w of (r.works || []).slice(0, 3)) { const url = await copy(w.url); if (url) works.push({ url, title: w.title || '' }); }
+        const name = r.stage_name || r.name;
+        const slug = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+        const socials = { ...(r.socials || {}) }; if (r.website) socials.sito = r.website;
+        await B.adminArtistSave({ name, slug, kind: r.kind, bio: r.bio, photo_url: await copy(r.portrait_url), works, socials, shop_url: /^https:\/\//.test(r.shop_url || '') ? r.shop_url : null, active: false });
+        await B.adminArtRequestSet(r.id, { status: 'accettata', notes: r.notes });
+        msg(out, `✓ Artista creato (privato). Prima di renderlo pubblico serve l'autorizzazione firmata.`, 'ok'); setTimeout(reloadAll, 1200);
+      } catch (err) { msg(out, errText(err)); b.disabled = false; b.textContent = "🎨 Crea l'artista"; }
+    };
+  });
+}
+
 // ---------- Amministrazione: artisti
 async function adminArtTab(box) {
   let list = [];
   try { list = await B.adminArtists(); } catch (err) { box.innerHTML = `<div class="msg err">${esc(errText(err))}<br>Hai lanciato il codice SQL di Ubi Arte (20261122100000_arte.sql)?</div>`; return; }
   box.innerHTML = `<div class="card"><p class="small">🎨 <b>Ubi Arte</b>: pagina dell'artista, mostre a cielo aperto con 20 postazioni, anteprima per l'artista, pannello con i numeri. <b>Spunta «Visibile al pubblico» solo dopo il consenso scritto dell'artista.</b></p>
-      <button class="full" id="anew">＋ Nuovo artista</button></div><div id="aform"></div>
+      <button class="full" id="anew">＋ Nuovo artista</button></div><div id="areq"></div><div id="aform"></div>
     ${list.map((a) => `<div class="card"><div class="row" style="align-items:center">${artAvatar(a)}<div style="flex:1"><b>${esc(a.name)}</b> <span class="small ${a.active ? 'ok' : 'muted'}">${a.active ? '🟢 pubblico' : '🔒 privato'}</span><div class="small muted">${esc(a.slug)}${a.user_id ? ' · 👤 account collegato' : ''}</div></div></div>
       <div class="admtabs" style="margin-top:8px"><button class="ghost" data-edit="${esc(a.id)}">✏️ Modifica</button><a class="btn ghost" href="#/artista/${esc(a.slug)}">👁 Pagina</a><a class="btn ghost" href="#/arte-pannello/${esc(a.slug)}">📊 Pannello</a><a class="btn ghost" href="#/mostra-nuova/${esc(a.slug)}">＋ Mostra</a></div></div>`).join('')}`;
   const form = (a = {}) => {
@@ -5660,7 +5794,7 @@ async function adminArtTab(box) {
       ${ART_SOCIALS.map(([k, n, e]) => `<label>${e} ${n}</label><input id="aso_${k}" value="${esc(s[k] || '')}" placeholder="https://…">`).join('')}
       <label>🛒 Shop online (link)</label><input id="ash" value="${esc(a.shop_url || '')}" placeholder="https://…">
       <label>👤 Email dell'account Ubi dell'artista <span class="muted small">(per anteprima e pannello)</span></label><input id="ae" type="email" placeholder="artista@esempio.it">
-      <label class="check"><input type="checkbox" id="aa" ${a.active ? 'checked' : ''}> Visibile al pubblico (solo dopo il consenso scritto dell'artista)</label>
+      <label class="inline"><input type="checkbox" id="aa" ${a.active ? 'checked' : ''}> Visibile al pubblico (solo dopo il consenso scritto dell'artista)</label>
       <div id="afm"></div><button class="full accent" id="asave">Salva</button></div>`;
     $('#an').oninput = () => { if (!a.id) $('#as').value = $('#an').value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40); };
     $('#asave').onclick = async () => {
@@ -5679,6 +5813,7 @@ async function adminArtTab(box) {
     };
   };
   $('#anew').onclick = () => form();
+  adminArtRequestsBox($('#areq'), () => adminArtTab(box));
   box.querySelectorAll('[data-edit]').forEach((x) => { x.onclick = () => form(list.find((a) => a.id === x.dataset.edit)); });
 }
 
