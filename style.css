@@ -537,3 +537,6 @@ body.artt .card { border-color: #e8dcc0; }
 .row3 { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 6px; } .row3 input { min-width: 0; }
 .artprev { margin-top: 6px; }
 .artjoin { background: #1d1a16 !important; color: #f1dfb3; } .artjoin h3 { color: #fff; }
+/* Ubi Arte: anteprima privata */
+.pvwork h2 { margin: 6px 0 2px; }
+.pvwork .pvimg { display: block; width: 100%; height: auto; border-radius: 10px; margin: 10px 0; box-shadow: 0 6px 18px rgba(0,0,0,.12); }

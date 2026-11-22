@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611221006';
+import { CONFIG } from './config.js?v=202611221012';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221006';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221012';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.116';
+const APP_VERSION = 'v.117';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -357,6 +357,13 @@ async function supabaseBackend() {
       const u = await B.user();
       const n = (await B.exhibitionStops(e.id)).length + 1;
       must(await sb.from('contents').insert(artRow(u.id, e.id, n, p, artist)));
+    },
+    async exhibitionPreviewGet(id) { return must(await sb.rpc('exhibition_preview_get', { p_id: id })); },
+    async exhibitionPreviewSet(id, on) { return must(await sb.rpc('exhibition_preview_set', { p_id: id, p_on: on })); },
+    async exhibitionByToken(token) {
+      const { data, error } = await sb.functions.invoke('art-preview', { body: { token } });
+      if (error || !data || data.error) return null;
+      return data;
     },
     async exhibitionPublish(id, on) {
       must(await sb.from('exhibitions').update({ published: on }).eq('id', id));
@@ -821,6 +828,15 @@ function demoBackend() {
       save(); return e;
     },
     async exhibitionAddStop(e, p, artist) { const n = db.contents.filter((c) => c.exhibition_id === e.id).length + 1; db.contents.push({ ...artRow(db.user.id, e.id, n, p, artist), share_slug: hex(5), recipients: [], created_at: new Date().toISOString() }); save(); },
+    async exhibitionPreviewGet(id) { return (db.previews || {})[id] || null; },
+    async exhibitionPreviewSet(id, on) { db.previews = db.previews || {}; if (on) db.previews[id] = [...crypto.getRandomValues(new Uint8Array(12))].map((x) => x.toString(16).padStart(2, '0')).join(''); else delete db.previews[id]; save(); return db.previews[id] || null; },
+    async exhibitionByToken(token) {
+      const id = Object.keys(db.previews || {}).find((k) => db.previews[k] === token); if (!id) return null;
+      const e = db.exhibitions.find((x) => x.id === id), a = db.artists.find((x) => x.id === e.artist_id);
+      const stops = await Promise.all(db.contents.filter((c) => c.exhibition_id === id).sort((x, y) => x.exhibition_step - y.exhibition_step)
+        .map(async (c) => ({ step: c.exhibition_step, title: c.title, text: c.text_body, art: c.art || {}, media_type: c.media_type, url: await demoMediaUrl(c), lat: c.lat, lng: c.lng })));
+      return { exhibition: e, artist: a, stops };
+    },
     async exhibitionPublish(id, on) { const e = db.exhibitions.find((x) => x.id === id); e.published = on; db.contents.forEach((c) => { if (c.exhibition_id === id) c.visibility = on ? 'public' : 'hidden'; }); save(); },
     async artStopSave(c, d, file) {
       const x = db.contents.find((y) => y.id === c.id); Object.assign(x, { title: d.title, text_body: d.text_body, art: d.art, lat: d.lat, lng: d.lng, unlock_radius_m: d.radius });
@@ -1068,6 +1084,7 @@ async function routeInner() {
   setArtTheme(false);
   if (page === 'arte' && !arg) return viewArte();
   if (page === 'mostra' && arg) return viewExhibition(arg);
+  if (page === 'anteprima' && arg) return viewArtPreview(arg);
   if (page === 'recensioni' && arg) return viewArtReviews(arg);
   const user = await B.user();
   if (page === 'artista' && arg) return viewArtist(arg, user);
@@ -5363,6 +5380,38 @@ async function viewArtReviews(slug) {
     <a class="btn ghost full" href="#/artista/${esc(slug)}">← ${esc(a.name)}</a>`;
 }
 
+// ---------- Anteprima privata di una mostra (link segreto: tutte le opere, da qualsiasi luogo, senza iscriversi)
+async function viewArtPreview(token) {
+  setArtTheme(true);
+  app.innerHTML = '<p class="muted center">…</p>';
+  let p = null; try { p = await B.exhibitionByToken(token); } catch { /* link non valido */ }
+  if (!p) { app.innerHTML = `<div class="card center"><h2>${T2('Anteprima non disponibile', 'Preview not available')}</h2><p class="muted">${T2('Il link è scaduto o è stato disattivato.', 'The link has expired or was turned off.')}</p><a class="btn" href="#/">Ubi</a></div>`; return; }
+  const e = p.exhibition, a = p.artist, stops = p.stops || [];
+  const works = (a.works || []).filter((w) => w && w.url).slice(0, 3);
+  const det = (x) => [x.year, x.technique, x.size].filter(Boolean).map(esc).join(' · ');
+  app.innerHTML = `<div class="msg info small">🔒 ${T2('Anteprima privata: la mostra non è ancora pubblica. Per favore non condividere questo link.', 'Private preview: not public yet. Please do not share this link.')}</div>
+    <section class="arthero artist">${artAvatar(a, 'artav xl')}<p class="artk">${esc((ART_KINDS[a.kind] || '').toUpperCase())}</p><h1>${esc(a.name)}</h1>${a.tagline ? `<p class="arttag">${esc(a.tagline)}</p>` : ''}</section>
+    ${artSocialBtns({ ...a, id: null })}
+    ${works.length ? `<div class="artworks n${works.length}">${works.map((w) => `<figure><img src="${esc(w.url)}" alt=""><figcaption>${esc(w.title || '')}</figcaption></figure>`).join('')}</div>` : ''}
+    ${a.bio ? `<div class="card artbio">${linkify(a.bio)}</div>` : ''}
+    <section class="arthero ex"><p class="artk">${T2('MOSTRA A CIELO APERTO', 'OPEN-AIR EXHIBITION')}${e.place_name ? ' · ' + esc(e.place_name.toUpperCase()) : ''}</p><h1>${esc(e.title)}</h1>
+      ${e.subtitle ? `<p class="arttag">${esc(e.subtitle)}</p>` : ''}<p class="small">${stops.length} ${T2('opere', 'artworks')} · ${T2('sul posto si aprono una alla volta, arrivando vicino', 'on site they open one by one as you get close')}</p></section>
+    ${e.intro ? `<div class="card artbio">${linkify(e.intro)}</div>` : ''}
+    <div id="pvmap" class="map tall"></div>
+    ${stops.map((s) => { const x = s.art || {}; return `<div class="card pvwork">${artBadge(s.step, 'sm')}<h2>${esc(s.title)}</h2>${det(x) ? `<p class="small muted">${det(x)}</p>` : ''}
+      ${s.url ? `<img class="pvimg" src="${esc(s.url)}" alt="${esc(s.title)}" loading="lazy">` : `<p class="muted small">${T2('Foto in arrivo', 'Photo coming soon')}</p>`}
+      ${s.text ? `<p>${linkify(s.text)}</p>` : ''}${x.comment ? `<p class="small"><b>${T2('L\'artista', 'The artist')}:</b> ${linkify(x.comment)}</p>` : ''}
+      ${x.critic ? `<p class="small"><i>${linkify(x.critic)}</i>${x.critic_by ? ` — ${esc(x.critic_by)}` : ''}</p>` : ''}
+      ${x.video ? `<a class="btn ghost" href="${esc(x.video)}" target="_blank" rel="noopener">🎬 Video</a>` : ''}</div>`; }).join('')}
+    <div class="card center"><p>${T2('Ti piace? Su Ubi le opere si scoprono camminando, nei luoghi veri.', 'On Ubi artworks are discovered by walking, in real places.')}</p><a class="btn accent" href="#/">📍 ${T2('Scopri Ubi', 'Discover Ubi')}</a></div>`;
+  waitLeaflet().then(() => {
+    const el = $('#pvmap'); if (!el || !document.body.contains(el) || !stops.length) return;
+    const map = makeMap(el, stops[0].lat, stops[0].lng, 17); if (!map) return;
+    stops.forEach((s) => L.marker([s.lat, s.lng], { icon: L.divIcon({ className: '', iconSize: [30, 30], iconAnchor: [15, 15], html: artBadge(s.step, '') }), title: s.title }).addTo(map));
+    if (stops.length > 1) { L.polyline(stops.map((s) => [s.lat, s.lng]), { color: '#b08a3e', weight: 2, dashArray: '4 6' }).addTo(map); map.fitBounds(stops.map((s) => [s.lat, s.lng]), { padding: [24, 24], maxZoom: 19 }); }
+  });
+}
+
 // ---------- Pagina di una mostra
 async function viewExhibition(id) {
   setArtTheme(true);
@@ -5533,6 +5582,8 @@ async function viewExhibitionManage(id) {
       <p class="small muted">${T2('Foto: scegline più di una, vanno alle postazioni in ordine (1, 2, 3…); il nome del file diventa il titolo se l\'opera non ne ha uno. Schede: un file .json preparato da noi con titoli, anni, tecniche, misure e descrizioni.', 'Photos go to the stations in order; a .json file fills the cards.')}</p>
       <label>${T2('Foto delle opere', 'Artwork photos')}</label><input type="file" id="xbulk" accept="image/*,.zip,application/zip" multiple><p class="small muted">${T2('Va bene anche il kit .zip: foto e schede insieme.', 'A .zip kit works too: photos and cards together.')}</p>
       <label>${T2('Schede (.json)', 'Cards (.json)')}</label><input type="file" id="xjson" accept=".json,application/json"><div id="xbm"></div></div>
+    <div class="card"><h3>🔗 ${T2('Anteprima privata', 'Private preview')}</h3>
+      <p class="small muted">${T2('Un link segreto per far vedere tutta la mostra, da qualsiasi luogo e senza iscriversi, anche se non è pubblicata: per l\'artista, una galleria, uno sponsor. Puoi disattivarlo quando vuoi.', 'A secret link to show the whole exhibition from anywhere, without signing up, even if unpublished.')}</p><div id="xprev"></div></div>
     <div class="card"><h3>🌍 ${T2('Porta la mostra in un altro luogo', 'Bring it somewhere else')}</h3><p class="small muted">${T2('Copia tutte le opere con lo stesso percorso in qualsiasi luogo del mondo: puoi ruotarlo e allargarlo per adattarlo allo spazio.', 'Copy all the artworks with the same route anywhere in the world.')}</p>
       <a class="btn full" href="#/mostra-clona/${esc(e.id)}">🌍 ${T2('Clona la mostra', 'Clone the exhibition')}</a></div>
     <a class="btn ghost full" href="#/arte-pannello/${esc(a.slug)}">📊 ${T2('Pannello di', 'Dashboard of')} ${esc(a.name)}</a>`;
@@ -5578,6 +5629,21 @@ async function viewExhibitionManage(id) {
     try { const n = await applyCards(cardsOf(data)); msg($('#xbm'), `✓ ${n} ${T2('schede compilate', 'cards filled')}`, 'ok'); setTimeout(() => viewExhibitionManage(id), 900); }
     catch (err) { msg($('#xbm'), errText(err)); }
   };
+  const prevBox = async () => {
+    const box = $('#xprev'); if (!box) return;
+    let tok = null; try { tok = await B.exhibitionPreviewGet(e.id); } catch { box.innerHTML = `<div class="msg info small">${T2('Esegui il SQL 20261122130000_arte_anteprima.sql.', 'Run the preview SQL.')}</div>`; return; }
+    const url = tok ? `${location.origin}${location.pathname}#/anteprima/${tok}` : '';
+    box.innerHTML = tok ? `<div class="linkbox">${esc(url)}</div><div class="row" style="flex-wrap:wrap;gap:6px"><button class="ghost" id="pvcopy">📋 ${T2('Copia', 'Copy')}</button>
+        <a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(T2('Ecco l\'anteprima privata della mostra «', 'Private preview of «') + e.title + '»: ' + url)}">💬 WhatsApp</a><a class="btn ghost" href="#/anteprima/${esc(tok)}">👁 ${T2('Apri', 'Open')}</a>
+        <button class="ghost" id="pvnew">🔄 ${T2('Nuovo link', 'New link')}</button><button class="ghost danger" id="pvoff">✕ ${T2('Disattiva', 'Turn off')}</button></div><div id="pvm"></div>`
+      : `<button class="full" id="pvon">🔗 ${T2('Crea il link di anteprima', 'Create preview link')}</button><div id="pvm"></div>`;
+    const set = async (on) => { try { await B.exhibitionPreviewSet(e.id, on); prevBox(); } catch (err) { msg($('#pvm'), errText(err)); } };
+    $('#pvon') && ($('#pvon').onclick = () => set(true));
+    $('#pvnew') && ($('#pvnew').onclick = () => { if (confirm(T2('Il link vecchio smetterà di funzionare. Continuo?', 'The old link will stop working. Continue?'))) set(true); });
+    $('#pvoff') && ($('#pvoff').onclick = () => set(false));
+    $('#pvcopy') && ($('#pvcopy').onclick = async () => { try { await navigator.clipboard.writeText(url); msg($('#pvm'), T2('Link copiato ✓', 'Link copied ✓'), 'ok'); } catch { msg($('#pvm'), url, 'info'); } });
+  };
+  prevBox();
   $('#xpub').onclick = async () => { $('#xpub').disabled = true; try { await B.exhibitionPublish(e.id, !e.published); viewExhibitionManage(id); } catch (err) { msg($('#xpm'), errText(err)); $('#xpub').disabled = false; } };
   $('#xadd').onclick = async () => {
     const last = stops[stops.length - 1];
