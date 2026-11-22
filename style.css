@@ -487,3 +487,53 @@ body.oranget .bizlogo { border: 2px solid #ffb27a; }
 .mapsearch input { flex: 1; min-width: 0; margin: 0; }
 .mapsearch button { flex: 0 0 auto; padding: 0 14px; }
 #mapqres .addrpick { margin-top: 6px; text-align: left; font-size: .9em; }
+
+/* ===== Ubi Arte: tema «galleria» (avorio, nero, oro) ===== */
+body.artt { --brand: #1d1a16; --accent: #b08a3e; --bg: #f6f1e7; --line: #e3d7bd; --card: #fffdf8; }
+body.artt .top { background: #1d1a16; border-bottom: 3px solid #b08a3e; }
+body.artt h1, body.artt h2, body.artt h3 { font-family: Lora, Georgia, "Times New Roman", serif; letter-spacing: .01em; }
+body.artt .msg.info { background: #f3ead6; color: #4a3a17; }
+body.artt .seg button.on { background: #1d1a16; color: #e7cf98; }
+body.artt button.accent, body.artt .btn.accent { background: #1d1a16; color: #f1dfb3; }
+body.artt .card { border-color: #e8dcc0; }
+.tico.artb { background: #fffdf8; color: #1d1a16; border: 3px double #b08a3e; border-radius: 4px; font: 700 13px/1 Georgia, serif; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.tico.artb.done { background: #b08a3e; color: #fff; }
+.tico.artb.old { opacity: .45; filter: grayscale(1); }
+.arthero { text-align: center; padding: 26px 16px 18px; margin: 0 -4px 14px; border-radius: 18px; background: linear-gradient(160deg, #1d1a16, #3a2f1f); color: #f6ecd6; }
+.arthero h1 { color: #fff; margin: 6px 0 8px; font-size: 1.7em; }
+.arthero p { color: #e6d8b8; margin: 4px 0; }
+.arthero .arttag { font-style: italic; font-family: Lora, Georgia, serif; }
+.artk { font: 600 11px/1.2 system-ui, sans-serif; letter-spacing: .25em; color: #d4b06a !important; }
+.artav { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; border: 2px solid #b08a3e; background: #f3ead6; display: inline-flex; align-items: center; justify-content: center; }
+.artav.lg { width: 60px; height: 60px; } .artav.xl { width: 104px; height: 104px; border-width: 3px; }
+.artav0 { font-size: 22px; }
+.artstrip, .artcard { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; padding: 10px 12px; border: 1px solid #e3d7bd; border-radius: 14px; background: #fffdf8; margin-bottom: 10px; }
+.artstrip span, .artcard span { display: flex; flex-direction: column; flex: 1; }
+.artstrip small, .artcard small { color: var(--muted); }
+.artgo { flex: 0 0 auto !important; font-size: 26px; color: #b08a3e; }
+.artline a { color: inherit; font-weight: 600; }
+.artfacts { text-align: center; font: italic 15px/1.4 Lora, Georgia, serif; color: #5a4a2a; margin: 4px 0 10px; }
+.artsocs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; justify-content: center; }
+.artsocs .btn { flex: 0 0 auto; padding: 8px 12px; font-size: .9em; }
+.artshop { background: #b08a3e !important; color: #fff !important; margin: 8px 0; }
+.artbtn { background: linear-gradient(90deg, #1d1a16, #3a2f1f); color: #f1dfb3; }
+.artworks { display: grid; gap: 8px; margin: 10px 0 14px; grid-template-columns: repeat(3, 1fr); }
+.artworks.n1 { grid-template-columns: 1fr; } .artworks.n2 { grid-template-columns: 1fr 1fr; }
+.artworks figure { margin: 0; } .artworks img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 4px solid #fffdf8; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.artworks figcaption { font: italic 12px/1.3 Lora, Georgia, serif; text-align: center; color: #5a4a2a; margin-top: 4px; }
+.artbio { font-family: Lora, Georgia, serif; white-space: pre-line; }
+.artex { display: block; text-decoration: none; color: inherit; } .artex small { display: block; color: var(--muted); } .artex .edist { float: right; font-weight: 600; color: #b08a3e; }
+.exstop { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #efe6d3; text-decoration: none; color: inherit; }
+.exstop span { flex: 1; } .exstop small { color: #8a7a55; } .exstop .tico { flex: 0 0 auto; width: 28px; height: 28px; }
+.artq blockquote, .review blockquote, .artt blockquote { margin: 6px 0; padding: 4px 12px; border-left: 3px solid #b08a3e; font: italic 15px/1.5 Lora, Georgia, serif; }
+.artsold { background: #1d1a16 !important; color: #f1dfb3; text-align: center; } .artsold b { color: #fff; }
+.artnext h3 { margin-top: 0; }
+.artkpi { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.artkpi div { background: #fffdf8; border: 1px solid #e3d7bd; border-top: 3px solid #b08a3e; border-radius: 12px; padding: 10px; text-align: center; }
+.artkpi b { display: block; font: 700 24px/1.1 Georgia, serif; color: #1d1a16; } .artkpi span { font-size: 12px; color: var(--muted); }
+.artkpi.sm { grid-template-columns: repeat(3, 1fr); } .artkpi.sm b { font-size: 18px; }
+.arttab { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 10px; } .arttab th { text-align: left; font-size: 12px; color: var(--muted); border-bottom: 1px solid #e3d7bd; padding: 4px; }
+.arttab td { padding: 6px 4px; border-bottom: 1px solid #f0e8d6; vertical-align: top; } .arttab td + td, .arttab th + th { text-align: center; }
+.row3 { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 6px; } .row3 input { min-width: 0; }
+.artprev { margin-top: 6px; }
+.artjoin { background: #1d1a16 !important; color: #f1dfb3; } .artjoin h3 { color: #fff; }
