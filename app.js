@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611220908';
+import { CONFIG } from './config.js?v=202611220929';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611220908';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611220929';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.112';
+const APP_VERSION = 'v.113';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -5778,7 +5778,7 @@ async function adminArtTab(box) {
   let list = [];
   try { list = await B.adminArtists(); } catch (err) { box.innerHTML = `<div class="msg err">${esc(errText(err))}<br>Hai lanciato il codice SQL di Ubi Arte (20261122100000_arte.sql)?</div>`; return; }
   box.innerHTML = `<div class="card"><p class="small">🎨 <b>Ubi Arte</b>: pagina dell'artista, mostre a cielo aperto con 20 postazioni, anteprima per l'artista, pannello con i numeri. <b>Spunta «Visibile al pubblico» solo dopo il consenso scritto dell'artista.</b></p>
-      <button class="full" id="anew">＋ Nuovo artista</button></div><div id="areq"></div><div id="aform"></div>
+      <button class="full" id="anew">＋ Nuovo artista</button></div><div id="aform"></div><div id="areq"></div>
     ${list.map((a) => `<div class="card"><div class="row" style="align-items:center">${artAvatar(a)}<div style="flex:1"><b>${esc(a.name)}</b> <span class="small ${a.active ? 'ok' : 'muted'}">${a.active ? '🟢 pubblico' : '🔒 privato'}</span><div class="small muted">${esc(a.slug)}${a.user_id ? ' · 👤 account collegato' : ''}</div></div></div>
       <div class="admtabs" style="margin-top:8px"><button class="ghost" data-edit="${esc(a.id)}">✏️ Modifica</button><a class="btn ghost" href="#/artista/${esc(a.slug)}">👁 Pagina</a><a class="btn ghost" href="#/arte-pannello/${esc(a.slug)}">📊 Pannello</a><a class="btn ghost" href="#/mostra-nuova/${esc(a.slug)}">＋ Mostra</a></div></div>`).join('')}`;
   const form = (a = {}) => {
@@ -5795,7 +5795,9 @@ async function adminArtTab(box) {
       <label>🛒 Shop online (link)</label><input id="ash" value="${esc(a.shop_url || '')}" placeholder="https://…">
       <label>👤 Email dell'account Ubi dell'artista <span class="muted small">(per anteprima e pannello)</span></label><input id="ae" type="email" placeholder="artista@esempio.it">
       <label class="inline"><input type="checkbox" id="aa" ${a.active ? 'checked' : ''}> Visibile al pubblico (solo dopo il consenso scritto dell'artista)</label>
-      <div id="afm"></div><button class="full accent" id="asave">Salva</button></div>`;
+      <div id="afm"></div><button class="full accent" id="asave">Salva</button><button class="full ghost" id="acanc">Annulla</button></div>`;
+    $('#aform').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('#an')?.focus({ preventScroll: true }), 400);
+    $('#acanc').onclick = () => { $('#aform').innerHTML = ''; };
     $('#an').oninput = () => { if (!a.id) $('#as').value = $('#an').value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40); };
     $('#asave').onclick = async () => {
       const b = $('#asave'); b.disabled = true; b.textContent = 'Salvo…';
