@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611220944';
+import { CONFIG } from './config.js?v=202611221001';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611220944';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221001';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.114';
+const APP_VERSION = 'v.115';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -5397,6 +5397,30 @@ async function viewExhibition(id) {
   getPos().then((pos) => document.querySelectorAll('.exstop').forEach((x) => { const d = x.querySelector('.edist'); if (d.textContent === '🔒') d.textContent = fmtDist(distanceM(pos.lat, pos.lng, +x.dataset.lat, +x.dataset.lng)); })).catch(() => {});
 }
 
+// ---------- Lettura di un file .zip nel browser (kit delle mostre): niente librerie, usa DecompressionStream
+async function readZip(file) {
+  const buf = new Uint8Array(await file.arrayBuffer()), dv = new DataView(buf.buffer);
+  let eo = -1; for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { eo = i; break; }
+  if (eo < 0) throw new Error('zip');
+  const count = dv.getUint16(eo + 10, true); let p = dv.getUint32(eo + 16, true); const out = [];
+  const mime = (n) => (/\.png$/i.test(n) ? 'image/png' : /\.webp$/i.test(n) ? 'image/webp' : /\.heic$/i.test(n) ? 'image/heic' : /\.json$/i.test(n) ? 'application/json' : 'image/jpeg');
+  for (let k = 0; k < count; k++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('zip');
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nlen = dv.getUint16(p + 28, true), xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+    const full = new TextDecoder().decode(buf.subarray(p + 46, p + 46 + nlen)); p += 46 + nlen + xlen + clen;
+    const name = full.split('/').pop();
+    if (!name || full.endsWith('/') || /(^|\/)(__MACOSX|\.)/.test(full)) continue;
+    const start = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true), raw = buf.subarray(start, start + csize);
+    let data;
+    if (method === 0) data = raw;
+    else if (method === 8) data = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    else continue;
+    const blob = new Blob([data], { type: mime(name) });
+    out.push({ name, blob, file: new File([blob], name, { type: blob.type }) });
+  }
+  return out;
+}
+
 // ---------- Disposizione delle postazioni (metri dal centro, poi ruotate e posate sulla mappa)
 function artLayout(n, kind, size) {
   const pts = [];
@@ -5507,35 +5531,52 @@ async function viewExhibitionManage(id) {
       <div class="row" style="margin-top:8px"><button class="ghost" id="xadd">＋ ${T2('Aggiungi una postazione', 'Add a station')}</button><button class="ghost danger" id="xdel" ${stops.length > 1 ? '' : 'disabled'}>− ${T2("Togli l'ultima", 'Remove the last')}</button></div><div id="xam"></div></div>
     <div class="card"><h3>📥 ${T2('Carica tutto insieme', 'Bulk upload')}</h3>
       <p class="small muted">${T2('Foto: scegline più di una, vanno alle postazioni in ordine (1, 2, 3…); il nome del file diventa il titolo se l\'opera non ne ha uno. Schede: un file .json preparato da noi con titoli, anni, tecniche, misure e descrizioni.', 'Photos go to the stations in order; a .json file fills the cards.')}</p>
-      <label>${T2('Foto delle opere', 'Artwork photos')}</label><input type="file" id="xbulk" accept="image/*" multiple>
+      <label>${T2('Foto delle opere', 'Artwork photos')}</label><input type="file" id="xbulk" accept="image/*,.zip,application/zip" multiple><p class="small muted">${T2('Va bene anche il kit .zip: foto e schede insieme.', 'A .zip kit works too: photos and cards together.')}</p>
       <label>${T2('Schede (.json)', 'Cards (.json)')}</label><input type="file" id="xjson" accept=".json,application/json"><div id="xbm"></div></div>
     <div class="card"><h3>🌍 ${T2('Porta la mostra in un altro luogo', 'Bring it somewhere else')}</h3><p class="small muted">${T2('Copia tutte le opere con lo stesso percorso in qualsiasi luogo del mondo: puoi ruotarlo e allargarlo per adattarlo allo spazio.', 'Copy all the artworks with the same route anywhere in the world.')}</p>
       <a class="btn full" href="#/mostra-clona/${esc(e.id)}">🌍 ${T2('Clona la mostra', 'Clone the exhibition')}</a></div>
     <a class="btn ghost full" href="#/arte-pannello/${esc(a.slug)}">📊 ${T2('Pannello di', 'Dashboard of')} ${esc(a.name)}</a>`;
   const titleOf = (name) => name.replace(/\.[a-z0-9]+$/i, '').replace(/^\d+[\s._-]*/, '').replace(/[-_]+/g, ' ').trim().replace(/^./, (c) => c.toUpperCase());
+  const applyCards = async (list) => {
+    let n = 0;
+    for (const o of list) {
+      const c = stops.find((x) => x.exhibition_step === +o.n); if (!c) continue;
+      const art = { ...(c.art || {}) }; ['year', 'technique', 'size', 'video', 'comment', 'critic', 'critic_by', 'live'].forEach((k) => { if (o[k]) art[k] = o[k]; });
+      await B.artStopSave(c, { title: o.title || c.title, text_body: o.description || c.text_body, art, lat: c.lat, lng: c.lng, radius: c.unlock_radius_m }, null); n++;
+    }
+    return n;
+  };
+  const cardsOf = (data) => (Array.isArray(data) ? data : data.opere || []);
   $('#xbulk').onchange = async (ev) => {
-    const files = [...ev.target.files].sort((x, y) => x.name.localeCompare(y.name, undefined, { numeric: true }));
-    if (!files.length) return;
+    let files = [], cards = null;
+    try {
+      for (const f of ev.target.files) {
+        if (/\.zip$/i.test(f.name) || /zip/.test(f.type)) {
+          msg($('#xbm'), T2('Apro il file zip…', 'Opening the zip…'), 'info');
+          for (const x of await readZip(f)) {
+            if (/\.json$/i.test(x.name)) { try { cards = cardsOf(JSON.parse(await x.blob.text())); } catch { /* scheda non valida: la salto */ } }
+            else if (/\.(jpe?g|png|webp|heic)$/i.test(x.name)) files.push(x.file);
+          }
+        } else files.push(f);
+      }
+    } catch (err) { return msg($('#xbm'), T2('Non riesco ad aprire lo zip: estrailo nell\'app File e scegli le foto.', 'Cannot open the zip: extract it and pick the photos.')); }
+    files.sort((x, y) => x.name.localeCompare(y.name, undefined, { numeric: true }));
+    if (!files.length && !cards) return msg($('#xbm'), T2('Nessuna foto trovata.', 'No photos found.'));
     let n = 0;
     for (let i = 0; i < files.length && i < stops.length; i++) {
       const c = stops[i]; msg($('#xbm'), `${T2('Carico', 'Uploading')} ${i + 1} ${T2('di', 'of')} ${Math.min(files.length, stops.length)}…`, 'info');
       try { await B.artStopSave(c, { title: /^Opera \d+$/.test(c.title) ? titleOf(files[i].name) : c.title, text_body: c.text_body, art: c.art || {}, lat: c.lat, lng: c.lng, radius: c.unlock_radius_m }, await fitImage(files[i], 2000)); n++; }
       catch (err) { msg($('#xbm'), errText(err)); return; }
     }
-    msg($('#xbm'), `✓ ${n} ${T2('foto caricate', 'photos uploaded')}${files.length > stops.length ? ` · ${files.length - stops.length} ${T2('in più: aggiungi prima le postazioni', 'extra: add stations first')}` : ''}`, 'ok');
+    let k = 0; if (cards) { try { k = await applyCards(cards); } catch (err) { return msg($('#xbm'), errText(err)); } }
+    msg($('#xbm'), `✓ ${n} ${T2('foto caricate', 'photos uploaded')}${k ? ` · ${k} ${T2('schede compilate', 'cards filled')}` : ''}${files.length > stops.length ? ` · ${files.length - stops.length} ${T2('in più: aggiungi prima le postazioni', 'extra: add stations first')}` : ''}`, 'ok');
     setTimeout(() => viewExhibitionManage(id), 900);
   };
   $('#xjson').onchange = async (ev) => {
     const f = ev.target.files[0]; if (!f) return;
     let data; try { data = JSON.parse(await f.text()); } catch { return msg($('#xbm'), T2('File non valido.', 'Invalid file.')); }
-    const list = Array.isArray(data) ? data : data.opere || [];
-    let n = 0;
-    for (const o of list) {
-      const c = stops.find((x) => x.exhibition_step === +o.n); if (!c) continue;
-      const art = { ...(c.art || {}) }; ['year', 'technique', 'size', 'video', 'comment', 'critic', 'critic_by', 'live'].forEach((k) => { if (o[k]) art[k] = o[k]; });
-      try { await B.artStopSave(c, { title: o.title || c.title, text_body: o.description || c.text_body, art, lat: c.lat, lng: c.lng, radius: c.unlock_radius_m }, null); n++; } catch (err) { msg($('#xbm'), errText(err)); return; }
-    }
-    msg($('#xbm'), `✓ ${n} ${T2('schede compilate', 'cards filled')}`, 'ok'); setTimeout(() => viewExhibitionManage(id), 900);
+    try { const n = await applyCards(cardsOf(data)); msg($('#xbm'), `✓ ${n} ${T2('schede compilate', 'cards filled')}`, 'ok'); setTimeout(() => viewExhibitionManage(id), 900); }
+    catch (err) { msg($('#xbm'), errText(err)); }
   };
   $('#xpub').onclick = async () => { $('#xpub').disabled = true; try { await B.exhibitionPublish(e.id, !e.published); viewExhibitionManage(id); } catch (err) { msg($('#xpm'), errText(err)); $('#xpub').disabled = false; } };
   $('#xadd').onclick = async () => {

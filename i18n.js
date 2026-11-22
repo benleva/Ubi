@@ -9,7 +9,10 @@
 const KEY = 'ubi_lang';
 try { const q = new URLSearchParams(location.search).get('lang'); if (q === 'en' || q === 'it') localStorage.setItem(KEY, q); } catch { /* */ }
 const saved = (() => { try { return localStorage.getItem(KEY); } catch { return null; } })();
-export const LANG = saved === 'it' || saved === 'en' ? saved : (/^it\b/i.test(navigator.language || 'it') ? 'it' : 'en');
+// Italiano di base: inglese solo se scelto, o se il dispositivo non parla italiano e non è in Italia
+// (le app che aprono i link dentro di sé, come Claude o Instagram, a volte dichiarano l'inglese).
+const itDevice = (() => { try { return (navigator.languages || [navigator.language]).some((l) => /^it\b/i.test(l || '')) || /^Europe\/(Rome|San_Marino|Vatican)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone || ''); } catch { return true; } })();
+export const LANG = saved === 'it' || saved === 'en' ? saved : (itDevice ? 'it' : 'en');
 export const LOC = LANG === 'en' ? 'en-GB' : 'it-IT';
 export function setLang(l) { try { localStorage.setItem(KEY, l); } catch { /* */ } location.reload(); }
 
