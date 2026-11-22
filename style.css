@@ -540,3 +540,6 @@ body.artt .card { border-color: #e8dcc0; }
 /* Ubi Arte: anteprima privata */
 .pvwork h2 { margin: 6px 0 2px; }
 .pvwork .pvimg { display: block; width: 100%; height: auto; border-radius: 10px; margin: 10px 0; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+/* Ubi Arte: diritti d'autore e immagini protette (niente «salva immagine» con la pressione lunga) */
+.artcopy { font-size: .78rem; line-height: 1.4; color: #6b6255; background: #efe7d6; border-left: 3px solid #b08a3e; border-radius: 8px; padding: 8px 10px; margin: 10px 0; }
+body.artt img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }

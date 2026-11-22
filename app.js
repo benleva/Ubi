@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611221012';
+import { CONFIG } from './config.js?v=202611221014';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221012';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221014';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.117';
+const APP_VERSION = 'v.118';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -5258,6 +5258,10 @@ function viewFaq(arg) {
 // Mostre a cielo aperto: un percorso di opere (pin numerati) in un luogo, clonabile ovunque.
 // Le opere sono pin normali con tag «arte» e «art-N» (numero visibile sulla mappa) e una scheda (contents.art).
 const setArtTheme = (on) => document.body.classList.toggle('artt', !!on);
+// Diritti d'autore: avviso sotto le opere e niente «salva immagine» con la pressione lunga o il tasto destro
+const artCopyright = (name) => `<p class="artcopy">© ${esc(name || T2("l'artista", 'the artist'))} · ${T2('Tutti i diritti riservati.', 'All rights reserved.')} ${T2("Le immagini delle opere non possono essere salvate, copiate, riprodotte, modificate, condivise o usate in alcun modo senza l'autorizzazione scritta dell'autore.", "Artwork images may not be saved, copied, reproduced, altered, shared or used in any way without the author's written permission.")}</p>`;
+document.addEventListener('contextmenu', (e) => { if (document.body.classList.contains('artt') && e.target.tagName === 'IMG') e.preventDefault(); });
+document.addEventListener('dragstart', (e) => { if (document.body.classList.contains('artt') && e.target.tagName === 'IMG') e.preventDefault(); });
 const artSrc = () => { try { const a = JSON.parse(store.get('ubi_art_src') || 'null'); return a && Date.now() - (a.t || 0) < 7 * 864e5 ? a : null; } catch { return null; } };
 const ART_KINDS = { pittore: 'Pittore', scultore: 'Scultore', fotografo: 'Fotografo', illustratore: 'Illustratore', artista: 'Artista' };
 const ART_SOCIALS = [['instagram', 'Instagram', '📸'], ['facebook', 'Facebook', '📘'], ['youtube', 'YouTube', '▶️'], ['tiktok', 'TikTok', '🎵'], ['linkedin', 'LinkedIn', '💼'], ['sito', 'Sito', '🌐'], ['stampa', 'Kit stampa', '📰']];
@@ -5292,7 +5296,7 @@ async function artSheet(slug, box) {
   const x = art.art || {}; const a = art.artist;
   const vid = x.video ? renderMedia('link', { external_url: x.video }) : '';
   const nx = art.next;
-  box.innerHTML = `
+  box.innerHTML = `${artCopyright(a.name)}
     ${vid ? `<div class="card media artvid"><h3>🎬 ${T2("L'opera raccontata", 'The artwork explained')}</h3>${vid}</div>` : ''}
     ${x.comment ? `<div class="card artq"><h3>🖌️ ${T2("Le parole dell'artista", "The artist's words")}</h3><blockquote>${linkify(x.comment)}</blockquote><p class="muted small">— ${esc(a.name)}</p></div>` : ''}
     ${x.critic ? `<div class="card artq"><h3>📰 ${T2('La critica', 'The review')}</h3><blockquote>${linkify(x.critic)}</blockquote>${x.critic_by ? `<p class="muted small">— ${esc(x.critic_by)}</p>` : ''}</div>` : ''}
@@ -5341,6 +5345,7 @@ async function viewArtist(slug, user) {
     ${artSocialBtns(a)}
     ${works.length ? `<div class="artworks n${works.length}">${works.map((w) => `<figure><img src="${esc(w.url)}" alt=""><figcaption>${esc(w.title || '')}</figcaption></figure>`).join('')}</div>` : ''}
     ${a.bio ? `<div class="card artbio">${linkify(a.bio)}</div>` : ''}
+    ${works.length ? artCopyright(a.name) : ''}
     <h2>🗺️ ${T2('Le mostre su Ubi', 'Exhibitions on Ubi')}</h2>
     ${exs.length ? `<div id="amap" class="map"></div><div id="exlist">${exs.map((e) => `<a class="card artex" href="#/mostra/${esc(e.id)}" data-lat="${e.lat || ''}" data-lng="${e.lng || ''}">
         <b>${esc(e.title)}</b><small>${esc(e.place_name || '')} · ${e.steps} ${T2('opere', 'artworks')}${e.published ? '' : ' · 🔒 ' + T2('non pubblicata', 'not published')}</small><span class="edist"></span></a>`).join('')}</div>`
@@ -5389,7 +5394,7 @@ async function viewArtPreview(token) {
   const e = p.exhibition, a = p.artist, stops = p.stops || [];
   const works = (a.works || []).filter((w) => w && w.url).slice(0, 3);
   const det = (x) => [x.year, x.technique, x.size].filter(Boolean).map(esc).join(' · ');
-  app.innerHTML = `<div class="msg info small">🔒 ${T2('Anteprima privata: la mostra non è ancora pubblica. Per favore non condividere questo link.', 'Private preview: not public yet. Please do not share this link.')}</div>
+  app.innerHTML = `<div class="msg info small">🔒 ${T2('Anteprima privata: la mostra non è ancora pubblica. Per favore non condividere questo link.', 'Private preview: not public yet. Please do not share this link.')}</div>${artCopyright(a.name)}
     <section class="arthero artist">${artAvatar(a, 'artav xl')}<p class="artk">${esc((ART_KINDS[a.kind] || '').toUpperCase())}</p><h1>${esc(a.name)}</h1>${a.tagline ? `<p class="arttag">${esc(a.tagline)}</p>` : ''}</section>
     ${artSocialBtns({ ...a, id: null })}
     ${works.length ? `<div class="artworks n${works.length}">${works.map((w) => `<figure><img src="${esc(w.url)}" alt=""><figcaption>${esc(w.title || '')}</figcaption></figure>`).join('')}</div>` : ''}
@@ -5403,6 +5408,7 @@ async function viewArtPreview(token) {
       ${s.text ? `<p>${linkify(s.text)}</p>` : ''}${x.comment ? `<p class="small"><b>${T2('L\'artista', 'The artist')}:</b> ${linkify(x.comment)}</p>` : ''}
       ${x.critic ? `<p class="small"><i>${linkify(x.critic)}</i>${x.critic_by ? ` — ${esc(x.critic_by)}` : ''}</p>` : ''}
       ${x.video ? `<a class="btn ghost" href="${esc(x.video)}" target="_blank" rel="noopener">🎬 Video</a>` : ''}</div>`; }).join('')}
+    ${artCopyright(a.name)}
     <div class="card center"><p>${T2('Ti piace? Su Ubi le opere si scoprono camminando, nei luoghi veri.', 'On Ubi artworks are discovered by walking, in real places.')}</p><a class="btn accent" href="#/">📍 ${T2('Scopri Ubi', 'Discover Ubi')}</a></div>`;
   waitLeaflet().then(() => {
     const el = $('#pvmap'); if (!el || !document.body.contains(el) || !stops.length) return;
@@ -5431,6 +5437,7 @@ async function viewExhibition(id) {
     <div class="card"><h3>📤 ${T2('Condividi la mostra', 'Share the exhibition')}</h3><div class="linkbox">${esc(location.origin + location.pathname)}#/mostra/${esc(e.id)}</div>
       <button class="ghost full" id="exshare">📤 ${T2('Condividi', 'Share')}</button></div>
     ${artSocialBtns({ ...a, id: null })}
+    ${artCopyright(a.name)}
     <a class="btn ghost full" href="#/artista/${esc(a.slug)}">🎨 ${esc(a.name)}</a>`;
   $('#exshare').onclick = async () => {
     const url = `${location.origin}${location.pathname}#/mostra/${e.id}`;
