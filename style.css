@@ -553,3 +553,9 @@ body.artt img { -webkit-touch-callout: none; -webkit-user-select: none; user-sel
 .pvwork { scroll-margin-top: 80px; } #pvintro { scroll-margin-top: 80px; }
 .pvhi { animation: pvhi 1.6s ease; } @keyframes pvhi { 0%, 40% { box-shadow: 0 0 0 4px #b08a3e; } 100% { box-shadow: none; } }
 .artgate.gl::after { left: auto; right: 4px; margin-left: 0; } .artgate.gr::after { left: 4px; margin-left: 0; }
+/* OAuth login buttons (Google, Facebook) */
+.oauth-btns { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.oauth-btn { display: flex; align-items: center; justify-content: center; gap: 2px; font-size: .97rem; font-weight: 500; padding: 11px 16px; border-radius: 10px; border: 1.5px solid #d6cbbf; background: #fff; color: #1d1a16; cursor: pointer; transition: background .15s, border-color .15s; }
+.oauth-btn:hover { background: #f7f3ee; border-color: #b08a3e; }
+.oauth-sep { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; color: #9b8e7f; font-size: .85rem; }
+.oauth-sep::before, .oauth-sep::after { content: ''; flex: 1; height: 1px; background: #e0d7cb; }
