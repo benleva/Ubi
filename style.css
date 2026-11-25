@@ -559,6 +559,8 @@ body.artt img { -webkit-touch-callout: none; -webkit-user-select: none; user-sel
 .oauth-btn:hover { background: #f7f3ee; border-color: #b08a3e; }
 .oauth-sep { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; color: #9b8e7f; font-size: .85rem; }
 .oauth-sep::before, .oauth-sep::after { content: ''; flex: 1; height: 1px; background: #e0d7cb; }
+/* Admin: pulsante azione pericolosa */
+.danger-hover:hover { border-color: #c62828; color: #c62828; }
 /* Stats bar home */
 .stats-line { margin: 4px 0 6px; }
 .stats-new { display: inline-block; background: #e8f5e3; color: #2d7a1f; border-radius: 10px; padding: 1px 8px; font-size: .82rem; font-weight: 600; margin-left: 6px; }

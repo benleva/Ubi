@@ -488,6 +488,9 @@ async function supabaseBackend() {
       return sb.storage.from('ads').getPublicUrl(path).data.publicUrl;
     },
     async adminUsers() { return must(await sb.rpc('admin_users')) || []; },
+    async adminBanUser(id) { must(await sb.rpc('admin_ban_user', { p_user: id })); },
+    async adminUnbanUser(id) { must(await sb.rpc('admin_unban_user', { p_user: id })); },
+    async adminDeleteUserContent(id) { return must(await sb.rpc('admin_delete_user_content', { p_user: id })); },
     async adminPinStats() { return must(await sb.rpc('admin_pin_stats')) || []; },
     async huntStats(id) { try { return must(await sb.rpc('hunt_stats', { p_hunt: id })) || []; } catch { return null; } },   // null se il database non è aggiornato
     async setSignupSource(slug) { try { must(await sb.rpc('set_signup_source', { p_slug: slug })); } catch { /* database non aggiornato */ } },
@@ -915,6 +918,7 @@ function demoBackend() {
     async uploadAdImage(blob) { return new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); }); },
     async uploadAdMedia(blob) { return B.uploadAdImage(blob); },
     async adminUsers() { return []; },
+    async adminBanUser() {}, async adminUnbanUser() {}, async adminDeleteUserContent() { return 0; },
     async adminPinStats() { return []; },
     async huntStats() { return null; },
     async setSignupSource() {},
@@ -4094,12 +4098,14 @@ async function adminPinTab(box) {
 async function adminUsersTab(box) {
   const rows = await B.adminUsers();
   const d = (x) => (x ? new Date(x).toLocaleDateString(LOC) : '');
-  box.innerHTML = `<div class="card"><p><b>${rows.length}</b> iscritti · <b>${rows.filter((r) => r.ubi_dating).length}</b> in Ubi Dating</p>
+  const bannedCount = rows.filter((r) => r.banned_at).length;
+  box.innerHTML = `<div class="card"><p><b>${rows.length}</b> iscritti · <b>${rows.filter((r) => r.ubi_dating).length}</b> in Ubi Dating${bannedCount ? ` · <b>${bannedCount}</b> bannati` : ''}</p>
     <button class="accent full" id="xls">📥 Scarica per Excel</button><p class="muted small">Il file si apre con Excel, Numbers o Fogli Google.</p></div>
     <p class="muted small">Piano gratuito: 500 pin, 100 file, 10 video. Tocca «Gratis» per passare un utente a <b>Pro</b> (senza limiti), e viceversa.</p>
-    <div class="card" style="overflow-x:auto"><table class="tbl"><tr><th>Email</th><th>Nome</th><th>Iscritto</th><th>Ultimo accesso</th><th>Dating</th><th>Pin</th><th>File</th><th>Piano</th></tr>
-    ${rows.map((r, i) => `<tr><td>${esc(r.email)}</td><td>${esc(r.nome || '')}</td><td>${d(r.iscritto_il)}</td><td>${d(r.ultimo_accesso)}</td><td>${r.ubi_dating ? '💗' : ''}</td><td>${r.pin_creati}</td><td>${r.file_caricati ?? ''}</td>
-      <td>${r.id ? `<button class="${r.piano === 'pro' ? 'accent' : 'ghost'} small" data-plan="${i}">${r.piano === 'pro' ? '⭐ Pro' : 'Gratis'}</button>` : ''}</td></tr>`).join('')}</table></div>`;
+    <div class="card" style="overflow-x:auto"><table class="tbl"><tr><th>Email</th><th>Nome</th><th>Iscritto</th><th>Ultimo accesso</th><th>Dating</th><th>Pin</th><th>File</th><th>Piano</th><th>Azioni</th></tr>
+    ${rows.map((r, i) => `<tr${r.banned_at ? ' style="opacity:.5"' : ''}><td>${esc(r.email)}${r.banned_at ? ' 🚫' : ''}</td><td>${esc(r.nome || '')}</td><td>${d(r.iscritto_il)}</td><td>${d(r.ultimo_accesso)}</td><td>${r.ubi_dating ? '💗' : ''}</td><td>${r.pin_creati}</td><td>${r.file_caricati ?? ''}</td>
+      <td>${r.id ? `<button class="${r.piano === 'pro' ? 'accent' : 'ghost'} small" data-plan="${i}">${r.piano === 'pro' ? '⭐ Pro' : 'Gratis'}</button>` : ''}</td>
+      <td style="white-space:nowrap">${r.id ? `<button class="ghost small danger-hover" data-ban="${i}" title="${r.banned_at ? 'Sbanna' : 'Banna'}">${r.banned_at ? '✅ Sbanna' : '🚫 Banna'}</button> <button class="ghost small danger-hover" data-del="${i}" title="Elimina tutti i pin">🗑 Pin</button>` : ''}</td></tr>`).join('')}</table></div>`;
   box.querySelectorAll('[data-plan]').forEach((b) => { b.onclick = async () => {
     const r = rows[+b.dataset.plan]; const to = r.piano === 'pro' ? 'free' : 'pro';
     b.disabled = true;
@@ -4107,9 +4113,33 @@ async function adminUsersTab(box) {
     catch (e) { alert(e.message || e); }
     b.disabled = false;
   }; });
+  box.querySelectorAll('[data-ban]').forEach((b) => { b.onclick = async () => {
+    const r = rows[+b.dataset.ban];
+    const isBanned = !!r.banned_at;
+    if (!confirm(isBanned ? `Sbannare ${r.email}?` : `Bannare ${r.email}? I suoi pin verranno nascosti.`)) return;
+    b.disabled = true;
+    try {
+      if (isBanned) { await B.adminUnbanUser(r.id); r.banned_at = null; b.textContent = '🚫 Banna'; }
+      else { await B.adminBanUser(r.id); r.banned_at = new Date().toISOString(); b.textContent = '✅ Sbanna'; }
+      b.closest('tr').style.opacity = r.banned_at ? '.5' : '';
+      b.closest('tr').querySelector('td').innerHTML = esc(r.email) + (r.banned_at ? ' 🚫' : '');
+    } catch (e) { alert(e.message || e); }
+    b.disabled = false;
+  }; });
+  box.querySelectorAll('[data-del]').forEach((b) => { b.onclick = async () => {
+    const r = rows[+b.dataset.del];
+    if (!confirm(`Eliminare TUTTI i ${r.pin_creati} pin di ${r.email}? Azione irreversibile.`)) return;
+    b.disabled = true;
+    try {
+      const n = await B.adminDeleteUserContent(r.id);
+      r.pin_creati = 0; b.closest('tr').querySelectorAll('td')[5].textContent = '0';
+      alert(`✓ Eliminati ${n} pin di ${r.email}.`);
+    } catch (e) { alert(e.message || e); }
+    b.disabled = false;
+  }; });
   $('#xls').onclick = () => downloadCsv('iscritti-ubi',
-    ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati', 'File', 'Piano', 'Arrivato dal pin', 'Pin sbloccati'],
-    rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati, r.file_caricati ?? '', r.piano || 'free', r.arrivato_da_pin || '', r.pin_sbloccati ?? '']));
+    ['Email', 'Nome', 'Iscritto il', 'Ultimo accesso', 'Email confermata', 'Ubi Dating', 'Pin creati', 'File', 'Piano', 'Arrivato dal pin', 'Pin sbloccati', 'Bannato il'],
+    rows.map((r) => [r.email, r.nome, d(r.iscritto_il), d(r.ultimo_accesso), r.email_confermata ? 'sì' : 'no', r.ubi_dating ? 'sì' : 'no', r.pin_creati, r.file_caricati ?? '', r.piano || 'free', r.arrivato_da_pin || '', r.pin_sbloccati ?? '', d(r.banned_at)]));
 }
 // Dal banner nasce un articolo del catalogo di un negozio: nome, descrizione e foto copiati (poi si vende dalla Cassa o va in una campagna)
 async function bannerToGift(a, gbox) {
