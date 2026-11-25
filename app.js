@@ -1186,6 +1186,7 @@ async function routeInner() {
     }
     return viewNew(null, { dating: arg === 'dating', capsule: arg === 'capsula' });
   }
+  if (page === 'sos') return viewSos(user);
   if (page === 'capsule') return viewCapsules();
   if (page === 'dono' && arg) return viewGiftClaim(decodeURIComponent(arg));
   if (page === 'regalo' && arg) return viewGiftReceive(arg, user);
@@ -1682,6 +1683,7 @@ async function viewHome(user, prof) {
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
+    <a href="#/sos" class="btn sos-btn full" style="margin-top:10px">🆘 Emergenza · numeri utili e pin SOS</a>
     <a href="#/arte" class="btn full artbtn" style="margin-top:10px">🎨 Ubi Arte · ${T2('mostre a cielo aperto', 'open-air exhibitions')}</a><div id="myart"></div>
     <div id="adminrow" hidden>${ADMIN_LINKS}</div><div id="cashrow"></div>
     <div id="adslot" style="margin-top:10px"></div>
@@ -2630,6 +2632,64 @@ async function viewDatingPhotos(userId) {
     ${list.length ? `<div class="photostack">${list.map((p) => `<img src="${esc(p.url || '')}" alt="">`).join('')}</div>`
       : '<div class="card center muted">Nessuna foto da mostrare. Le foto si vedono solo dopo che vi siete scelti a vicenda.</div>'}
     <p class="center"><a href="#/dating">Torna a Ubi Dating</a></p>`;
+}
+
+// ======================= SOS / EMERGENZA =======================
+async function viewSos(user) {
+  stopWatch();
+  const SOS_NUMBERS = [
+    { n: '112', t: 'Numero Unico Emergenze', d: 'Polizia, Carabinieri, Ambulanza, Vigili del Fuoco — usalo sempre in caso di pericolo immediato.' },
+    { n: '118', t: 'Emergenza Sanitaria', d: 'Ambulanza e soccorso medico urgente.' },
+    { n: '115', t: 'Vigili del Fuoco', d: 'Incendi, crolli, salvataggi, emergenze tecnologiche.' },
+    { n: '117', t: 'Guardia di Finanza', d: 'Segnalazioni, contrabbando, emergenze in mare.' },
+    { n: '1515', t: 'Emergenza Ambientale', d: 'Incendi boschivi, inquinamento, disastri ambientali.' },
+    { n: '1522', t: 'Antiviolenza e Stalking', d: 'Attivo 24 ore su 24, anche via chat.' },
+    { n: '116117', t: 'Cure Mediche Non Urgenti', d: 'Medico di guardia fuori orario, alternativa al pronto soccorso.' },
+  ];
+  app.innerHTML = `<h1>🆘 Emergenza</h1>
+    <div class="card" style="border-left:4px solid #c62828">
+      <p class="small" style="margin:0 0 8px"><b>In caso di pericolo immediato chiama il 112.</b> Il tuo pin SOS segnala la tua posizione GPS sulla mappa di Ubi: utile se sei in montagna, in una zona remota o vuoi che qualcuno sappia dove sei.</p>
+      <div id="sosbox"></div></div>
+    <h2 style="margin-top:16px">📞 Numeri di emergenza</h2>
+    ${SOS_NUMBERS.map((x) => `<a class="card item" href="tel:${x.n}" style="text-decoration:none;margin-bottom:6px">
+      <div class="ico tico" style="background:#c62828;font-size:1.1rem;font-weight:700;color:#fff;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center">${x.n}</div>
+      <div><div class="t">${esc(x.t)}</div><div class="meta">${esc(x.d)}</div></div></a>`).join('')}
+    <a class="btn full ghost" href="#/" style="margin-top:12px">← Torna alla mappa</a>`;
+  const sosbox = $('#sosbox');
+  if (!user) {
+    sosbox.innerHTML = `<p class="muted small">Accedi per creare un pin SOS con la tua posizione GPS.</p><a class="btn accent" href="#/login">Accedi</a>`;
+    return;
+  }
+  sosbox.innerHTML = `<button class="btn danger full" id="sosbtn" type="button" style="font-size:1.1rem;padding:14px">🆘 Crea pin SOS con la mia posizione</button>
+    <p class="muted small" style="margin-top:6px">Il pin sarà <b>pubblico</b>, visibile a tutti sulla mappa. Puoi eliminarlo quando vuoi dai tuoi contenuti.</p>
+    <div id="sosm"></div>`;
+  $('#sosbtn').onclick = async () => {
+    const btn = $('#sosbtn'); btn.disabled = true; btn.textContent = '📡 Rilevo posizione GPS…';
+    try {
+      const pos = await new Promise((ok, fail) => navigator.geolocation.getCurrentPosition(ok, fail, { enableHighAccuracy: true, timeout: 15000 }));
+      btn.textContent = '⏳ Creo il pin…';
+      const { latitude: lat, longitude: lng } = pos.coords;
+      const now = new Date().toLocaleString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const data = {
+        file: null, media_type: 'text', duration: null,
+        text_body: `Pin SOS creato automaticamente il ${now}. Posizione GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+        tags: ['ico-sos'], external_url: null, lat, lng,
+        radius: 50, source: 'gps', title: '🆘 SOS – Emergenza',
+        hint: 'Pin di emergenza – posizione GPS', visibility: 'public',
+        recipients: [], password: null, is_dating: false, replies_enabled: true,
+        unlock_at: null, open_anywhere: false, expires_at: null,
+        hunt_id: null, hunt_step: null,
+      };
+      const slug = await B.create(data);
+      const url = `https://ubipin.it/#/c/${slug}`;
+      try { await navigator.clipboard.writeText(url); } catch { /* ok */ }
+      sosbox.innerHTML = `<div class="msg ok"><b>✓ Pin SOS creato!</b><br>Link: <a href="#/c/${esc(slug)}">${esc(url)}</a><br><span class="small">Link copiato negli appunti. Condividilo con i soccorritori o con chi può aiutarti.</span></div>
+        <a class="btn accent full" href="#/c/${esc(slug)}" style="margin-top:8px">Apri il pin SOS</a>`;
+    } catch (err) {
+      btn.disabled = false; btn.textContent = '🆘 Crea pin SOS con la mia posizione';
+      msg($('#sosm'), err.code === 1 ? 'Posizione non autorizzata: consenti il GPS nelle impostazioni del browser.' : errText(err));
+    }
+  };
 }
 
 // ======================= CAPSULA DEL TEMPO =======================

@@ -559,6 +559,12 @@ body.artt img { -webkit-touch-callout: none; -webkit-user-select: none; user-sel
 .oauth-btn:hover { background: #f7f3ee; border-color: #b08a3e; }
 .oauth-sep { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; color: #9b8e7f; font-size: .85rem; }
 .oauth-sep::before, .oauth-sep::after { content: ''; flex: 1; height: 1px; background: #e0d7cb; }
+/* SOS button nella home */
+.sos-btn { background: #fff0f0; color: #c62828; border: 1.5px solid #f5c0c0; font-weight: 600; }
+.sos-btn:hover { background: #fde8e6; border-color: #c62828; }
+/* Pulsante pericolo */
+.btn.danger { background: #c62828; color: #fff; border-color: #c62828; }
+.btn.danger:hover { background: #a71c1c; }
 /* Admin: pulsante azione pericolosa */
 .danger-hover:hover { border-color: #c62828; color: #c62828; }
 /* Stats bar home */
