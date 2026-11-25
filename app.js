@@ -1188,6 +1188,7 @@ async function routeInner() {
   }
   if (page === 'sos') return viewSos(user);
   if (page === 'radio') return viewRadio(user);
+  if (page === 'wedding') return viewWedding(user);
   if (page === 'capsule') return viewCapsules();
   if (page === 'dono' && arg) return viewGiftClaim(decodeURIComponent(arg));
   if (page === 'regalo' && arg) return viewGiftReceive(arg, user);
@@ -1686,6 +1687,7 @@ async function viewHome(user, prof) {
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
     <a href="#/sos" class="btn sos-btn full" style="margin-top:10px">🆘 Emergenza · numeri utili e pin SOS</a>
     <a href="#/radio" class="btn ghost full radio-btn" style="margin-top:8px">📡 Radioamatori · firma sulla cima</a>
+    <a href="#/wedding" class="btn ghost full wedding-btn" style="margin-top:8px">💍 Matrimonio · messaggi dai tuoi ospiti</a>
     <a href="#/arte" class="btn full artbtn" style="margin-top:10px">🎨 Ubi Arte · ${T2('mostre a cielo aperto', 'open-air exhibitions')}</a><div id="myart"></div>
     <div id="adminrow" hidden>${ADMIN_LINKS}</div><div id="cashrow"></div>
     <div id="adslot" style="margin-top:10px"></div>
@@ -2741,6 +2743,128 @@ async function viewRadio(user) {
           <a class="btn ghost full" href="#/radio" style="margin-top:8px">📡 Firma un'altra cima</a>
           <a class="btn ghost full" href="#/" style="margin-top:8px">← Torna alla mappa</a></div>`;
     } catch (err) { msg($('#r-m'), errText(err)); btn.disabled = false; btn.textContent = '📡 Lascia la firma sulla mappa'; }
+  };
+}
+
+// ======================= WEDDING =======================
+async function viewWedding(user) {
+  stopWatch();
+  app.innerHTML = `<h1>💍 Matrimonio · messaggi geo-localizzati</h1>
+    <div class="card">
+      <p class="small">Crea un <b>pin privato</b> per il tuo matrimonio: i tuoi ospiti lasciano un messaggio video, foto o testo direttamente dal luogo del ricevimento. Tu li ritrovi tutti in un posto solo, per sempre.</p>
+      <p class="small muted">Solo chi inviti può aprire il pin. I contenuti sono privati e non compaiono sulla mappa pubblica.</p>
+      ${user ? '' : `<div class="msg info small">Accedi per creare il pin del matrimonio. <a href="#/login">Accedi o registrati</a></div>`}
+    </div>
+    ${user ? `<div class="card"><h2 style="margin-top:0">💌 Crea il tuo pin matrimonio</h2>
+      <label for="w-title">Nome del matrimonio</label>
+      <input id="w-title" maxlength="80" placeholder="es. Il matrimonio di Andrea e Sara" autocomplete="off">
+      <label for="w-date">Data del matrimonio</label>
+      <input id="w-date" type="date">
+      <label for="w-venue">Luogo del ricevimento <span class="muted small">(facoltativo)</span></label>
+      <input id="w-venue" maxlength="100" placeholder="es. Villa Rossi, Firenze">
+      <label for="w-msg">Messaggio di benvenuto per gli ospiti <span class="muted small">(facoltativo)</span></label>
+      <input id="w-msg" maxlength="200" placeholder="es. Benvenuti! Lasciateci un ricordo video o una foto 💕">
+      <label for="w-emails">Email degli ospiti <span class="muted small">(uno per riga o separati da virgola)</span></label>
+      <textarea id="w-emails" rows="4" placeholder="ospite1@email.com&#10;ospite2@email.com&#10;..."></textarea>
+      <div style="margin-top:12px"><label class="inline"><input type="checkbox" id="w-gps" checked><span>Rileva automaticamente la posizione con il GPS</span></label></div>
+      <div id="w-posbox" hidden style="margin-top:8px">
+        <div class="row"><input id="w-coords" inputmode="decimal" placeholder="Lat, Lng  (es. 43.7696, 11.2558)"><button id="w-setc" type="button" class="ghost" style="flex:0 0 auto">Imposta</button></div>
+        <p id="w-posinfo" class="muted small" style="margin:4px 0 0"></p></div>
+      <p id="w-gpsinfo" class="muted small" style="margin:4px 0 0"></p>
+      <div id="w-m"></div>
+      <button class="btn accent full" id="w-save" type="button" style="margin-top:14px">💍 Crea il pin matrimonio</button></div>` : ''}
+    <div class="card"><h2 style="margin-top:0">ℹ️ Come funziona</h2>
+      <p class="small">1. <b>Crei il pin</b> con il nome del matrimonio e inviti gli ospiti via email.</p>
+      <p class="small">2. <b>Gli ospiti ricevono una notifica</b> e possono aprire il pin dal luogo del ricevimento e lasciare un messaggio video, foto o testo.</p>
+      <p class="small">3. <b>Tu hai una raccolta permanente</b> di tutti i ricordi, geo-localizzati, da rivivere quando vuoi.</p>
+      <p class="small">I pin matrimonio usano l'icona 💍, sono visibili <b>solo agli invitati</b> e non compaiono sulla mappa pubblica.</p></div>
+    <a class="btn full ghost" href="#/" style="margin-top:4px">← Torna alla mappa</a>`;
+
+  if (!user) return;
+
+  // GPS
+  let pos = null;
+  const gpsInfo = $('#w-gpsinfo');
+  const tryGps = async () => {
+    gpsInfo.textContent = '📡 Rilevo posizione GPS…';
+    try {
+      const p = await new Promise((ok, fail) => navigator.geolocation.getCurrentPosition(ok, fail, { enableHighAccuracy: true, timeout: 15000 }));
+      pos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy };
+      gpsInfo.textContent = `✓ GPS: ${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)} (±${Math.round(pos.acc)} m)`;
+    } catch { gpsInfo.textContent = 'GPS non disponibile: inserisci le coordinate a mano.'; pos = null; }
+  };
+  $('#w-gps').onchange = () => { $('#w-posbox').hidden = $('#w-gps').checked; if ($('#w-gps').checked) tryGps(); };
+  if ($('#w-gps').checked) tryGps(); else $('#w-posbox').hidden = false;
+  $('#w-setc').onclick = () => {
+    const v = $('#w-coords').value.trim().replace(',', ' ').split(/\s+/);
+    const lat = parseFloat(v[0]), lng = parseFloat(v[1]);
+    if (!isFinite(lat) || !isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180)
+      return msg($('#w-m'), 'Coordinate non valide. Formato: 43.7696, 11.2558');
+    pos = { lat, lng, acc: null };
+    $('#w-posbox').querySelector('p').textContent = `✓ Coordinate manuali: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  };
+
+  $('#w-save').onclick = async () => {
+    const btn = $('#w-save');
+    const title = $('#w-title').value.trim();
+    const dateVal = $('#w-date').value;
+    const venue = $('#w-venue').value.trim();
+    const welcomeMsg = $('#w-msg').value.trim();
+    const emailsRaw = $('#w-emails').value.trim();
+
+    if (!title) return msg($('#w-m'), 'Inserisci il nome del matrimonio.');
+    if ($('#w-gps').checked && !pos) return msg($('#w-m'), 'Attendi il GPS o inserisci le coordinate a mano.');
+    if (!pos) return msg($('#w-m'), 'Imposta la posizione con il tasto «Imposta».');
+
+    // Parsing email
+    const recipients = emailsRaw
+      .split(/[\n,;]+/)
+      .map((e) => e.trim().toLowerCase())
+      .filter((e) => e && e.includes('@'));
+
+    btn.disabled = true; btn.textContent = '⏳ Creo il pin…';
+
+    const dateLabel = dateVal ? new Date(dateVal).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    const lines = [
+      welcomeMsg || `Lascia un ricordo per ${esc(title)}!`,
+      venue ? `📍 ${venue}` : '',
+      dateLabel ? `📅 ${dateLabel}` : '',
+    ].filter(Boolean).join('\n');
+
+    const tags = ['wedding', 'ico-event'];
+    if (dateVal) tags.push(`data-${dateVal.slice(0, 10)}`);
+
+    const data = {
+      file: null, media_type: 'text', duration: null, text_body: lines,
+      tags, external_url: null, lat: pos.lat, lng: pos.lng,
+      radius: 200, source: pos.acc != null ? 'gps' : 'manual',
+      title: `💍 ${title}`,
+      hint: venue || (dateLabel || 'Matrimonio'),
+      visibility: recipients.length > 0 ? 'restricted' : 'private',
+      recipients,
+      password: null,
+      is_dating: false, replies_enabled: true,
+      unlock_at: null, open_anywhere: false, expires_at: null,
+      hunt_id: null, hunt_step: null,
+    };
+
+    try {
+      const slug = await B.create(data);
+      const pinUrl = `${location.origin}/#/c/${slug}`;
+      let copied = false;
+      try { await navigator.clipboard.writeText(pinUrl); copied = true; } catch {}
+      app.innerHTML = `<h1>💍 Pin matrimonio creato!</h1>
+        <div class="card center">
+          <p style="font-size:2.5rem;margin:0">💍</p>
+          <h2>${esc(title)}</h2>
+          ${venue ? `<p class="muted">📍 ${esc(venue)}</p>` : ''}
+          ${dateLabel ? `<p class="muted small">📅 ${dateLabel}</p>` : ''}
+          <p class="muted small">${recipients.length > 0 ? `${recipients.length} ospiti invitati` : 'Pin privato — nessun ospite ancora'}</p>
+          ${copied ? `<div class="msg info small">🔗 Link copiato! Condividilo con i tuoi ospiti.</div>` : `<div class="msg info small">🔗 Link del pin: <b>${esc(pinUrl)}</b></div>`}
+          <a class="btn accent full" href="#/c/${esc(slug)}" style="margin-top:12px">Apri il pin</a>
+          <a class="btn ghost full" href="#/wedding" style="margin-top:8px">💍 Crea un altro pin</a>
+          <a class="btn ghost full" href="#/" style="margin-top:8px">← Torna alla mappa</a></div>`;
+    } catch (err) { msg($('#w-m'), errText(err)); btn.disabled = false; btn.textContent = '💍 Crea il pin matrimonio'; }
   };
 }
 

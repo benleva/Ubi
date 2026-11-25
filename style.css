@@ -570,6 +570,9 @@ body.artt img { -webkit-touch-callout: none; -webkit-user-select: none; user-sel
 .radio-btn:hover { background: #eceff1; border-color: #37474f; }
 /* Admin: pulsante azione pericolosa */
 .danger-hover:hover { border-color: #c62828; color: #c62828; }
+/* Wedding button nella home */
+.wedding-btn { color: #880e4f; border-color: #f8bbd0; background: #fff9fb; }
+.wedding-btn:hover { background: #fce4ec; border-color: #880e4f; }
 /* Stats bar home */
 .stats-line { margin: 4px 0 6px; }
 .stats-new { display: inline-block; background: #e8f5e3; color: #2d7a1f; border-radius: 10px; padding: 1px 8px; font-size: .82rem; font-weight: 600; margin-left: 6px; }
