@@ -1189,6 +1189,8 @@ async function routeInner() {
   if (page === 'sos') return viewSos(user);
   if (page === 'radio') return viewRadio(user);
   if (page === 'wedding') return viewWedding(user);
+  if (page === 'montagna') return viewMontagna(user);
+  if (page === 'eventi') return viewEventi(user);
   if (page === 'capsule') return viewCapsules();
   if (page === 'dono' && arg) return viewGiftClaim(decodeURIComponent(arg));
   if (page === 'regalo' && arg) return viewGiftReceive(arg, user);
@@ -1686,8 +1688,8 @@ async function viewHome(user, prof) {
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
     <a href="#/sos" class="btn sos-btn full" style="margin-top:10px">🆘 Emergenza · numeri utili e pin SOS</a>
-    <a href="#/radio" class="btn ghost full radio-btn" style="margin-top:8px">📡 Radioamatori · firma sulla cima</a>
-    <a href="#/wedding" class="btn ghost full wedding-btn" style="margin-top:8px">💍 Matrimonio · messaggi dai tuoi ospiti</a>
+    <a href="#/montagna" class="btn ghost full montagna-btn" style="margin-top:8px">🏔️ Montagna · radioamatori e SOS LoRa</a>
+    <a href="#/eventi" class="btn ghost full eventi-btn" style="margin-top:8px">🎉 Eventi · matrimoni e occasioni speciali</a>
     <a href="#/arte" class="btn full artbtn" style="margin-top:10px">🎨 Ubi Arte · ${T2('mostre a cielo aperto', 'open-air exhibitions')}</a><div id="myart"></div>
     <div id="adminrow" hidden>${ADMIN_LINKS}</div><div id="cashrow"></div>
     <div id="adslot" style="margin-top:10px"></div>
@@ -2744,6 +2746,44 @@ async function viewRadio(user) {
           <a class="btn ghost full" href="#/" style="margin-top:8px">← Torna alla mappa</a></div>`;
     } catch (err) { msg($('#r-m'), errText(err)); btn.disabled = false; btn.textContent = '📡 Lascia la firma sulla mappa'; }
   };
+}
+
+// ======================= MONTAGNA =======================
+async function viewMontagna(user) {
+  stopWatch();
+  app.innerHTML = `<h1>🏔️ Montagna</h1>
+    <div class="card">
+      <p class="small">Strumenti Ubi pensati per chi va in montagna: firma le cime sulla mappa, comunicazione di emergenza via rete LoRa.</p>
+    </div>
+    <a href="#/radio" class="btn ghost full section-link" style="margin-top:4px">
+      <span style="font-size:1.3rem">📡</span>
+      <span style="margin-left:10px"><b>Radioamatori · firma sulla cima</b><br><span class="muted small">Callsign, cima, quota e riferimento SOTA sulla mappa</span></span>
+    </a>
+    <a href="https://spiffy-starship-67ef5a.netlify.app/" target="_blank" rel="noopener" class="btn ghost full section-link" style="margin-top:8px">
+      <span style="font-size:1.3rem">🏔️</span>
+      <span style="margin-left:10px"><b>S.O.S. Montagna · emergenza LoRa</b><br><span class="muted small">Prepara e invia un SOS via Meshtastic · rete LoRa</span></span>
+    </a>
+    <div class="card" style="margin-top:16px">
+      <p class="small muted">S.O.S. Montagna è una PWA indipendente per escursionisti che usano Meshtastic e radio LoRa. Non contatta automaticamente il 112 — per le emergenze usa sempre il numero di emergenza ufficiale.</p>
+    </div>
+    <a class="btn full ghost" href="#/" style="margin-top:4px">← Torna alla mappa</a>`;
+}
+
+// ======================= EVENTI =======================
+async function viewEventi(user) {
+  stopWatch();
+  app.innerHTML = `<h1>🎉 Eventi</h1>
+    <div class="card">
+      <p class="small">Crea pin privati per i tuoi eventi speciali: i tuoi ospiti lasciano foto, video e messaggi geo-localizzati nel luogo dell'evento.</p>
+    </div>
+    <a href="#/wedding" class="btn ghost full section-link" style="margin-top:4px">
+      <span style="font-size:1.3rem">💍</span>
+      <span style="margin-left:10px"><b>Matrimonio</b><br><span class="muted small">Pin privato per gli ospiti · video e foto dal ricevimento</span></span>
+    </a>
+    <div class="card" style="margin-top:16px">
+      <p class="small muted">Presto: compleanni, lauree, eventi aziendali e altri momenti speciali.</p>
+    </div>
+    <a class="btn full ghost" href="#/" style="margin-top:4px">← Torna alla mappa</a>`;
 }
 
 // ======================= WEDDING =======================
