@@ -216,7 +216,7 @@ async function supabaseBackend() {
       // a pagine da 1000: oltre quella soglia Supabase taglia la risposta senza avvisare
       const all = [];
       for (let from = 0; ; from += 1000) {
-        const page = must(await sb.from('contents').select('id,share_slug,title,hint,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled,unlock_at,open_anywhere,hunt_id,hunt_step')
+        const page = must(await sb.from('contents').select('id,share_slug,title,hint,media_type,media_path,visibility,created_at,password_hash,tags,is_dating,replies_enabled,unlock_at,open_anywhere,hunt_id,hunt_step,expires_at')
           .eq('owner_id', u.id).order('created_at', { ascending: false }).order('id').range(from, from + 999));
         all.push(...page); if (page.length < 1000) return all;
       }
@@ -236,6 +236,7 @@ async function supabaseBackend() {
         unlock_radius_m: d.radius, location_source: d.source, visibility: d.visibility, password_hash: d.password || null,
         unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere), hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null,
         text_body: d.text_body || null, tags: d.tags || [], is_dating: !!d.is_dating, replies_enabled: d.replies_enabled !== false,
+        expires_at: d.expires_at || null,
       };
       const res = await sb.from('contents').insert(row).select('share_slug').single();
       if (res.error) { if (media_path) await sb.storage.from('media').remove([media_path]); throw res.error; }
@@ -555,6 +556,7 @@ async function supabaseBackend() {
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, location_source: d.source,
         visibility: d.visibility, tags: d.tags || [], replies_enabled: d.replies_enabled !== false,
         unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
+        expires_at: d.expires_at || null,
       };
       if (d.passwordAction === 'set') patch.password_hash = d.password;
       if (d.passwordAction === 'remove') patch.password_hash = null;
@@ -632,12 +634,14 @@ async function supabaseBackend() {
       // i miei pin li prendo sempre anche direttamente: la funzione del database ne restituisce al massimo 500 per zona
       try {
         const u = await B.user();
-        const mine = must(await sb.from('contents').select('share_slug,title,media_type,lat,lng,tags,is_dating,unlock_at,hunt_step')
+        const mine = must(await sb.from('contents').select('share_slug,title,media_type,lat,lng,tags,is_dating,unlock_at,hunt_step,expires_at')
           .eq('owner_id', u.id).gte('lat', b.s).lte('lat', b.n).gte('lng', b.w).lte('lng', b.e).limit(2000)) || [];
         const have = new Set(rows.map((r) => r.share_slug));
         mine.forEach((m) => { if (!have.has(m.share_slug)) rows.push({ ...m, is_owner: true, unlocked: true }); });
       } catch { /* restano quelli della funzione */ }
-      return rows;
+      // nascondo i pin scaduti (tranne i miei, che appaiono con avviso nella vista pin)
+      const now = Date.now();
+      return rows.filter((r) => !r.expires_at || Date.parse(r.expires_at) > now || r.is_owner);
     },
     async unlock(slug, pos, password) {
       const r = (must(await sb.rpc('unlock', {
@@ -729,6 +733,7 @@ function demoBackend() {
         text_body: d.text_body || null, tags: d.tags || [], created_at: new Date().toISOString(),
         unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
         hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null, replies_enabled: d.replies_enabled !== false, is_dating: !!d.is_dating,
+        expires_at: d.expires_at || null,
       });
       save(); return slug;
     },
@@ -1020,7 +1025,8 @@ function demoBackend() {
     },
     async mapContents(b) {
       const u = db.user;
-      return db.contents.filter((c) => canAccess(c, u) && c.lat >= b.s && c.lat <= b.n && c.lng >= b.w && c.lng <= b.e)
+      const now = Date.now();
+      return db.contents.filter((c) => canAccess(c, u) && c.lat >= b.s && c.lat <= b.n && c.lng >= b.w && c.lng <= b.e && (!c.expires_at || Date.parse(c.expires_at) > now || c.owner_id === u?.id))
         .map((c) => ({ share_slug: c.share_slug, title: c.title, media_type: c.media_type, lat: c.lat, lng: c.lng,
           is_owner: c.owner_id === u.id, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u.id), tags: c.tags || [], hunt_step: c.hunt_step || null,
           is_dating: !!c.is_dating, gender: c.is_dating ? db.profiles[c.owner_id]?.dating_gender || null : null }));
@@ -1040,6 +1046,7 @@ function demoBackend() {
         is_dating: !!c.is_dating, gender: c.is_dating ? db.profiles[c.owner_id]?.dating_gender || null : null,
         i_am_dating: !!u && isDating(db.profiles[u.id]),
         replies_enabled: c.replies_enabled !== false, i_replied: (db.replies || []).some((r) => r.content_id === c.id && r.author_id === db.user?.id),
+        expires_at: c.expires_at || null, created_at: c.created_at || null,
       };
     },
     async unlock(slug, pos, password) {
@@ -1861,7 +1868,11 @@ async function viewNew(ed = null, opts = {}) {
       <div id="capbox" ${capsuleOn ? '' : 'hidden'}>
         <label for="unlockat">Si apre dal</label><input id="unlockat" type="datetime-local">
         <label class="inline"><input type="checkbox" id="anywhere" ${ed && ed.open_anywhere ? 'checked' : ''}><span>Dopo quella data si può aprire <b>anche da lontano</b>, senza andare sul posto</span></label>
-        <p class="muted small">Prima della data chi lo riceve vede solo titolo, indizio e il conto alla rovescia.</p></div></div>
+        <p class="muted small">Prima della data chi lo riceve vede solo titolo, indizio e il conto alla rovescia.</p></div>
+      <div style="margin-top:12px"><label class="inline"><input type="checkbox" id="expiry" ${ed && ed.expires_at ? 'checked' : ''}><span>Il pin <b>scompare dalla mappa dopo una data</b> (scadenza)</span></label>
+      <div id="expirybox" ${ed && ed.expires_at ? '' : 'hidden'}>
+        <label for="expiresat">Scade il</label><input id="expiresat" type="datetime-local">
+        <p class="muted small">Dopo questa data il pin non compare più sulla mappa e non è apribile.</p></div></div></div>
     ${dating ? `<div class="card"><h2>4 · Chi può aprirlo</h2>
       <div class="msg info small">💗 I biglietti dating sono <b>visibili a tutti</b> sulla mappa, ma solo gli iscritti a Ubi Dating (18+) che arrivano sul posto possono aprirli e risponderti. Ti avvisiamo via email a ogni risposta.</div></div>` : ''}
     <div class="card" ${dating ? 'hidden' : ''}><h2>4 · Chi può aprirlo</h2>
@@ -2154,6 +2165,9 @@ async function viewNew(ed = null, opts = {}) {
   if (ed && ed.unlock_at) $('#unlockat').value = toLocalInput(ed.unlock_at);
   else if (opts.capsule) $('#unlockat').value = toLocalInput(Date.now() + 365 * 86400000);
   $('#capsule').onchange = () => { $('#capbox').hidden = !$('#capsule').checked; };
+  $('#expiry').min = toLocalInput(Date.now() + 60000);
+  if (ed && ed.expires_at) $('#expiresat').value = toLocalInput(ed.expires_at);
+  $('#expiry').onchange = () => { $('#expirybox').hidden = !$('#expiry').checked; };
   if (hunt && !ed) $('#vis button[data-v="public"]').click();
 
   // --- salvataggio
@@ -2177,6 +2191,11 @@ async function viewNew(ed = null, opts = {}) {
       const unchanged = ed && ed.unlock_at && Math.abs(Date.parse(ed.unlock_at) - Date.parse(unlock_at)) < 60000;
       if (!unchanged && Date.parse(unlock_at) <= Date.now()) return err('Capsula del tempo: la data deve essere nel futuro.');
     }
+    if (!dating && !hunt && $('#expiry').checked) {
+      const ve = $('#expiresat').value;
+      if (!ve) return err('Scadenza: scegli la data e l\'ora di scadenza.');
+      if (Date.parse(ve) <= Date.now()) return err('Scadenza: la data deve essere nel futuro.');
+    }
     if (s.vis === 'restricted' && ed && !bookReady) return err('Attendi un attimo: sto caricando la rubrica.');
     if (dating) s.vis = 'public';
     const recipients = s.vis === 'restricted' ? [...new Set([...s.sel, ...$('#emails').value.toLowerCase().split(/[\s,;]+/).filter(Boolean)])] : [];
@@ -2191,6 +2210,7 @@ async function viewNew(ed = null, opts = {}) {
       visibility: dating ? 'public' : s.vis, recipients: dating ? [] : recipients, password: isStage ? normAnswer($('#pwd').value) : $('#pwd').value,
       is_dating: dating, replies_enabled: dating ? true : $('#replies').checked,
       unlock_at, open_anywhere: !!unlock_at && $('#anywhere').checked,
+      expires_at: (!dating && !hunt && $('#expiry').checked && $('#expiresat').value) ? new Date($('#expiresat').value).toISOString() : null,
       hunt_id: hunt ? hunt.id : null, hunt_step: hunt ? hunt.step : null,
     };
     try {
@@ -2325,11 +2345,17 @@ async function viewContent(slug, user) {
   const early = opensAt && Date.now() < opensAt.getTime() && !t.is_owner;
   const anywhereNow = opensAt && t.open_anywhere && Date.now() >= opensAt.getTime();
   const capLine = opensAt ? `<div class="msg info small">⏳ Capsula del tempo · si apre dal <b>${opensAt.toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</b> alle <b>${opensAt.toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' })}</b>${t.open_anywhere ? ', anche da lontano' : ', sul posto'}</div>` : '';
+  const expiresAt = t.expires_at ? new Date(t.expires_at) : null;
+  const expiredAlready = expiresAt && Date.now() >= expiresAt.getTime();
+  const expiryLine = expiresAt && t.is_owner ? (expiredAlready
+    ? `<div class="msg warn small">⌛ Questo pin è scaduto il <b>${expiresAt.toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</b> e non è più visibile sulla mappa.</div>`
+    : `<div class="msg info small">⌛ Scade il <b>${expiresAt.toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</b> alle <b>${expiresAt.toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' })}</b> · dopo non sarà più visibile sulla mappa.</div>`) : '';
+  const createdLine = t.created_at ? `<div class="meta muted small" style="margin:4px 0 2px">📅 Creato il ${new Date(t.created_at).toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</div>` : '';
   const header0 = art ? `<h1>${artBadge(art.step)} <span translate="no">${esc(t.title)}</span></h1>` : t.is_dating
     ? `<h1>${datingBadge(t.gender)} <span translate="no">${esc(t.title)}</span></h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
     : `<h1>${pinIcon(t) ? (pinIcon(t)[0] === 'logo' ? logoBadge(t) : iconBadge(pinIcon(t)[1], pinIcon(t)[2], pinIcon(t)[3])) : badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const bb = biz ? bizBar(biz) : '';
-  const header = bb + header0 + huntLine + capLine + (art ? artHead(art, slug) : '');
+  const header = bb + header0 + huntLine + capLine + expiryLine + createdLine + (art ? artHead(art, slug) : '');
   const player = t.hunt_id && !t.is_owner;
   const isLast = player && t.hunt_step >= t.hunt_steps;
   const huntNext = !player ? '' : isLast ? ''
