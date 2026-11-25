@@ -2764,7 +2764,8 @@ async function viewMontagna(user) {
       <span style="margin-left:10px"><b>S.O.S. Montagna · emergenza LoRa</b><br><span class="muted small">Prepara e invia un SOS via Meshtastic · rete LoRa</span></span>
     </a>
     <div class="card" style="margin-top:16px">
-      <p class="small muted">S.O.S. Montagna è una PWA indipendente per escursionisti che usano Meshtastic e radio LoRa. Non contatta automaticamente il 112 — per le emergenze usa sempre il numero di emergenza ufficiale.</p>
+      ${videoBtn('radio')}${videoBtn('sosmontagna')}
+      <p class="small muted" style="margin-top:8px">S.O.S. Montagna è una PWA indipendente per escursionisti che usano Meshtastic e radio LoRa. Non contatta automaticamente il 112 — per le emergenze usa sempre il numero di emergenza ufficiale.</p>
     </div>
     <a class="btn full ghost" href="#/" style="margin-top:4px">← Torna alla mappa</a>`;
 }
@@ -2781,7 +2782,8 @@ async function viewEventi(user) {
       <span style="margin-left:10px"><b>Matrimonio</b><br><span class="muted small">Pin privato per gli ospiti · video e foto dal ricevimento</span></span>
     </a>
     <div class="card" style="margin-top:16px">
-      <p class="small muted">Presto: compleanni, lauree, eventi aziendali e altri momenti speciali.</p>
+      ${videoBtn('wedding')}
+      <p class="small muted" style="margin-top:8px">Presto: compleanni, lauree, eventi aziendali e altri momenti speciali.</p>
     </div>
     <a class="btn full ghost" href="#/" style="margin-top:4px">← Torna alla mappa</a>`;
 }
@@ -3502,6 +3504,11 @@ const VIDEOS = {
   social: { f: 'video/Ubi-tutorial-social-in-un-pin.mp4', s: 26 },
   dating: { f: 'video/Ubi-tutorial-dating-entra.mp4', s: 30, n: 'Entra e lascia un biglietto' },
   dating2: { f: 'video/Ubi-tutorial-dating-conoscersi.mp4', s: 33, n: 'Rispondi e conoscetevi' },
+  radio: { f: 'video/Ubi-tutorial-radioamatori.mp4', s: 30, n: 'Firma la cima con Ubi' },
+  sosmontagna: { f: 'video/Ubi-tutorial-sos-montagna.mp4', s: 40, n: 'S.O.S. Montagna · emergenza LoRa' },
+  wedding: { f: 'video/Ubi-tutorial-wedding.mp4', s: 35, n: 'Pin matrimonio per gli ospiti' },
+  montagna: { f: 'video/Ubi-tutorial-montagna.mp4', s: 25, n: 'La sezione Montagna' },
+  eventi: { f: 'video/Ubi-tutorial-eventi.mp4', s: 25, n: 'La sezione Eventi' },
 };
 const videoBtn = (k, short = false) => { const v = VIDEOS[k]; return v ? `<a class="btn full vidbtn" href="${v.f}" target="_blank" rel="noopener">▶️ ${short ? 'Video' : v.n ? 'Video: ' + v.n : 'Guarda come funziona'} <span class="small">(${v.s} s)</span></a>` : ''; };
 const pdfShort = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica PDF</span></a>` : ''; };
@@ -5632,6 +5639,19 @@ const FAQ_GUIDE = [
     <li>Siete <b>anonimi</b>: vi scoprite solo se entrambi toccate <b>«Voglio conoscerti»</b>. Da lì vedete i nomi e potete scrivervi.</li>
     <li>In <b>Le mie foto</b> puoi caricare fino a <b>6 foto</b>: le vede solo chi ha fatto con te il doppio sì («📷 Le sue foto»).</li>
     <li>Incontratevi solo in luoghi pubblici e segnalate abusi a info@ubipin.it.</li></ol>`],
+  ['🏔️ Montagna · radioamatori e S.O.S. LoRa', `<ul>
+    <li><b>Dove si trova</b>: dalla home tocca <b>🏔️ Montagna</b>: trovi le due sezioni dedicate a chi va in quota.</li>
+    <li><b>📡 Radioamatori · firma sulla cima</b>: sei in cima? Lascia il tuo <b>callsign, il nome della cima e la quota</b> sulla mappa di Ubi. Chi arriva in quel punto vedrà chi ci è stato prima. Puoi aggiungere il riferimento <b>SOTA</b> (I/LO-001 e simili), la banda e il modo. Il pin è pubblico, usa l'icona 📡 e si trova con il filtro <b>#radio</b>.</li>
+    <li><b>🏔️ S.O.S. Montagna</b>: una webapp indipendente per escursionisti che usano <b>Meshtastic</b> e radio <b>LoRa</b>. Prepara un messaggio di emergenza strutturato (tipo, coordinate, numero persone, note) e lo passa all'app Meshtastic per inviarlo sul canale privato <b>SOSMONTAGNA</b>. Si apre in una nuova scheda — funziona offline dopo la prima visita. <b>Non contatta il 112</b>: in caso di emergenza chiama sempre il numero ufficiale.</li>
+    <li><b>SOTA</b>: Summits On The Air — programma internazionale per radioamatori che attivano le cime. Ogni cima ha un codice univoco. Sito ufficiale: <a href="https://www.sota.org.uk" target="_blank" rel="noopener">sota.org.uk</a>.</li></ul>
+    ${videoBtn('radio')}${videoBtn('sosmontagna')}`],
+  ['💍 Matrimonio · pin privati per gli ospiti', `<ul>
+    <li><b>Dove si trova</b>: dalla home tocca <b>🎉 Eventi → 💍 Matrimonio</b>.</li>
+    <li>Crei un <b>pin privato</b> per il tuo matrimonio, nel luogo del ricevimento: i tuoi ospiti lo aprono sul posto e lasciano un messaggio <b>video, foto o testo</b> — un ricordo geo-localizzato per sempre.</li>
+    <li>Inserisci nome del matrimonio, data, luogo e il messaggio di benvenuto per gli ospiti. Aggiungi le loro <b>email</b>: ricevono una notifica e solo loro possono aprire il pin.</li>
+    <li>Il pin è <b>privato</b>: non compare sulla mappa pubblica. Lo apri sempre dalla lista <b>I miei contenuti</b>.</li>
+    <li>Al termine trovi il <b>link del pin</b> copiato automaticamente: condividilo con gli ospiti via WhatsApp o email.</li></ul>
+    ${videoBtn('wedding')}`],
   ['7 · Account e accesso', `<ul>
     <li>Resti collegato finché non tocchi <b>Esci</b>: lo trovi in alto nella home, accanto alla lingua, e nella pagina del profilo.</li>
     <li><b>Lingua</b>: in alto nella home tocca <b>🌐 Lingua / Language</b> per passare dall'italiano all'inglese. Per mandare Ubi a chi parla inglese usa il link <b>ubipin.it/?lang=en</b>.</li>
