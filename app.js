@@ -1103,7 +1103,12 @@ async function routeInner() {
   const [page, arg] = location.hash.replace(/^#\/?/, '').split('/');
   setDatingTheme(page === 'dating' || (page === 'new' && arg === 'dating'));
   setPubTheme(null);
-  if (page === 'faq') return viewFaq(arg);
+  if (page === 'faq') {
+    // Salva la pagina precedente solo se non venivamo già da una FAQ
+    const prev = location.hash;
+    if (!prev.startsWith('#/faq')) store.set('ubi_faq_back', prev || '#/');
+    return viewFaq(arg);
+  }
   if (page === 'invita') return viewInvite();
   if (page === 'avvisi') return viewOptout(arg);
   if (page === 'cassa' && arg) return viewCashier(arg);
@@ -5310,10 +5315,13 @@ function viewOptout(esito) {
 
 function viewFaq(arg) {
   stopWatch();
+  // Salva la pagina da cui si arriva (prima di sovrascrivere l'hash con #/faq/…)
+  const _prev = store.get('ubi_faq_back');
   const det = ([q, a], open = false) => {
     const id = q.startsWith('📍 La posizione') ? 'posizione' : q.startsWith('📣 Pubblicità') ? 'pubblicita' : q.startsWith('🏪 Per negozi') ? 'negozi' : q.startsWith('🎁 Regali') ? 'regali' : '';
     return `<details class="faq"${id ? ` id="faq-${id}"` : ''}${open || (id && arg === id) ? ' open' : ''}><summary>${q}</summary><div>${a}</div></details>`;
   };
+  const backHref = _prev || '#/';
   app.innerHTML = `
     <h1>Guida e idee</h1>
     <p class="muted">Tutto quello che serve per usare Ubi, passo passo, e qualche idea per iniziare.</p>
@@ -5321,7 +5329,8 @@ function viewFaq(arg) {
     <div id="faq-g">${FAQ_GUIDE.map((x, i) => det(x, i === 0)).join('')}</div>
     <div id="faq-i" hidden>${FAQ_IDEAS.map(([t, tags, body]) => `<details class="faq"><summary>${t}</summary><div>${body}
       <p class="muted small">Tag consigliati: ${tags.split(', ').map((x) => '#' + x).join(' ')}</p></div></details>`).join('')}</div>
-    <a class="btn full" href="#/" style="margin-top:16px">Torna a Ubi</a>`;
+    <a class="btn full" href="${backHref}" id="faq-back" style="margin-top:16px">← Torna indietro</a>`;
+  $('#faq-back').onclick = () => store.set('ubi_faq_back', null);
   $('#faqtabs').onclick = (e) => {
     const b = e.target.closest('button'); if (!b) return;
     [...$('#faqtabs').children].forEach((x) => x.classList.toggle('on', x === b));
