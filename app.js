@@ -574,6 +574,7 @@ async function supabaseBackend() {
       if (c.media_path) await sb.storage.from('media').remove([c.media_path]);
       must(await sb.from('contents').delete().eq('id', c.id));
     },
+    async mapStats() { try { return must(await sb.rpc('map_stats')); } catch { return null; } },
     async teaser(slug) { return (must(await sb.rpc('get_teaser', { p_slug: slug })) || [])[0] || null; },
     // --- dating
     async joinDating(d) {
@@ -1048,6 +1049,12 @@ function demoBackend() {
         replies_enabled: c.replies_enabled !== false, i_replied: (db.replies || []).some((r) => r.content_id === c.id && r.author_id === db.user?.id),
         expires_at: c.expires_at || null, created_at: c.created_at || null,
       };
+    },
+    async mapStats() {
+      const now = Date.now();
+      const active = db.contents.filter((c) => c.visibility !== 'hidden' && (!c.expires_at || Date.parse(c.expires_at) > now));
+      const hour = Date.now() - 3600000;
+      return { total: active.length, new_hour: active.filter((c) => Date.parse(c.created_at) > hour).length };
     },
     async unlock(slug, pos, password) {
       const u = db.user; if (!u) return { status: 'login_required' };
@@ -1661,6 +1668,7 @@ async function viewHome(user, prof) {
       <button class="chip" data-k="dating">${datingBadge('f', 'sm')}Dating<span class="n"></span></button>
       <button class="chip" data-k="mine"><span class="tico sm mine" style="background:#888">·</span>Miei<span class="n"></span></button></div>
     <p class="muted small" style="margin:2px 0 6px">Accendi i bottoni per vedere solo quelle categorie (si sommano). «Tutto» rimette tutti i pin. Il numero dice quanti ce ne sono nella zona.</p>
+    <div id="statsbar"></div>
     <div id="tagcloud" class="chips cloud"></div>
     <div id="mm"></div>
     <div id="mygifts"></div>
@@ -1678,6 +1686,11 @@ async function viewHome(user, prof) {
   $('#out').onclick = async (e) => { e.preventDefault(); await B.signOut(); location.hash = '#/'; route(); };
   bindTopTools(app);
   homeMap();
+  B.mapStats().then((s) => {
+    const el = $('#statsbar'); if (!el || !s) return;
+    const newBadge = s.new_hour > 0 ? ` <span class="stats-new">+${s.new_hour} nell'ultima ora</span>` : '';
+    el.innerHTML = `<p class="muted small stats-line">📍 <b>${s.total.toLocaleString('it-IT')}</b> contenuti su Ubi in tutto il mondo${newBadge}</p>`;
+  }).catch(() => {});
   bindInvite(app);
   B.myArtists().then((l) => { const b = $('#myart'); if (b && l.length) b.innerHTML = l.map((a) => `<a class="btn ghost full" style="margin-top:8px" href="#/arte-pannello/${esc(a.slug)}">📊 ${esc(a.name)} · ${T2('pannello', 'dashboard')}</a>`).join(''); }).catch(() => {});
   drawAdSlot($('#adslot'));
