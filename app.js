@@ -1187,6 +1187,7 @@ async function routeInner() {
     return viewNew(null, { dating: arg === 'dating', capsule: arg === 'capsula' });
   }
   if (page === 'sos') return viewSos(user);
+  if (page === 'radio') return viewRadio(user);
   if (page === 'capsule') return viewCapsules();
   if (page === 'dono' && arg) return viewGiftClaim(decodeURIComponent(arg));
   if (page === 'regalo' && arg) return viewGiftReceive(arg, user);
@@ -1684,6 +1685,7 @@ async function viewHome(user, prof) {
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
     <a href="#/sos" class="btn sos-btn full" style="margin-top:10px">🆘 Emergenza · numeri utili e pin SOS</a>
+    <a href="#/radio" class="btn ghost full radio-btn" style="margin-top:8px">📡 Radioamatori · firma sulla cima</a>
     <a href="#/arte" class="btn full artbtn" style="margin-top:10px">🎨 Ubi Arte · ${T2('mostre a cielo aperto', 'open-air exhibitions')}</a><div id="myart"></div>
     <div id="adminrow" hidden>${ADMIN_LINKS}</div><div id="cashrow"></div>
     <div id="adslot" style="margin-top:10px"></div>
@@ -2632,6 +2634,114 @@ async function viewDatingPhotos(userId) {
     ${list.length ? `<div class="photostack">${list.map((p) => `<img src="${esc(p.url || '')}" alt="">`).join('')}</div>`
       : '<div class="card center muted">Nessuna foto da mostrare. Le foto si vedono solo dopo che vi siete scelti a vicenda.</div>'}
     <p class="center"><a href="#/dating">Torna a Ubi Dating</a></p>`;
+}
+
+// ======================= RADIOAMATORI =======================
+async function viewRadio(user) {
+  stopWatch();
+  app.innerHTML = `<h1>📡 Radioamatori · firma sulla cima</h1>
+    <div class="card">
+      <p class="small">Sei in cima? Lascia la tua <b>firma digitale</b> sulla mappa di Ubi: callsign, cima, quota e riferimento SOTA. Chiunque arrivi in quel punto vedrà chi ci è stato prima.</p>
+      <p class="small muted">Il pin usa l'icona 📡, è pubblico e visibile a tutti. Puoi eliminarlo in qualsiasi momento dai tuoi contenuti.</p>
+      ${user ? '' : `<div class="msg info small">Accedi per lasciare la firma. <a href="#/login">Accedi o registrati</a></div>`}
+    </div>
+    ${user ? `<div class="card"><h2 style="margin-top:0">🏔️ Firma questa cima</h2>
+      <label for="r-call">Callsign (nominativo)</label>
+      <input id="r-call" maxlength="12" placeholder="es. IZ1ABC" autocomplete="off" style="text-transform:uppercase">
+      <label for="r-cima">Nome della cima</label>
+      <input id="r-cima" maxlength="80" placeholder="es. Monte Rosa, Corno Stella">
+      <label for="r-quota">Quota (m s.l.m.)</label>
+      <input id="r-quota" type="number" min="0" max="9000" placeholder="es. 4634">
+      <label for="r-sota">Riferimento SOTA <span class="muted small">(facoltativo)</span></label>
+      <input id="r-sota" maxlength="20" placeholder="es. I/LO-001" autocomplete="off" style="text-transform:uppercase">
+      <label for="r-band">Banda / Modo <span class="muted small">(facoltativo)</span></label>
+      <input id="r-band" maxlength="40" placeholder="es. 2m FM · 10 QSO">
+      <label for="r-note">Note aggiuntive <span class="muted small">(facoltativo)</span></label>
+      <input id="r-note" maxlength="200" placeholder="es. Condizioni meteo, antenna usata…">
+      <div style="margin-top:12px"><label class="inline"><input type="checkbox" id="r-gps" checked><span>Usa il GPS per la posizione esatta</span></label></div>
+      <div id="r-posbox" style="margin-top:8px">
+        <div class="row"><input id="r-coords" inputmode="decimal" placeholder="Lat, Lng  (es. 45.9237, 7.8650)"><button id="r-setc" type="button" class="ghost" style="flex:0 0 auto">Imposta</button></div>
+        <p id="r-posinfo" class="muted small" style="margin:4px 0 0"></p></div>
+      <div id="r-m"></div>
+      <button class="btn accent full" id="r-save" type="button" style="margin-top:14px">📡 Lascia la firma sulla mappa</button></div>` : ''}
+    <div class="card"><h2 style="margin-top:0">📻 Cos'è SOTA?</h2>
+      <p class="small"><b>SOTA</b> (Summits On The Air) è un programma internazionale per radioamatori che attivano le cime. Ogni cima ha un codice univoco (es. I/LO-001). Il sito ufficiale: <a href="https://www.sota.org.uk" target="_blank" rel="noopener">sota.org.uk</a></p>
+      <p class="small">Con Ubi puoi lasciare una traccia GPS permanente di ogni attivazione: altri radioamatori che passano per quella cima vedono le tue firme e possono risponderti.</p>
+      <p class="small">I pin radio compaiono con l'icona 📡 sulla mappa. Usa il filtro <b>🔍 Cerca tag</b> → <b>#radio</b> per trovarli tutti.</p></div>
+    <a class="btn full ghost" href="#/" style="margin-top:4px">← Torna alla mappa</a>`;
+
+  if (!user) return;
+
+  // gestione GPS / coordinate manuali
+  let pos = null;
+  const posInfo = $('#r-posinfo');
+  const tryGps = async () => {
+    posInfo.textContent = '📡 Rilevo posizione GPS…';
+    try {
+      const p = await new Promise((ok, fail) => navigator.geolocation.getCurrentPosition(ok, fail, { enableHighAccuracy: true, timeout: 15000 }));
+      pos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy };
+      posInfo.textContent = `✓ GPS: ${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)} (±${Math.round(pos.acc)} m)`;
+    } catch { posInfo.textContent = 'GPS non disponibile: inserisci le coordinate a mano.'; pos = null; }
+  };
+  $('#r-gps').onchange = () => { $('#r-posbox').hidden = $('#r-gps').checked; if ($('#r-gps').checked) tryGps(); };
+  if ($('#r-gps').checked) tryGps(); else $('#r-posbox').hidden = false;
+  $('#r-setc').onclick = () => {
+    const v = $('#r-coords').value.trim().replace(',', ' ').split(/\s+/);
+    const lat = parseFloat(v[0]), lng = parseFloat(v[1]);
+    if (!isFinite(lat) || !isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180)
+      return msg($('#r-m'), 'Coordinate non valide. Formato: 45.9237, 7.8650');
+    pos = { lat, lng, acc: null };
+    posInfo.textContent = `✓ Coordinate manuali: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  };
+  $('#r-call').oninput = () => { $('#r-call').value = $('#r-call').value.toUpperCase(); };
+  $('#r-sota').oninput = () => { $('#r-sota').value = $('#r-sota').value.toUpperCase(); };
+  $('#r-save').onclick = async () => {
+    const btn = $('#r-save');
+    const call = $('#r-call').value.trim().toUpperCase();
+    const cima = $('#r-cima').value.trim();
+    const quota = parseInt($('#r-quota').value) || null;
+    const sota = $('#r-sota').value.trim().toUpperCase();
+    const band = $('#r-band').value.trim();
+    const note = $('#r-note').value.trim();
+    if (!call) return msg($('#r-m'), 'Inserisci il callsign.');
+    if (!cima) return msg($('#r-m'), 'Inserisci il nome della cima.');
+    if ($('#r-gps').checked && !pos) return msg($('#r-m'), 'Attendi il GPS o inserisci le coordinate a mano.');
+    if (!pos) return msg($('#r-m'), 'Imposta la posizione con il tasto «Imposta».');
+    btn.disabled = true; btn.textContent = '⏳ Creo il pin…';
+    const now = new Date().toLocaleString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const lines = [
+      `📡 ${call} — ${cima}${quota ? ` (${quota} m s.l.m.)` : ''}`,
+      sota ? `SOTA: ${sota}` : '',
+      band ? `Banda / Modo: ${band}` : '',
+      note,
+      `Attivazione: ${now}`,
+    ].filter(Boolean).join('\n');
+    const tags = ['radio', 'ico-antenna'];
+    if (sota) tags.push('sota');
+    const data = {
+      file: null, media_type: 'text', duration: null, text_body: lines,
+      tags, external_url: null, lat: pos.lat, lng: pos.lng,
+      radius: 100, source: pos.acc != null ? 'gps' : 'manual',
+      title: `📡 ${call} · ${cima}${quota ? ` ${quota}m` : ''}`,
+      hint: sota ? `SOTA ${sota}` : (quota ? `${quota} m s.l.m.` : 'Firma radioamatore'),
+      visibility: 'public', recipients: [], password: null,
+      is_dating: false, replies_enabled: true,
+      unlock_at: null, open_anywhere: false, expires_at: null,
+      hunt_id: null, hunt_step: null,
+    };
+    try {
+      const slug = await B.create(data);
+      app.innerHTML = `<h1>📡 Firma lasciata!</h1>
+        <div class="card center">
+          <p style="font-size:2rem;margin:0">🏔️</p>
+          <h2>${esc(call)} su ${esc(cima)}${quota ? ` · ${quota} m` : ''}</h2>
+          ${sota ? `<p class="muted">SOTA ${esc(sota)}</p>` : ''}
+          <p class="muted small">Il tuo pin è sulla mappa. Chiunque arrivi in cima lo vedrà.</p>
+          <a class="btn accent full" href="#/c/${esc(slug)}">Apri il tuo pin</a>
+          <a class="btn ghost full" href="#/radio" style="margin-top:8px">📡 Firma un'altra cima</a>
+          <a class="btn ghost full" href="#/" style="margin-top:8px">← Torna alla mappa</a></div>`;
+    } catch (err) { msg($('#r-m'), errText(err)); btn.disabled = false; btn.textContent = '📡 Lascia la firma sulla mappa'; }
+  };
 }
 
 // ======================= SOS / EMERGENZA =======================
