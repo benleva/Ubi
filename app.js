@@ -42,7 +42,10 @@ const PIN_ICONS = [
   ['birra', '🍺', '#b7791f', 'Birra'], ['vino', '🍷', '#7b1f3a', 'Calice di vino'], ['caffe', '☕', '#6d4c41', 'Tazzina di caffè'], ['torta', '🍰', '#c2185b', 'Fetta di torta'],
   ['patatine', '🍟', '#e0a800', 'Patatine fritte'], ['hamburger', '🍔', '#a0522d', 'Hamburger'], ['pizza', '🍕', '#d35400', 'Pizza'],
   ['libro', '📖', '#5b4b8a', 'Libro'], ['cuore', '❤️', '#e91e63', 'Amore'], ['stella', '⭐', '#f1a90f', 'Stella'],
-  ['logo', '🏪', '#ffffff', 'Logo del negozio'], ['musica', '🎵', '#7b1fa2', 'Musica'], ['sport', '⚽', '#37474f', 'Sport'], ['montagna', '⛰️', '#546e7a', 'Montagna'], ['info', 'ℹ️', '#1f3a5f', 'Informazioni']];
+  ['logo', '🏪', '#ffffff', 'Logo del negozio'], ['musica', '🎵', '#7b1fa2', 'Musica'], ['sport', '⚽', '#37474f', 'Sport'], ['montagna', '⛰️', '#546e7a', 'Montagna'], ['info', 'ℹ️', '#1f3a5f', 'Informazioni'],
+  ['pericolo', '⚠️', '#e65100', 'Pericolo / Attenzione'], ['sos', '🆘', '#b71c1c', 'SOS / Emergenza'], ['pronto-soccorso', '🏥', '#c62828', 'Pronto soccorso'], ['vietato', '🚫', '#c62828', 'Vietato / Chiuso'],
+  ['radio', '📻', '#37474f', 'Radio'], ['antenna', '📡', '#455a64', 'Antenna / Ripetitore'], ['telefono', '📞', '#1565c0', 'Telefono / Contatto'],
+  ['animale', '🐾', '#5d4037', 'Animali / Fauna'], ['fuoco', '🔥', '#bf360c', 'Fuoco / Incendio'], ['acqua', '💧', '#0277bd', 'Acqua / Sorgente']];
 const pinIcon = (c) => { const t = (c.tags || []).find((x) => x.startsWith('ico-')); return t ? PIN_ICONS.find((i) => i[0] === t.slice(4)) || null : null; };
 const LOGO_CACHE = new Map();   // slug del pin -> logo del negozio collegato
 const shownTags = (tags) => (tags || []).filter((t) => !t.startsWith('ico-') && !/^art-\d+$/.test(t));
@@ -5211,7 +5214,7 @@ const FAQ_GUIDE = [
     <a class="btn full accent" href="mailto:info@ubipin.it?subject=Pubblicit%C3%A0%20su%20Ubi">✉️ Contattaci per la pubblicità</a>`],
   ['🎨 Scegliere l\'icona del pin (Stella di Natale, albero, birra…)', `<p>Ogni pin può avere la sua <b>icona sulla mappa</b>: si vede da lontano cosa c'è dentro.</p>
     <ol><li>Crea un pin, oppure apri un tuo pin e tocca <b>«Modifica»</b>.</li>
-    <li>Sotto i tag trovi <b>«Icona sulla mappa»</b>: tocca quella che vuoi. Ci sono la Stella di Natale, l'albero 🎄, il regalo 🎁, il fiore 🌸, la pianta 🪴, il negozio 🏪, la birra 🍺, il calice di vino 🍷, la tazzina di caffè ☕, la fetta di torta 🍰, le patatine 🍟, l'hamburger 🍔, la pizza 🍕, il libro 📖, il cuore ❤️, la stella ⭐, la musica 🎵, lo sport ⚽, la montagna ⛰️ e le informazioni ℹ️.</li>
+    <li>Sotto i tag trovi <b>«Icona sulla mappa»</b>: tocca quella che vuoi. Ci sono la Stella di Natale, l'albero 🎄, il regalo 🎁, il fiore 🌸, la pianta 🪴, il negozio 🏪, la birra 🍺, il calice di vino 🍷, la tazzina di caffè ☕, la fetta di torta 🍰, le patatine 🍟, l'hamburger 🍔, la pizza 🍕, il libro 📖, il cuore ❤️, la stella ⭐, la musica 🎵, lo sport ⚽, la montagna ⛰️, le informazioni ℹ️. E per messaggi di <b>sicurezza e allerta</b>: pericolo ⚠️, SOS 🆘, pronto soccorso 🏥, vietato 🚫, radio 📻, antenna 📡, telefono 📞, animali 🐾, fuoco 🔥, acqua 💧.</li>
     <li>Tocca <b>«Fissa nel luogo»</b> o <b>«Salva le modifiche»</b>.</li></ol>
     <p>Con <b>«Automatica»</b> il pin torna all'icona del suo tipo (foto, video, testo…). L'icona usa uno degli 8 tag del pin, ma non si vede tra i tag.</p>
     <p class="small">Esempio per un garden: pin di testo o foto con i consigli per la Stella di Natale, icona Stella di Natale, raggio 15 m, risposte attive.</p>
