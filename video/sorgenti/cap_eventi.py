@@ -11,7 +11,7 @@ async def eventi():
     await R.start(base(), VILLA)
     R.tl.append({'t': 'title', 'title': 'Ubi Eventi', 'sub': 'Pin privati per i tuoi momenti speciali', 'dur': 2.6, 'icon': '🎉'})
 
-    R.caption(1, 'Dalla home tocca «🎉 Eventi»')
+    R.caption(1, 'Dalla home tocca «Eventi»')
     await R.go('#/', wait=2000)
     await R.pg.evaluate("document.querySelector('a[href=\"#/eventi\"]').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
@@ -20,18 +20,22 @@ async def eventi():
     R.caption(2, 'Gli ospiti lasciano foto, video, messaggi geo-localizzati')
     await R.still(2.4)
 
-    R.caption(3, 'Tocca «💍 Matrimonio» per creare il pin')
+    R.caption(3, 'Tocca «Matrimonio» per creare il pin')
     await R.tap('a[href="#/wedding"]', after=1600)
 
     R.caption(4, 'Compila titolo, luogo e data del matrimonio')
     await R.pg.evaluate("document.querySelector('#w-title').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
-    await R.still(2.0)
+    await R.type('#w-title', 'Matrimonio Luca & Sara', chunks=3, dur=0.3)
+    await R.pg.fill('#w-date', '2027-06-14')
+    await R.type('#w-venue', 'Villa Olmo', chunks=2, dur=0.3)
+    await R.still(1.2)
 
-    R.caption(5, 'Lista email degli ospiti: ricevono il link privato')
+    R.caption(5, 'Scrivi le email degli ospiti: ricevono il link')
     await R.pg.evaluate("document.querySelector('#w-emails').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
-    await R.still(2.2)
+    await R.type('#w-emails', 'mario@esempio.it\ngiulia@esempio.it', chunks=2, dur=0.35)
+    await R.still(1.4)
 
     R.caption(6, 'Prossimamente: compleanni, lauree, eventi aziendali')
     await R.go('#/eventi', wait=1800)
@@ -40,7 +44,7 @@ async def eventi():
     await R.still(2.4)
 
     R.tl.append({'t': 'outro', 'dur': 3.8, 'consumer': True,
-                 'title': 'I ricordi restano dove e successo', 'sub': 'Ubi Eventi · ubipin.it'})
+                 'title': 'I ricordi restano dove è successo', 'sub': 'Ubi Eventi · ubipin.it'})
     await R.stop()
 
 if __name__ == '__main__':

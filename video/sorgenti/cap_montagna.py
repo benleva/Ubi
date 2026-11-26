@@ -20,7 +20,7 @@ async def montagna():
     await R.start(db(), CIMA)
     R.tl.append({'t': 'title', 'title': 'Ubi Montagna', 'sub': 'Radioamatori e S.O.S. LoRa', 'dur': 2.6, 'icon': '🏔️'})
 
-    R.caption(1, 'Dalla home tocca «🏔️ Montagna»')
+    R.caption(1, 'Dalla home tocca «Montagna»')
     await R.go('#/', wait=1800)
     await R.pg.evaluate("document.querySelector('a[href=\"#/montagna\"]').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
@@ -29,16 +29,12 @@ async def montagna():
     R.caption(2, 'Due strumenti: radioamatori e S.O.S. LoRa')
     await R.still(2.4)
 
-    R.caption(3, '📡 Firma la cima con callsign e SOTA')
+    R.caption(3, 'Radioamatori: firma la cima con callsign e SOTA')
     await R.tap('a[href="#/radio"]', after=1400)
     await R.still(2.0)
 
-    R.caption(4, "Torna alla home: l'altro strumento e' S.O.S.")
-    await R.tap('a[href="#/"]', after=1200)
+    R.caption(4, 'S.O.S. Montagna: richiesta di soccorso via radio LoRa')
     await R.go('#/montagna', wait=1500)
-    await R.still(1.6)
-
-    R.caption(5, '🏔️ S.O.S. Montagna: emergenza via rete LoRa')
     await R.pg.evaluate("document.querySelector('a[href*=\"netlify\"], a[href*=\"sos\"]').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
     await R.still(2.2)

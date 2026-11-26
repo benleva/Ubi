@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611260749';
+import { CONFIG } from './config.js?v=202611260750';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260749';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260750';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.135';
+const APP_VERSION = 'v.136';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -3508,11 +3508,11 @@ const VIDEOS = {
   social: { f: 'video/Ubi-tutorial-social-in-un-pin.mp4', s: 26 },
   dating: { f: 'video/Ubi-tutorial-dating-entra.mp4', s: 30, n: 'Entra e lascia un biglietto' },
   dating2: { f: 'video/Ubi-tutorial-dating-conoscersi.mp4', s: 33, n: 'Rispondi e conoscetevi' },
-  radio: { f: 'video/Ubi-tutorial-radioamatori.mp4', s: 30, n: 'Firma la cima con Ubi' },
-  sosmontagna: { f: 'video/Ubi-tutorial-sos-montagna.mp4', s: 40, n: 'S.O.S. Montagna · emergenza LoRa' },
-  wedding: { f: 'video/Ubi-tutorial-wedding.mp4', s: 35, n: 'Pin matrimonio per gli ospiti' },
-  montagna: { f: 'video/Ubi-tutorial-montagna.mp4', s: 25, n: 'La sezione Montagna' },
-  eventi: { f: 'video/Ubi-tutorial-eventi.mp4', s: 25, n: 'La sezione Eventi' },
+  radio: { f: 'video/Ubi-tutorial-radioamatori.mp4', s: 21, n: 'Firma la cima con Ubi' },
+  sosmontagna: { f: 'video/Ubi-tutorial-sos-montagna.mp4', s: 31, n: 'S.O.S. Montagna · emergenza LoRa' },
+  wedding: { f: 'video/Ubi-tutorial-wedding.mp4', s: 23, n: 'Pin matrimonio per gli ospiti' },
+  montagna: { f: 'video/Ubi-tutorial-montagna.mp4', s: 16, n: 'La sezione Montagna' },
+  eventi: { f: 'video/Ubi-tutorial-eventi.mp4', s: 20, n: 'La sezione Eventi' },
 };
 const videoBtn = (k, short = false) => { const v = VIDEOS[k]; return v ? `<a class="btn full vidbtn" href="${v.f}" target="_blank" rel="noopener">▶️ ${short ? 'Video' : v.n ? 'Video: ' + v.n : 'Guarda come funziona'} <span class="small">(${v.s} s)</span></a>` : ''; };
 const pdfShort = (k) => { const x = PDFS.find((y) => y.k === k); return x && x.f ? `<a class="btn ghost full pdfbtn" href="${x.f}" target="_blank" rel="noopener" download>${PDF_ICON}<span>Scarica PDF</span></a>` : ''; };

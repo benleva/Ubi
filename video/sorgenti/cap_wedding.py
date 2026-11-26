@@ -20,14 +20,14 @@ async def wedding():
     await R.start(base(), VILLA)
     R.tl.append({'t': 'title', 'title': 'Pin Matrimonio', 'sub': 'Foto e video geo-localizzati per gli ospiti', 'dur': 2.6, 'icon': '💍'})
 
-    R.caption(1, 'Dalla home: «🎉 Eventi» poi «💍 Matrimonio»')
+    R.caption(1, 'Dalla home tocca «Eventi», poi «Matrimonio»')
     await R.go('#/', wait=1800)
     await R.pg.evaluate("document.querySelector('a[href=\"#/eventi\"]').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
     await R.tap('a[href="#/eventi"]', after=1200)
     await R.tap('a[href="#/wedding"]', after=1400)
 
-    R.caption(2, 'Titolo del pin: nome degli sposi')
+    R.caption(2, 'Nome del matrimonio e luogo del ricevimento')
     await R.pg.evaluate("document.querySelector('#w-title').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
     await R.type('#w-title', 'Matrimonio Luca & Sara', chunks=3, dur=0.3)
@@ -44,22 +44,18 @@ async def wedding():
     await R.type('#w-emails', 'mario@esempio.it\ngiulia@esempio.it\nluigi@esempio.it', chunks=3, dur=0.35)
     await R.still(1.6)
 
-    R.caption(5, 'Posizione: tocca «Usa la mia posizione»')
-    await R.pg.evaluate("document.querySelector('#w-gps').scrollIntoView({block:'center'})")
+    R.caption(5, 'La posizione del ricevimento arriva dal GPS')
+    await R.pg.evaluate("document.querySelector('#w-gpsinfo').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
-    await R.pg.evaluate("""
-        const pi = document.querySelector('#w-posinfo');
-        if(pi) pi.textContent = '✓ GPS: 45.98500, 9.26000 (±4 m)';
-    """)
-    await R.still(1.8)
+    await R.still(2.0)
 
-    R.caption(6, 'Crea il pin: il link viene copiato automaticamente')
+    R.caption(6, 'Tocca «Crea il pin matrimonio»')
     await R.pg.evaluate("document.querySelector('#w-save').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
     await R.tap('#w-save', after=2500)
 
-    R.caption(7, 'Incolla il link nell\'invito: gli ospiti lasciano foto e video')
-    await R.pg.evaluate("window.scrollTo(0,0)")
+    R.caption(7, 'Gli ospiti ricevono l\'email con il link')
+    await R.pg.evaluate("document.querySelector('#mailcard').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(400)
     await R.still(2.4)
 

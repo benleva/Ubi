@@ -18,14 +18,14 @@ async def radioamatori():
     await R.start(db(), CIMA)
     R.tl.append({'t': 'title', 'title': 'Radioamatori su Ubi', 'sub': 'Firma le cime con callsign e SOTA', 'dur': 2.6, 'icon': '📡'})
 
-    R.caption(1, 'Dalla home tocca «🏔️ Montagna»')
+    R.caption(1, 'Dalla home tocca «Montagna»')
     await R.go('#/', wait=1800)
     await R.pg.evaluate("document.querySelector('a[href=\"#/montagna\"]').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
     await R.tap('a[href="#/montagna"]', after=1400)
 
-    R.caption(2, 'Poi «📡 Radioamatori · firma sulla cima»')
-    await R.tap('a[href="#/radio"]', after=1400)
+    R.caption(2, 'Poi «Radioamatori · firma sulla cima»')
+    await R.tap('a[href="#/radio"]', after=1400, dur=1.8)
 
     R.caption(3, 'Sei in cima: inserisci il tuo callsign')
     await R.pg.evaluate("document.querySelector('#r-call').scrollIntoView({block:'center'})")
@@ -41,20 +41,13 @@ async def radioamatori():
     await R.type('#r-sota', 'I/LO-001', chunks=3, dur=0.3)
     await R.still(1.4)
 
-    R.caption(6, 'GPS già attivo: tocca «Lascia la firma»')
+    R.caption(6, 'La posizione arriva dal GPS: tocca «Lascia la firma»')
     await R.pg.evaluate("document.querySelector('#r-save').scrollIntoView({block:'center'})")
     await R.pg.wait_for_timeout(300)
-    # Simulo GPS già rilevato (inject position)
-    await R.pg.evaluate("""
-        window._gpsPos = {lat: 45.9237, lng: 7.8650, acc: 5};
-        // Override tryGps result
-        const pi = document.querySelector('#r-posinfo');
-        if(pi) pi.textContent = '✓ GPS: 45.92370, 7.86500 (±5 m)';
-    """)
     await R.still(1.6)
     await R.tap('#r-save', after=2200)
 
-    R.caption(7, 'Pin sulla mappa: chiunque arriva in cima lo vede')
+    R.caption(7, 'Firma lasciata: chi arriva in cima la vedrà')
     await R.pg.evaluate("window.scrollTo(0,0)")
     await R.pg.wait_for_timeout(400)
     await R.still(2.4)

@@ -9,7 +9,7 @@ class Rec:
   async def start(self, db, geo, lang='it'):
     self.srv = subprocess.Popen([sys.executable,'-m','http.server','8799','-d','/tmp/seedtest/site'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     self.p = await async_playwright().start()
-    self.b = await self.p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
+    self.b = await self.p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox','--lang=it-IT'], env={**os.environ,'LANG':'it_IT.UTF-8','LANGUAGE':'it','LC_ALL':'it_IT.UTF-8'})
     self.ctx = await self.b.new_context(viewport={'width':390,'height':844}, device_scale_factor=2, locale='it-IT',
       geolocation={'latitude':geo[0],'longitude':geo[1],'accuracy':8}, permissions=['geolocation','clipboard-read','clipboard-write'])
     await self.ctx.add_init_script("if(!localStorage.getItem('ubi_demo'))localStorage.setItem('ubi_demo', %s); localStorage.setItem('ubi_lang','%s');" % (json.dumps(json.dumps(db)), lang))
