@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611221042';
+import { CONFIG } from './config.js?v=202611260747';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611221042';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260747';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.120';
+const APP_VERSION = 'v.133';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2765,7 +2765,7 @@ async function viewMontagna(user) {
     </a>
     <div class="card" style="margin-top:16px">
       ${videoBtn('radio')}${videoBtn('sosmontagna')}
-      <p class="small muted" style="margin-top:8px">S.O.S. Montagna è una PWA indipendente per escursionisti che usano Meshtastic e radio LoRa. Non contatta automaticamente il 112 — per le emergenze usa sempre il numero di emergenza ufficiale.</p>
+      <p class="small muted" style="margin-top:8px"><b>In pericolo immediato, se il telefono ha campo, chiama subito il 112.</b> S.O.S. Montagna serve quando non c'è campo: è una PWA indipendente per escursionisti esperti che usano Meshtastic e una radio LoRa. Non avvisa il 112 da sola e non è un sistema di soccorso certificato.</p>
     </div>
     <a class="btn full ghost" href="#/" style="margin-top:4px">← Torna alla mappa</a>`;
 }
@@ -5642,7 +5642,7 @@ const FAQ_GUIDE = [
   ['🏔️ Montagna · radioamatori e S.O.S. LoRa', `<ul>
     <li><b>Dove si trova</b>: dalla home tocca <b>🏔️ Montagna</b>: trovi le due sezioni dedicate a chi va in quota.</li>
     <li><b>📡 Radioamatori · firma sulla cima</b>: sei in cima? Lascia il tuo <b>callsign, il nome della cima e la quota</b> sulla mappa di Ubi. Chi arriva in quel punto vedrà chi ci è stato prima. Puoi aggiungere il riferimento <b>SOTA</b> (I/LO-001 e simili), la banda e il modo. Il pin è pubblico, usa l'icona 📡 e si trova con il filtro <b>#radio</b>.</li>
-    <li><b>🏔️ S.O.S. Montagna</b>: una webapp indipendente per escursionisti che usano <b>Meshtastic</b> e radio <b>LoRa</b>. Prepara un messaggio di emergenza strutturato (tipo, coordinate, numero persone, note) e lo passa all'app Meshtastic per inviarlo sul canale privato <b>SOSMONTAGNA</b>. Si apre in una nuova scheda — funziona offline dopo la prima visita. <b>Non contatta il 112</b>: in caso di emergenza chiama sempre il numero ufficiale.</li>
+    <li><b>🏔️ S.O.S. Montagna</b>: una webapp indipendente per escursionisti che usano <b>Meshtastic</b> e radio <b>LoRa</b>. Prepara un messaggio di emergenza strutturato (tipo, coordinate, numero persone, note) e lo passa all'app Meshtastic per inviarlo sul canale privato <b>SOSMONTAGNA</b>. Si apre in una nuova scheda e funziona offline dopo la prima visita. <b>In pericolo immediato, se hai campo, chiama subito il 112</b>: S.O.S. Montagna serve quando il telefono non prende, non avvisa il 112 da sola e non è un sistema di soccorso certificato.</li>
     <li><b>SOTA</b>: Summits On The Air — programma internazionale per radioamatori che attivano le cime. Ogni cima ha un codice univoco. Sito ufficiale: <a href="https://www.sota.org.uk" target="_blank" rel="noopener">sota.org.uk</a>.</li></ul>
     ${videoBtn('radio')}${videoBtn('sosmontagna')}`],
   ['💍 Matrimonio · pin privati per gli ospiti', `<ul>
