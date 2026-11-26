@@ -29,7 +29,7 @@ Ogni versione ha anche un'etichetta Git con lo stesso nome (`git tag`).
 | v.135 | 26/11/2026 | 209724f | Radioamatori e Matrimonio: se il GPS non funziona compare il campo per le coordinate; conferma GPS sempre visibile |
 | v.136 | 26/11/2026 | 003a825 | 5 video tutorial rifatti e verificati fotogramma per fotogramma; durate corrette nei pulsanti |
 | v.137 | 26/11/2026 | a055e72 | Lettore video dentro Ubi: a fine video compare il pulsante galleggiante «← Torna indietro» (anche il tasto indietro del telefono chiude il video) |
-| v.138 | 26/11/2026 | *questo commit* | Tolti i pulsanti «Continua con Google/Facebook»: i due accessi non sono attivati in Supabase («provider is not enabled»). Si riattivano con OAUTH_LOGIN in config.js |
+| v.138 | 26/11/2026 | 596495e | Tolti i pulsanti «Continua con Google/Facebook»: i due accessi non sono attivati in Supabase («provider is not enabled»). Si riattivano con OAUTH_LOGIN in config.js |
 
 ## Rilascio in blocco v.121–v.136 (26/11/2026)
 
