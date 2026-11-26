@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611260748';
+import { CONFIG } from './config.js?v=202611260749';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260748';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260749';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.134';
+const APP_VERSION = 'v.135';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2663,9 +2663,10 @@ async function viewRadio(user) {
       <label for="r-note">Note aggiuntive <span class="muted small">(facoltativo)</span></label>
       <input id="r-note" maxlength="200" placeholder="es. Condizioni meteo, antenna usata…">
       <div style="margin-top:12px"><label class="inline"><input type="checkbox" id="r-gps" checked><span>Usa il GPS per la posizione esatta</span></label></div>
-      <div id="r-posbox" style="margin-top:8px">
+      <div id="r-posbox" hidden style="margin-top:8px">
         <div class="row"><input id="r-coords" inputmode="decimal" placeholder="Lat, Lng  (es. 45.9237, 7.8650)"><button id="r-setc" type="button" class="ghost" style="flex:0 0 auto">Imposta</button></div>
         <p id="r-posinfo" class="muted small" style="margin:4px 0 0"></p></div>
+      <p id="r-gpsinfo" class="muted small" style="margin:4px 0 0"></p>
       <div id="r-m"></div>
       <button class="btn accent full" id="r-save" type="button" style="margin-top:14px">📡 Lascia la firma sulla mappa</button></div>` : ''}
     <div class="card"><h2 style="margin-top:0">📻 Cos'è SOTA?</h2>
@@ -2678,14 +2679,14 @@ async function viewRadio(user) {
 
   // gestione GPS / coordinate manuali
   let pos = null;
-  const posInfo = $('#r-posinfo');
+  const posInfo = $('#r-gpsinfo');
   const tryGps = async () => {
     posInfo.textContent = '📡 Rilevo posizione GPS…';
     try {
       const p = await new Promise((ok, fail) => navigator.geolocation.getCurrentPosition(ok, fail, { enableHighAccuracy: true, timeout: 15000 }));
       pos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy };
       posInfo.textContent = `✓ GPS: ${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)} (±${Math.round(pos.acc)} m)`;
-    } catch { posInfo.textContent = 'GPS non disponibile: inserisci le coordinate a mano.'; pos = null; }
+    } catch { posInfo.textContent = 'GPS non disponibile: inserisci le coordinate a mano.'; pos = null; $('#r-gps').checked = false; $('#r-posbox').hidden = false; }
   };
   $('#r-gps').onchange = () => { $('#r-posbox').hidden = $('#r-gps').checked; if ($('#r-gps').checked) tryGps(); };
   if ($('#r-gps').checked) tryGps(); else $('#r-posbox').hidden = false;
@@ -2833,7 +2834,7 @@ async function viewWedding(user) {
       const p = await new Promise((ok, fail) => navigator.geolocation.getCurrentPosition(ok, fail, { enableHighAccuracy: true, timeout: 15000 }));
       pos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy };
       gpsInfo.textContent = `✓ GPS: ${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)} (±${Math.round(pos.acc)} m)`;
-    } catch { gpsInfo.textContent = 'GPS non disponibile: inserisci le coordinate a mano.'; pos = null; }
+    } catch { gpsInfo.textContent = 'GPS non disponibile: inserisci le coordinate a mano.'; pos = null; $('#w-gps').checked = false; $('#w-posbox').hidden = false; }
   };
   $('#w-gps').onchange = () => { $('#w-posbox').hidden = $('#w-gps').checked; if ($('#w-gps').checked) tryGps(); };
   if ($('#w-gps').checked) tryGps(); else $('#w-posbox').hidden = false;
