@@ -584,3 +584,12 @@ body.artt img { -webkit-touch-callout: none; -webkit-user-select: none; user-sel
 /* Stats bar home */
 .stats-line { margin: 4px 0 6px; }
 .stats-new { display: inline-block; background: #e8f5e3; color: #2d7a1f; border-radius: 10px; padding: 1px 8px; font-size: .82rem; font-weight: 600; margin-left: 6px; }
+
+/* Lettore video a tutto schermo con pulsante «Torna indietro» a fine video */
+#vplayer { position: fixed; inset: 0; z-index: 10000; background: #000; display: flex; align-items: center; justify-content: center; }
+#vplayer video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+body.vp-on { overflow: hidden; }
+.vp-back { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translate(-50%, 24px); opacity: 0; pointer-events: none;
+  transition: opacity .3s, transform .3s; z-index: 10001; margin: 0; background: var(--accent); color: #fff; border: 2px solid #fff; border-radius: 999px;
+  padding: 14px 30px; font-size: 1.15rem; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,.5); white-space: nowrap; }
+.vp-back.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }

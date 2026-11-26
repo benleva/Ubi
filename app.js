@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611260750';
+import { CONFIG } from './config.js?v=202611260756';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260750';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260756';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.136';
+const APP_VERSION = 'v.137';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -6455,6 +6455,37 @@ async function adminArtTab(box) {
   adminArtRequestsBox($('#areq'), () => adminArtTab(box));
   box.querySelectorAll('[data-edit]').forEach((x) => { x.onclick = () => form(list.find((a) => a.id === x.dataset.edit)); });
 }
+
+// ======================= LETTORE VIDEO =======================
+// I video si aprono dentro Ubi (non come file «nudo» del telefono): a fine video compare il pulsante
+// galleggiante «Torna indietro», che riporta alla pagina di partenza. Anche il tasto indietro del telefono lo chiude.
+function closeVideo(fromBack) {
+  const o = document.getElementById('vplayer'); if (!o) return;
+  try { o.querySelector('video').pause(); } catch { /* niente */ }
+  o.remove(); document.body.classList.remove('vp-on');
+  if (!fromBack && history.state && history.state.ubiVideo) history.back();
+}
+function openVideo(src) {
+  closeVideo(true);
+  const o = document.createElement('div'); o.id = 'vplayer';
+  o.innerHTML = `<video src="${esc(src)}" controls playsinline preload="auto"></video>
+    <button type="button" class="vp-back" aria-label="${T2('Torna indietro', 'Go back')}">← ${T2('Torna indietro', 'Go back')}</button>`;
+  document.body.appendChild(o); document.body.classList.add('vp-on');
+  history.pushState({ ubiVideo: 1 }, '');
+  const v = o.querySelector('video'), b = o.querySelector('.vp-back');
+  v.addEventListener('ended', () => b.classList.add('show'));
+  v.addEventListener('play', () => b.classList.remove('show'));
+  b.onclick = () => closeVideo(false);
+  v.play().catch(() => { /* se il telefono blocca l'avvio, basta toccare play */ });
+}
+window.addEventListener('popstate', () => { if (document.getElementById('vplayer')) closeVideo(true); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && document.getElementById('vplayer')) closeVideo(false); });
+document.addEventListener('click', (e) => {
+  const a = e.target.closest && e.target.closest('a[href]'); if (!a || a.hasAttribute('download')) return;
+  const h = a.getAttribute('href');
+  if (!/^(https?:\/\/(www\.)?ubipin\.it\/)?video\/[^?#]+\.mp4$/i.test(h)) return;
+  e.preventDefault(); openVideo(h.replace(/^https?:\/\/(www\.)?ubipin\.it\//i, ''));
+});
 
 // ======================= AGGIORNAMENTI =======================
 // Il telefono (o il browser di WhatsApp) può tenere in memoria la versione vecchia: all'avvio e quando si torna
