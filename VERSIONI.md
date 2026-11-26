@@ -28,7 +28,7 @@ Ogni versione ha anche un'etichetta Git con lo stesso nome (`git tag`).
 | v.134 | 26/11/2026 | aa55299 | Matrimonio: gli ospiti ricevono davvero l'email di invito (prima la pagina lo prometteva ma non la inviava) |
 | v.135 | 26/11/2026 | 209724f | Radioamatori e Matrimonio: se il GPS non funziona compare il campo per le coordinate; conferma GPS sempre visibile |
 | v.136 | 26/11/2026 | 003a825 | 5 video tutorial rifatti e verificati fotogramma per fotogramma; durate corrette nei pulsanti |
-| v.137 | 26/11/2026 | *questo commit* | Lettore video dentro Ubi: a fine video compare il pulsante galleggiante «← Torna indietro» (anche il tasto indietro del telefono chiude il video) |
+| v.137 | 26/11/2026 | a055e72 | Lettore video dentro Ubi: a fine video compare il pulsante galleggiante «← Torna indietro» (anche il tasto indietro del telefono chiude il video) |
 
 ## Rilascio in blocco v.121–v.136 (26/11/2026)
 
