@@ -593,3 +593,15 @@ body.vp-on { overflow: hidden; }
   transition: opacity .3s, transform .3s; z-index: 10001; margin: 0; background: var(--accent); color: #fff; border: 2px solid #fff; border-radius: 999px;
   padding: 14px 30px; font-size: 1.15rem; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,.5); white-space: nowrap; }
 .vp-back.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+
+/* ---------- Gruppi ---------- */
+.tico.lg { width: 46px; height: 46px; font-size: 22px; flex: 0 0 auto; margin-right: 0; }
+.tico.xl { width: 66px; height: 66px; font-size: 32px; flex: 0 0 auto; margin-right: 0; }
+.ugcard { text-align: left; margin: 8px 0; display: flex; gap: 12px; align-items: center; text-decoration: none; color: inherit; }
+.ugcard .ugmain { flex: 1; min-width: 0; }
+.ugcard .t { font-weight: 700; }
+.ugtag { display: inline-block; padding: 1px 8px; border-radius: 999px; background: #eee; font-size: 12px; margin-left: 4px; }
+.ugtag.ok { background: #dff3e4; color: #1e6b3a; }
+.ughead { display: flex; gap: 14px; align-items: center; margin: 10px 0 12px; }
+.gruppi-btn { color: #1f3a5f; border-color: #c3d4ea; background: #f2f7fd; }
+.gruppi-btn:hover { background: #e3eefa; border-color: #1f3a5f; }

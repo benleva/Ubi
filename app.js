@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611260857';
+import { CONFIG } from './config.js?v=202611261319';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260857';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611261319';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.138';
+const APP_VERSION = 'v.139';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -51,7 +51,7 @@ const LOGO_CACHE = new Map();   // slug del pin -> logo del negozio collegato
 const shownTags = (tags) => (tags || []).filter((t) => !t.startsWith('ico-') && !/^art-\d+$/.test(t));
 const isArtPin = (c) => !c.is_dating && (c.tags || []).includes('arte');
 const logoBadge = (c, extra = '') => `<span class="tico tlogo ${extra}" style="background:#fff" title="Logo del negozio">${c.logo_url ? `<img src="${esc(c.logo_url)}" alt="">` : '🏪'}</span>`;
-const pinBadge = (c, extra = '') => (isArtPin(c) ? artBadge(artStepOf(c), extra) : c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : pinIcon(c) && !c.is_dating ? (pinIcon(c)[0] === 'logo' ? logoBadge(c, extra) : iconBadge(pinIcon(c)[1], pinIcon(c)[2], pinIcon(c)[3], extra)) : isVetrina(c) && !c.is_dating ? iconBadge('🏪', '#e8743b', 'Vetrina di un negozio', extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
+const pinBadge = (c, extra = '') => (isArtPin(c) ? artBadge(artStepOf(c), extra) : c.hunt_step && !c.is_dating ? chestBadge(c.hunt_step, extra) : GROUP_CACHE.get(c.share_slug) && !c.is_dating ? groupBadge(GROUP_CACHE.get(c.share_slug), extra) : pinIcon(c) && !c.is_dating ? (pinIcon(c)[0] === 'logo' ? logoBadge(c, extra) : iconBadge(pinIcon(c)[1], pinIcon(c)[2], pinIcon(c)[3], extra)) : isVetrina(c) && !c.is_dating ? iconBadge('🏪', '#e8743b', 'Vetrina di un negozio', extra) : isLit(c) && !c.is_dating ? litBadge(extra) : isMonu(c) && !c.is_dating ? monuBadge(extra) : c.is_dating ? datingBadge(c.gender, extra)
   : c.unlock_at && Date.parse(c.unlock_at) > Date.now() ? iconBadge('⏳', '#8a6d3b', 'Capsula del tempo', extra)
   : badge(c.media_type, extra));
 const isDating = (p) => !!(p && p.dating_consent_version && p.dating_consent_version === CONFIG.DATING_CONSENT_VERSION);
@@ -237,7 +237,7 @@ async function supabaseBackend() {
         id, owner_id: u.id, title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
         external_url: d.external_url || null, duration_seconds: d.duration ?? null, lat: d.lat, lng: d.lng,
         unlock_radius_m: d.radius, location_source: d.source, visibility: d.visibility, password_hash: d.password || null,
-        unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere), hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null,
+        unlock_at: d.unlock_at || null, open_anywhere: d.group_id ? !!d.open_anywhere : !!(d.unlock_at && d.open_anywhere), group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only), hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null,
         text_body: d.text_body || null, tags: d.tags || [], is_dating: !!d.is_dating, replies_enabled: d.replies_enabled !== false,
         expires_at: d.expires_at || null,
       };
@@ -334,6 +334,27 @@ async function supabaseBackend() {
     async artClickStats(id) { try { return must(await sb.rpc('art_click_stats', { p_artist: id })) || []; } catch { return []; } },
     async artPageSignups(id) { try { return must(await sb.rpc('art_page_signups', { p_artist: id })) || 0; } catch { return 0; } },
     async myArtists() { try { return must(await sb.rpc('my_artists')) || []; } catch { return []; } },
+    // --- gruppi
+    async groupsList(q, cat) { return must(await sb.rpc('groups_list', { p_q: q || null, p_cat: cat || null })) || []; },
+    async myGroups() { try { return must(await sb.rpc('my_groups')) || []; } catch { return []; } },   // [] anche se l'SQL non è ancora lanciato
+    async groupPage(tag) { try { return must(await sb.rpc('group_page', { p_tag: tag })); } catch { return null; } },
+    async groupCreate(p) { return must(await sb.rpc('group_create', { p })); },
+    async groupUpdate(id, p) { must(await sb.rpc('group_update', { p_id: id, p })); },
+    async groupDelete(id) { must(await sb.rpc('group_delete', { p_id: id })); },
+    async groupRegenInvite(id) { return must(await sb.rpc('group_regen_invite', { p_id: id })); },
+    async groupJoin(tag, code) { return must(await sb.rpc('group_join', { p_tag: tag, p_code: code || null })); },
+    async groupLeave(id) { must(await sb.rpc('group_leave', { p_id: id })); },
+    async groupMembers(id) { return must(await sb.rpc('group_members', { p_id: id })) || []; },
+    async groupMemberSet(id, user, action) { must(await sb.rpc('group_member_set', { p_id: id, p_user: user, p_action: action })); },
+    async groupPins(id) { return must(await sb.rpc('group_pins', { p_id: id })) || []; },
+    async groupReport(id, reason) { must(await sb.rpc('group_report', { p_id: id, p_reason: reason })); },
+    async adminGroupSet(id, verified, suspended) { must(await sb.rpc('admin_group_set', { p_id: id, p_verified: verified, p_suspended: suspended })); },
+    async pinGroups(slugs) { try { return must(await sb.rpc('pin_groups', { p_slugs: slugs })) || []; } catch { return []; } },
+    async uploadGroupLogo(blob) {
+      const u = await B.user(); const path = `${u.id}/${crypto.randomUUID()}.jpg`;
+      must(await sb.storage.from('group-logos').upload(path, blob, { contentType: 'image/jpeg', upsert: false }));
+      return sb.storage.from('group-logos').getPublicUrl(path).data.publicUrl;
+    },
     async artPlaces(id) { return must(await sb.from('artist_places').select('*').eq('artist_id', id).order('from_date')) || []; },
     async artPlaceSave(p) { must(await sb.from('artist_places').insert(p)); },
     async artPlaceDelete(id) { must(await sb.from('artist_places').delete().eq('id', id)); },
@@ -561,7 +582,8 @@ async function supabaseBackend() {
         duration_seconds: kindIsFile ? (d.file ? d.duration : old.duration_seconds) : null,
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, location_source: d.source,
         visibility: d.visibility, tags: d.tags || [], replies_enabled: d.replies_enabled !== false,
-        unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
+        unlock_at: d.unlock_at || null, open_anywhere: d.group_id ? !!d.open_anywhere : !!(d.unlock_at && d.open_anywhere),
+        group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
         expires_at: d.expires_at || null,
       };
       if (d.passwordAction === 'set') patch.password_hash = d.password;
@@ -704,7 +726,7 @@ function demoBackend() {
   }
   const sha = async (s) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, '0')).join('');
   const hex = (n) => [...crypto.getRandomValues(new Uint8Array(n))].map((b) => b.toString(16).padStart(2, '0')).join('');
-  const canAccess = (c, u) => (u && c.owner_id === u.id) || c.visibility === 'public' || (c.visibility === 'restricted' && !!u && c.recipients.includes(u.email));
+  const canAccess = (c, u) => (u && c.owner_id === u.id) || (c.group_id ? B._groupOk(c, u) : (c.visibility === 'public' || (c.visibility === 'restricted' && !!u && c.recipients.includes(u.email))));
   const demoArtistOf = (a) => !!a && (!!db.admin || (!!db.user && a.user_id === db.user.id));
   // nella demo i file possono essere anche indirizzi (immagini di prova per video e presentazioni)
   const demoMediaUrl = async (c) => (!c.media_path ? null : /^(https?:|img\/|arte\/|data:)/.test(c.media_path) ? c.media_path : URL.createObjectURL(await getBlob(c.media_path) || new Blob()));
@@ -732,13 +754,15 @@ function demoBackend() {
     async listMine() { return db.contents.filter((c) => c.owner_id === db.user.id).sort((a, b) => b.created_at.localeCompare(a.created_at)); },
     async create(d) {
       const id = crypto.randomUUID(); const slug = hex(6);
+      if (d.group_id && !B._groupActive(d.group_id, db.user.id)) throw new Error('Non fai parte di questo gruppo');
       if (d.file) await putBlob(id, d.file);
       db.contents.push({
         id, share_slug: slug, owner_id: db.user.id, title: d.title, hint: d.hint || null, media_type: d.media_type,
         media_path: d.file ? id : null, external_url: d.external_url || null, lat: d.lat, lng: d.lng, unlock_radius_m: d.radius,
-        visibility: d.visibility, recipients: d.recipients, password_hash: d.password ? await sha(d.password) : null,
+        visibility: d.group_id ? (d.group_only ? 'hidden' : 'public') : d.visibility, group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
+        recipients: d.group_id ? [] : d.recipients, password_hash: d.password ? await sha(d.password) : null,
         text_body: d.text_body || null, tags: d.tags || [], created_at: new Date().toISOString(),
-        unlock_at: d.unlock_at || null, open_anywhere: !!(d.unlock_at && d.open_anywhere),
+        unlock_at: d.unlock_at || null, open_anywhere: d.group_id ? !!d.open_anywhere : !!(d.unlock_at && d.open_anywhere),
         hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null, replies_enabled: d.replies_enabled !== false, is_dating: !!d.is_dating,
         expires_at: d.expires_at || null,
       });
@@ -890,6 +914,7 @@ function demoBackend() {
     async createHunt(h) { const x = { id: crypto.randomUUID(), owner_id: db.user.id, created_at: new Date().toISOString(), ...h }; (db.hunts = db.hunts || []).push(x); save(); return x; },
     async deleteHunt(id) { db.hunts = (db.hunts || []).filter((h) => h.id !== id); db.contents.forEach((c) => { if (c.hunt_id === id) { c.hunt_id = null; c.hunt_step = null; } }); save(); },
     ...demoGifts(() => db, save),
+    ...demoGroups(() => db, save),
     async huntSteps(id) { return db.contents.filter((c) => c.hunt_id === id).sort((a, b) => a.hunt_step - b.hunt_step).map((c) => ({ share_slug: c.share_slug, title: c.title, hunt_step: c.hunt_step, lat: c.lat, lng: c.lng })); },
     async duplicateHunt(id, { title, dlat, dlng }) {
       const h = await B.getHunt(id); const nh = await B.createHunt({ title, prize: h.prize, max_winners: h.max_winners });
@@ -1010,8 +1035,10 @@ function demoBackend() {
       Object.assign(c, {
         title: d.title, hint: d.hint || null, media_type: d.media_type,
         external_url: d.media_type === 'link' ? d.external_url : null, text_body: d.media_type === 'text' ? d.text_body : (kindIsFile ? c.text_body : null),
-        lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, visibility: d.visibility, tags: d.tags || [],
-        recipients: d.visibility === 'restricted' ? d.recipients : [],
+        lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, tags: d.tags || [],
+        visibility: d.group_id ? (d.group_only ? 'hidden' : 'public') : d.visibility, group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
+        open_anywhere: d.group_id ? !!d.open_anywhere : c.open_anywhere && !!c.unlock_at,
+        recipients: !d.group_id && d.visibility === 'restricted' ? d.recipients : [],
       });
       if (d.passwordAction === 'set') c.password_hash = await sha(d.password);
       if (d.passwordAction === 'remove') c.password_hash = null;
@@ -1070,7 +1097,7 @@ function demoBackend() {
       const ok = async (d) => ({ status: 'ok', distance_m: d, external_url: c.external_url, text_body: c.text_body, url: await demoMediaUrl(c) });
       if (c.owner_id === u.id || db.unlocks.some((x) => x.c === c.id && x.u === u.id)) return ok(null);
       if (c.unlock_at && Date.now() < Date.parse(c.unlock_at)) return { status: 'too_early' };
-      if (c.unlock_at && c.open_anywhere) { db.unlocks.push({ c: c.id, u: u.id }); save(); return ok(null); }
+      if ((c.unlock_at || c.group_id) && c.open_anywhere) { db.unlocks.push({ c: c.id, u: u.id }); save(); return ok(null); }
       if (!pos || pos.acc > 100) return { status: 'gps_inaccurate' };
       const d = Math.round(distanceM(c.lat, c.lng, pos.lat, pos.lng));
       if (d > c.unlock_radius_m + Math.min(pos.acc, 30)) return { status: 'too_far', distance_m: d };
@@ -1186,6 +1213,10 @@ async function routeInner() {
     }
     return viewNew(null, { dating: arg === 'dating', capsule: arg === 'capsula' });
   }
+  if (page === 'gruppi') return viewGroups();
+  if (page === 'gruppo-nuovo') return viewGroupForm(null);
+  if (page === 'gruppo-modifica' && arg) return viewGroupForm(arg);
+  if (page === 'gruppo' && arg) return viewGroup(arg, location.hash.split('/')[3], user);
   if (page === 'sos') return viewSos(user);
   if (page === 'radio') return viewRadio(user);
   if (page === 'wedding') return viewWedding(user);
@@ -1572,6 +1603,9 @@ async function homeMap(opts = {}) {
       const need = rows.filter((c) => (c.tags || []).includes('ico-logo') && !LOGO_CACHE.has(c.share_slug)).map((c) => c.share_slug);
       if (need.length) { try { (await B.pinLogos(need)).forEach((x) => LOGO_CACHE.set(x.slug, x.logo_url)); } catch { /* SQL non ancora lanciato */ } need.forEach((k) => { if (!LOGO_CACHE.has(k)) LOGO_CACHE.set(k, null); }); }
       rows.forEach((c) => { if (LOGO_CACHE.get(c.share_slug)) c.logo_url = LOGO_CACHE.get(c.share_slug); });
+      // pin dei gruppi: icona del gruppo (logo o una delle 5 icone)
+      const needG = rows.filter((c) => (c.tags || []).includes('ico-gruppo') && !GROUP_CACHE.has(c.share_slug)).map((c) => c.share_slug);
+      if (needG.length) { try { (await B.pinGroups(needG)).forEach((x) => GROUP_CACHE.set(x.slug, x)); } catch { /* SQL non ancora lanciato */ } needG.forEach((k) => { if (!GROUP_CACHE.has(k)) GROUP_CACHE.set(k, null); }); }
       const shownCount = draw();
       const fit = rows.filter((c) => !opts.dating || c.is_dating);
       if (first && fit.length && !lastView && !me) {
@@ -1687,6 +1721,7 @@ async function viewHome(user, prof) {
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
     <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
+    <a href="#/gruppi" class="btn ghost full gruppi-btn" style="margin-top:10px">👥 Gruppi · associazioni, squadre e amici</a>
     <a href="#/sos" class="btn sos-btn full" style="margin-top:10px">🆘 Emergenza · numeri utili e pin SOS</a>
     <a href="#/montagna" class="btn ghost full montagna-btn" style="margin-top:8px">🏔️ Montagna · radioamatori e SOS LoRa</a>
     <a href="#/eventi" class="btn ghost full eventi-btn" style="margin-top:8px">🎉 Eventi · matrimoni e occasioni speciali</a>
@@ -1903,7 +1938,12 @@ async function viewNew(ed = null, opts = {}) {
         <p class="muted small">Dopo questa data il pin non compare più sulla mappa e non è apribile.</p></div></div></div>
     ${dating ? `<div class="card"><h2>4 · Chi può aprirlo</h2>
       <div class="msg info small">💗 I biglietti dating sono <b>visibili a tutti</b> sulla mappa, ma solo gli iscritti a Ubi Dating (18+) che arrivano sul posto possono aprirli e risponderti. Ti avvisiamo via email a ogni risposta.</div></div>` : ''}
-    <div class="card" ${dating ? 'hidden' : ''}><h2>4 · Chi può aprirlo</h2>
+    <div class="card" id="grpcard" hidden><h2>👥 Pubblica in un gruppo</h2>
+      <select id="grp"></select>
+      <div id="grpopts" hidden>
+        <label class="inline"><input type="checkbox" id="grponly"><span>Solo gli <b>iscritti al gruppo</b> lo vedono (altrimenti è pubblico, con l'icona del gruppo)</span></label>
+        <label class="inline"><input type="checkbox" id="grpfar"><span>Si può aprire <b>anche da lontano</b>, senza andare sul posto</span></label></div></div>
+    <div class="card" id="viscard" ${dating ? 'hidden' : ''}><h2>4 · Chi può aprirlo</h2>
       <div class="seg" id="vis"><button data-v="restricted" class="on">Persone scelte</button><button data-v="public">Tutti</button><button data-v="hidden">Solo io</button></div>
       <div id="v-restricted">
         <div id="groupbox" hidden><label>👥 Gruppi <span class="muted small">(un tocco seleziona tutti i membri)</span></label><div class="chips" id="groupchips"></div></div>
@@ -2126,6 +2166,8 @@ async function viewNew(ed = null, opts = {}) {
     $('#v-restricted').hidden = s.vis !== 'restricted';
   };
 
+  if (!dating && !hunt) initGroupCard(s, ed);
+
   // --- rubrica: pulsanti dei contatti
   const drawBook = () => {
     $('#book').innerHTML = s.book.length ? s.book.map((c) => `<button type="button" class="chip ${s.sel.has(c.email) ? 'on' : ''}" data-e="${esc(c.email)}" title="${esc(c.email)}">${esc(c.name)}</button>`).join('')
@@ -2224,6 +2266,8 @@ async function viewNew(ed = null, opts = {}) {
       if (!ve) return err('Scadenza: scegli la data e l\'ora di scadenza.');
       if (Date.parse(ve) <= Date.now()) return err('Scadenza: la data deve essere nel futuro.');
     }
+    const grpId = $('#grp') && !dating && !hunt ? $('#grp').value : ''; const grpOnly = !!grpId && $('#grponly').checked;
+    if (grpId) s.vis = grpOnly ? 'hidden' : 'public';
     if (s.vis === 'restricted' && ed && !bookReady) return err('Attendi un attimo: sto caricando la rubrica.');
     if (dating) s.vis = 'public';
     const recipients = s.vis === 'restricted' ? [...new Set([...s.sel, ...$('#emails').value.toLowerCase().split(/[\s,;]+/).filter(Boolean)])] : [];
@@ -2233,11 +2277,12 @@ async function viewNew(ed = null, opts = {}) {
     const btn = $('#save'); btn.disabled = true; btn.textContent = s.file ? 'Carico il file…' : 'Salvo…';
     const data = {
       file: s.kind === 'file' ? s.file : null, media_type: s.kind === 'file' ? s.media_type : s.kind, duration: s.kind === 'file' ? s.duration : null,
-      text_body: s.kind === 'text' ? $('#txt').value.trim() : null, tags: [...s.tags],
+      text_body: s.kind === 'text' ? $('#txt').value.trim() : null, tags: [...s.tags].filter((t) => t !== 'ico-gruppo').concat(grpId ? ['ico-gruppo'] : []),
+      group_id: grpId || null, group_only: grpOnly,
       external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
       visibility: dating ? 'public' : s.vis, recipients: dating ? [] : recipients, password: isStage ? normAnswer($('#pwd').value) : $('#pwd').value,
       is_dating: dating, replies_enabled: dating ? true : $('#replies').checked,
-      unlock_at, open_anywhere: !!unlock_at && $('#anywhere').checked,
+      unlock_at, open_anywhere: grpId ? $('#grpfar').checked : (!!unlock_at && $('#anywhere').checked),
       expires_at: (!dating && !hunt && $('#expiry').checked && $('#expiresat').value) ? new Date($('#expiresat').value).toISOString() : null,
       hunt_id: hunt ? hunt.id : null, hunt_step: hunt ? hunt.step : null,
     };
@@ -2369,9 +2414,12 @@ async function viewContent(slug, user) {
     return;
   }
   const huntLine = t.hunt_id ? `<div class="msg info small">🗺️ Caccia al tesoro «${esc(t.hunt_title || '')}» · tappa <b>${t.hunt_step}</b> di ${t.hunt_steps}</div>${t.hunt_steps > 1 ? `<div class="hprog">${stepBar(t.hunt_step, t.hunt_steps)}</div>` : ''}` : '';
+  const gi = !t.is_dating ? ((await B.pinGroups([slug]))[0] || null) : null;   // pin di un gruppo?
+  if (gi) GROUP_CACHE.set(slug, gi);
+  const groupLine = gi ? `<div class="msg info small">👥 Pin del gruppo <a href="#/gruppo/${esc(gi.tag)}"><b>${esc(gi.name)}</b></a>${gi.only_members ? ' · 🔒 visibile solo agli iscritti' : ''}</div>` : '';
   const opensAt = t.unlock_at ? new Date(t.unlock_at) : null;
   const early = opensAt && Date.now() < opensAt.getTime() && !t.is_owner;
-  const anywhereNow = opensAt && t.open_anywhere && Date.now() >= opensAt.getTime();
+  const anywhereNow = gi ? !!t.open_anywhere : opensAt && t.open_anywhere && Date.now() >= opensAt.getTime();
   const capLine = opensAt ? `<div class="msg info small">⏳ Capsula del tempo · si apre dal <b>${opensAt.toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</b> alle <b>${opensAt.toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' })}</b>${t.open_anywhere ? ', anche da lontano' : ', sul posto'}</div>` : '';
   const expiresAt = t.expires_at ? new Date(t.expires_at) : null;
   const expiredAlready = expiresAt && Date.now() >= expiresAt.getTime();
@@ -2381,9 +2429,9 @@ async function viewContent(slug, user) {
   const createdLine = t.created_at ? `<div class="meta muted small" style="margin:4px 0 2px">📅 Creato il ${new Date(t.created_at).toLocaleDateString(LOC, { day: 'numeric', month: 'long', year: 'numeric' })}</div>` : '';
   const header0 = art ? `<h1>${artBadge(art.step)} <span translate="no">${esc(t.title)}</span></h1>` : t.is_dating
     ? `<h1>${datingBadge(t.gender)} <span translate="no">${esc(t.title)}</span></h1><div class="msg info small">💗 Biglietto Ubi Dating${GENDER[t.gender] ? ` di <b>${GENDER[t.gender].n}</b>` : ''}: chi l'ha lasciato resta anonimo finché non vi scegliete entrambi.</div>${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`
-    : `<h1>${pinIcon(t) ? (pinIcon(t)[0] === 'logo' ? logoBadge(t) : iconBadge(pinIcon(t)[1], pinIcon(t)[2], pinIcon(t)[3])) : badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
+    : `<h1>${gi ? groupBadge(gi) : pinIcon(t) ? (pinIcon(t)[0] === 'logo' ? logoBadge(t) : iconBadge(pinIcon(t)[1], pinIcon(t)[2], pinIcon(t)[3])) : badge(t.media_type)} <span translate="no">${esc(t.title)}</span></h1>${t.author ? authorLine(t, user) : ''}${tagChips(t.tags)}${t.hint ? `<div class="msg info hint">${linkify(t.hint)}</div>` : ''}`;
   const bb = biz ? bizBar(biz) : '';
-  const header = bb + header0 + huntLine + capLine + expiryLine + createdLine + (art ? artHead(art, slug) : '');
+  const header = bb + header0 + groupLine + huntLine + capLine + expiryLine + createdLine + (art ? artHead(art, slug) : '');
   const player = t.hunt_id && !t.is_owner;
   const isLast = player && t.hunt_step >= t.hunt_steps;
   const huntNext = !player ? '' : isLast ? ''
@@ -5524,10 +5572,15 @@ const FAQ_GUIDE = [
     <li>Chi ha creato il pin riceve un'<b>email</b> e trova la risposta aprendo il pin.</li>
     <li>Quando crei un pin puoi disattivare le risposte (casella in fondo, sezione 4).</li>
     <li>Puoi ritirare la tua risposta quando vuoi; il creatore può eliminarla.</li></ol>`],
-  ['👥 Gruppi: mandare un pin a più persone insieme', `<ol>
+  ['👥 Gruppi della rubrica: mandare un pin a più persone insieme', `<ol>
     <li>Apri <b>📒 La mia rubrica</b> e, in ogni contatto, scrivi uno o più <b>gruppi</b> separati da virgola (es. <code>famiglia, calcetto</code>).</li>
     <li>Quando crei un pin con <b>Persone scelte</b>, sopra i contatti trovi i pulsanti <b>👥 famiglia (5)</b>: un tocco seleziona tutti i membri, un secondo tocco li toglie.</li>
     <li>Tutti ricevono l'email con il link e solo loro potranno sbloccarlo.</li></ol>`],
+  ['👥 Gruppi di Ubi: una comunità con i suoi pin', `<ol>
+    <li>Dalla home tocca <b>👥 Gruppi</b> → <b>Crea un gruppo</b>: scegli nome, tag, categoria, e se è <b>pubblico</b> (entra chiunque) o <b>privato</b> (si entra su richiesta o con invito).</li>
+    <li>Compila la <b>pagina manifesto</b>: obiettivo, chi siete, contatti e regole. Per l'icona dei pin carica il tuo logo (diventa rotondo) o scegli una delle 5 icone.</li>
+    <li>Gli iscritti lasciano pin nel gruppo: ogni pin può essere <b>pubblico</b> (lo vedono tutti, con l'icona del gruppo) oppure <b>riservato</b> agli iscritti. Puoi permettere l'apertura <b>sul posto</b> o <b>anche da lontano</b>.</li>
+    <li>Il proprietario e i moderatori accettano le richieste, tolgono o <b>bannano</b> chi non rispetta le regole e condividono il link di invito. Se trovi un gruppo scorretto, usa <b>Segnala questo gruppo</b>.</li></ol>`],
   ['⏳ Capsula del tempo', `<ol>
     <li>Da home tocca <b>⏳ Capsula del tempo</b> → <b>Crea una capsula</b> (oppure, in qualsiasi nuovo pin, spunta <i>Capsula del tempo</i>).</li>
     <li>Scegli <b>data e ora</b> di apertura: fino ad allora si vedono solo titolo, indizio e conto alla rovescia.</li>
@@ -5680,7 +5733,7 @@ const FAQ_GUIDE = [
 ];
 // video tutorial in fondo alle voci della guida
 { const FV = { '3 · Lascia un contenuto': 'lascia', '4 · Condividi': 'condividi', '5 · Sblocca un contenuto': 'pin', '6 · Gestisci i tuoi contenuti': 'gestisci',
-  '6c · Rispondere a un pin': 'rispondi', '👥 Gruppi: mandare un pin a più persone insieme': 'gruppi', '📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram': 'whatsapp',
+  '6c · Rispondere a un pin': 'rispondi', '👥 Gruppi della rubrica: mandare un pin a più persone insieme': 'gruppi', '📤 Condividere su WhatsApp, Facebook, TikTok, Telegram e Instagram': 'whatsapp',
   '📸 Mettere un post o un reel di Instagram in un pin': 'social', '💗 Ubi Dating': ['dating', 'dating2'] };
   FAQ_GUIDE.forEach((x) => { const k = FV[x[0]]; if (k && Array.isArray(x) && x.length === 2) x[1] += [].concat(k).map((y) => videoBtn(y)).join(''); }); }
 
@@ -6509,6 +6562,332 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 setInterval(checkUpdate, 10 * 60 * 1000);
 // dopo un aggiornamento togliamo ?v=… dall'indirizzo
 if (/[?&]v=\d+/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash);
+
+// ======================= GRUPPI =======================
+// Comunità con nome, tag, pagina manifesto, iscritti, ban, icona dedicata e pin pubblici o riservati.
+const GROUP_CATS = [['sociale', '🤝', 'Scopo sociale'], ['ludico', '🎲', 'Ludico'], ['tecnico', '🔧', 'Tecnico'], ['culturale', '📚', 'Culturale'],
+  ['sport', '⚽', 'Sport'], ['natura', '🌿', 'Natura e outdoor'], ['cucina', '🍳', 'Cucina'], ['altro', '✨', 'Altro']];
+const GROUP_ICONS = [['g1', '🌳', '#2e7d32', 'Albero'], ['g2', '🤝', '#1565c0', 'Mani'], ['g3', '🎲', '#6a1b9a', 'Dado'], ['g4', '🔧', '#455a64', 'Chiave'], ['g5', '📚', '#bf360c', 'Libri']];
+const GROUP_CACHE = new Map();   // slug del pin -> gruppo (null = nessuno)
+const groupCat = (k) => GROUP_CATS.find((c) => c[0] === k) || GROUP_CATS[GROUP_CATS.length - 1];
+const groupBadge = (g, extra = '') => {
+  if (g.logo_url) return `<span class="tico tlogo ${extra}" style="background:#fff" title="${esc(g.name)}"><img src="${esc(g.logo_url)}" alt=""></span>`;
+  const i = GROUP_ICONS.find((x) => x[0] === g.icon) || GROUP_ICONS[0];
+  return iconBadge(i[1], i[2], g.name || i[3], extra);
+};
+const groupInviteUrl = (g) => `${location.origin}${location.pathname}#/gruppo/${g.tag}/${g.invite_code}`;
+
+// quadrato centrato 160 px: il logo diventa l'icona rotonda del pin
+function logoSquare(file, size = 160) {
+  return new Promise((res, rej) => {
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(img.width, img.height);
+      const c = document.createElement('canvas'); c.width = c.height = size;
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, size, size);
+      x.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size); URL.revokeObjectURL(url);
+      c.toBlob((b) => (b ? res(b) : rej(new Error('Immagine non leggibile'))), 'image/jpeg', 0.88);
+    };
+    img.onerror = () => rej(new Error('Immagine non leggibile: prova con una foto JPG o PNG.'));
+    img.src = url;
+  });
+}
+
+function groupRow(g) {
+  const cat = groupCat(g.category);
+  const st = g.my_status === 'active' ? `<span class="ugtag ok">✔ ${g.my_role === 'owner' ? 'Tuo' : 'Iscritto'}</span>` : g.my_status === 'pending' ? '<span class="ugtag">⏳ In attesa</span>' : '';
+  return `<a class="card ugcard" href="#/gruppo/${esc(g.tag)}">${groupBadge(g, 'lg')}
+    <div class="ugmain"><div class="t">${esc(g.name)}${g.verified ? ' <span title="Gruppo verificato" style="color:#1d7bd6">✔</span>' : ''}</div>
+      <div class="meta">@${esc(g.tag)} · ${cat[1]} ${esc(cat[2])}${g.city ? ' · ' + esc(g.city) : ''}</div>
+      ${g.bio ? `<div class="meta small ellipsis">${esc(g.bio)}</div>` : ''}
+      <div class="meta small">${g.privacy === 'private' ? '🔒 Privato' : '🌍 Pubblico'}${g.members != null ? ` · 👥 ${g.members}` : ''}${g.pending ? ` · <b>${g.pending} richieste</b>` : ''} ${st}</div></div></a>`;
+}
+
+async function viewGroups() {
+  const st = { q: '', cat: '' };
+  app.innerHTML = `<h1>👥 Gruppi</h1>
+    <p class="muted">Associazioni, squadre e amici con i loro pin: pubblici per tutti, oppure riservati agli iscritti.</p>
+    <a class="btn accent full" href="#/gruppo-nuovo">＋ Crea un gruppo</a>
+    <div id="mine"></div>
+    <h2 style="margin-top:18px">Scopri i gruppi</h2>
+    <input id="gq" type="search" maxlength="60" placeholder="Cerca per nome, tag o città…" enterkeyhint="search">
+    <div class="chips" id="gcats"><button type="button" class="chip on" data-c="">Tutti</button>${GROUP_CATS.map((c) => `<button type="button" class="chip" data-c="${c[0]}">${c[1]} ${c[2]}</button>`).join('')}</div>
+    <div id="glist"><p class="muted center">Carico i gruppi…</p></div>
+    <a class="btn ghost full" href="#/" style="margin-top:12px">← Torna alla mappa</a>`;
+  const mine = await B.myGroups();
+  $('#mine').innerHTML = mine.length ? `<h2 style="margin-top:18px">I miei gruppi</h2>${mine.map((g) => groupRow({ ...g, my_status: g.my_status, my_role: g.my_role })).join('')}` : '';
+  const draw = async () => {
+    let list = [];
+    try { list = await B.groupsList(st.q, st.cat); } catch (e) { $('#glist').innerHTML = `<div class="msg err">${errText(e)}</div>`; return; }
+    $('#glist').innerHTML = list.length ? list.map(groupRow).join('') : '<p class="muted center">Nessun gruppo trovato. Creane uno tu!</p>';
+  };
+  let tm = null;
+  $('#gq').oninput = () => { clearTimeout(tm); tm = setTimeout(() => { st.q = $('#gq').value.trim(); draw(); }, 300); };
+  $('#gcats').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; st.cat = b.dataset.c; [...$('#gcats').children].forEach((x) => x.classList.toggle('on', x === b)); draw(); };
+  draw();
+}
+
+async function viewGroup(tag, code, user) {
+  const g = await B.groupPage(tag);
+  if (!g) { app.innerHTML = '<div class="card center"><h2>Gruppo non disponibile</h2><p class="muted">Il gruppo non esiste più o è stato sospeso.</p><a class="btn" href="#/gruppi">Tutti i gruppi</a></div>'; return; }
+  const cat = groupCat(g.category);
+  const isAdmin = await B.isAdmin();
+  const active = g.my_status === 'active', mgr = active && (g.my_role === 'owner' || g.my_role === 'mod');
+  const c = g.contacts || {};
+  const web = /^https:\/\//i.test(c.web || '') ? c.web : '';
+  const contacts = [c.email && EMAIL_RE.test(c.email) ? `✉️ <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '', web ? `🌐 <a href="${esc(web)}" target="_blank" rel="noopener noreferrer">${esc(web.replace(/^https:\/\//, ''))}</a>` : '', c.social ? `📱 ${esc(c.social)}` : ''].filter(Boolean);
+  const sec = (title, txt) => (txt ? `<div class="card"><h2>${title}</h2><p style="white-space:pre-wrap">${esc(txt)}</p></div>` : '');
+  let action = '';
+  if (g.my_status === 'banned') action = '<div class="msg err">Sei stato escluso da questo gruppo.</div>';
+  else if (g.my_status === 'pending') action = '<div class="msg info">⏳ Richiesta inviata: il gestore deve approvarla.</div><button class="ghost full" id="gleave" type="button">Annulla la richiesta</button>';
+  else if (!g.my_status) action = `<button class="accent full" id="gjoin" type="button">${g.privacy === 'public' || code ? '✅ Entra nel gruppo' : '🔑 Chiedi di entrare'}</button>`;
+  else action = `<a class="btn accent full" href="#/new" id="gnew">＋ Lascia un pin nel gruppo</a>${g.my_role === 'owner' ? '' : '<button class="ghost full" id="gleave" type="button" style="margin-top:8px">Esci dal gruppo</button>'}`;
+  app.innerHTML = `
+    <a href="#/gruppi" class="small">← Gruppi</a>
+    <div class="ughead">${groupBadge(g, 'xl')}<div><h1 style="margin:0">${esc(g.name)}${g.verified ? ' <span title="Gruppo verificato" style="color:#1d7bd6">✔</span>' : ''}</h1>
+      <div class="meta">@${esc(g.tag)} · ${cat[1]} ${esc(cat[2])}${g.city ? ' · ' + esc(g.city) : ''}</div>
+      <div class="meta small">${g.privacy === 'private' ? '🔒 Gruppo privato: si entra su richiesta o con invito' : '🌍 Gruppo pubblico: chiunque può entrare'} · 👥 ${g.members}</div></div></div>
+    ${g.suspended ? '<div class="msg err">Gruppo sospeso (lo vedi perché sei amministratore).</div>' : ''}
+    <div id="gmsg"></div>${action}
+    ${sec('🎯 Obiettivo', g.goal)}${sec('👋 Chi siamo', g.bio)}
+    ${contacts.length ? `<div class="card"><h2>📇 Contatti</h2>${contacts.map((x) => `<p style="margin:4px 0">${x}</p>`).join('')}</div>` : ''}
+    ${sec('📜 Regole del gruppo', g.rules)}
+    <div class="card"><h2>📍 Pin del gruppo</h2><div id="gpins"><p class="muted">Carico i pin…</p></div></div>
+    <div id="gmgr"></div>
+    <p class="center small"><a href="#" id="grep">🚩 Segnala questo gruppo</a></p>
+    <div id="gadm"></div>`;
+  const out = $('#gmsg');
+  const reload = () => viewGroup(tag, code, user);
+  if ($('#gnew')) $('#gnew').onclick = () => { store.set('ubi_new_group', g.id); };
+  if ($('#gjoin')) $('#gjoin').onclick = async () => {
+    $('#gjoin').disabled = true;
+    try { await B.groupJoin(tag, code); reload(); } catch (e) { msg(out, errText(e)); $('#gjoin').disabled = false; }
+  };
+  if ($('#gleave')) $('#gleave').onclick = async () => {
+    if (!$('#gleave').dataset.sure) { $('#gleave').dataset.sure = '1'; $('#gleave').textContent = 'Tocca ancora per confermare'; return; }
+    try { await B.groupLeave(g.id); reload(); } catch (e) { msg(out, errText(e)); }
+  };
+  $('#grep').onclick = async (e) => {
+    e.preventDefault();
+    const why = prompt('Perché segnali questo gruppo? (contenuti scorretti, falso gruppo…)'); if (!why) return;
+    try { await B.groupReport(g.id, why); msg(out, 'Grazie, abbiamo ricevuto la segnalazione.', 'ok'); } catch (err) { msg(out, errText(err)); }
+  };
+  B.groupPins(g.id).then((pins) => {
+    $('#gpins').innerHTML = pins.length ? pins.map((p) => `<a class="row gpin" href="#/c/${esc(p.share_slug)}" style="text-decoration:none;color:inherit;gap:8px;padding:6px 0"><span style="flex:0 0 auto">${p.group_only ? '🔒' : '📍'}</span><span style="flex:1;min-width:0">${esc(p.title)}</span><span class="muted small" style="flex:0 0 auto">${p.unlocked ? '✔ aperto' : ''}</span></a>`).join('')
+      : `<p class="muted">${active || g.privacy === 'public' ? 'Ancora nessun pin.' : 'Entra nel gruppo per vedere i pin riservati.'}</p>`;
+  }).catch(() => { $('#gpins').innerHTML = ''; });
+  if (isAdmin) {
+    $('#gadm').innerHTML = `<div class="card"><h2>🛡️ Amministratore</h2><div class="row"><button class="ghost" id="gver" type="button">${g.verified ? 'Togli verifica' : '✔ Verifica gruppo'}</button><button class="ghost" id="gsus" type="button">${g.suspended ? 'Riattiva' : '⛔ Sospendi'}</button></div></div>`;
+    $('#gver').onclick = async () => { try { await B.adminGroupSet(g.id, !g.verified, g.suspended); reload(); } catch (e) { msg(out, errText(e)); } };
+    $('#gsus').onclick = async () => { try { await B.adminGroupSet(g.id, g.verified, !g.suspended); reload(); } catch (e) { msg(out, errText(e)); } };
+  }
+  if (mgr) drawGroupManage(g, $('#gmgr'), reload);
+}
+
+async function drawGroupManage(g, box, reload) {
+  const owner = g.my_role === 'owner';
+  const list = await B.groupMembers(g.id);
+  const sec = (title, rows, btns) => (rows.length ? `<h3 style="margin:10px 0 4px">${title} (${rows.length})</h3>${rows.map((m) => `<div class="row" style="align-items:center;padding:4px 0"><span style="flex:1;min-width:0">${esc(m.name)}${m.role === 'owner' ? ' 👑' : m.role === 'mod' ? ' 🛡️' : ''}</span>${btns(m)}</div>`).join('')}` : '');
+  const b = (u, a, label) => `<button type="button" class="ghost small" style="flex:0 0 auto" data-u="${u}" data-a="${a}">${label}</button>`;
+  box.innerHTML = `<div class="card"><h2>⚙️ Gestione del gruppo</h2>
+    ${sec('⏳ Richieste', list.filter((m) => m.status === 'pending'), (m) => b(m.user_id, 'approve', '✅ Accetta') + b(m.user_id, 'reject', '✖ Rifiuta'))}
+    ${sec('👥 Iscritti', list.filter((m) => m.status === 'active'), (m) => (m.role === 'owner' || (m.role === 'mod' && !owner) ? '' : (owner ? b(m.user_id, m.role === 'mod' ? 'demote' : 'promote', m.role === 'mod' ? 'Togli mod' : '🛡️ Mod') : '') + b(m.user_id, 'remove', 'Rimuovi') + b(m.user_id, 'ban', '🚫 Banna')))}
+    ${sec('🚫 Esclusi', list.filter((m) => m.status === 'banned'), (m) => b(m.user_id, 'unban', 'Riammetti'))}
+    <h3 style="margin:14px 0 4px">🔗 Invito</h3>
+    <p class="muted small">Chi apre questo link entra subito, anche nei gruppi privati. Stampalo come QR sui volantini.</p>
+    <input id="ginv" readonly value="${esc(groupInviteUrl(g))}"><div class="row" style="margin-top:6px"><button type="button" class="ghost" id="gcopy">📋 Copia</button><button type="button" class="ghost" id="gnewcode">🔄 Nuovo codice</button></div>
+    <div class="row" style="margin-top:14px"><a class="btn ghost" href="#/gruppo-modifica/${esc(g.tag)}">✏️ Modifica pagina</a>${owner ? '<button type="button" class="ghost" id="gdel">🗑 Elimina gruppo</button>' : ''}</div><div id="gmm"></div></div>`;
+  const out = $('#gmm');
+  box.onclick = async (e) => {
+    const x = e.target.closest('button[data-a]'); if (!x) return;
+    if (x.dataset.a === 'ban' && !x.dataset.sure) { x.dataset.sure = '1'; x.textContent = 'Conferma ban'; return; }
+    try { await B.groupMemberSet(g.id, x.dataset.u, x.dataset.a); reload(); } catch (err) { msg(out, errText(err)); }
+  };
+  $('#gcopy').onclick = async () => { try { await navigator.clipboard.writeText($('#ginv').value); msg(out, 'Link copiato.', 'ok'); } catch { $('#ginv').select(); msg(out, 'Tieni premuto sul link per copiarlo.', 'info'); } };
+  $('#gnewcode').onclick = async () => { try { await B.groupRegenInvite(g.id); reload(); } catch (err) { msg(out, errText(err)); } };
+  if ($('#gdel')) $('#gdel').onclick = async () => {
+    if (!$('#gdel').dataset.sure) { $('#gdel').dataset.sure = '1'; $('#gdel').textContent = 'Tocca ancora: i pin tornano privati'; return; }
+    try { await B.groupDelete(g.id); location.hash = '#/gruppi'; } catch (err) { msg(out, errText(err)); }
+  };
+}
+
+async function viewGroupForm(tag) {
+  const old = tag ? await B.groupPage(tag) : null;
+  if (tag && (!old || old.my_role !== 'owner') && !(await B.isAdmin())) { app.innerHTML = '<div class="card center"><h2>Solo il proprietario può modificare il gruppo</h2><a class="btn" href="#/gruppi">Gruppi</a></div>'; return; }
+  const g = old || { privacy: 'public', category: 'altro', icon: 'g1', contacts: {} };
+  const st = { privacy: g.privacy, icon: g.icon, logo_url: g.logo_url || null, logoBlob: null, logoGone: false };
+  const c = g.contacts || {};
+  app.innerHTML = `<h1>${old ? '✏️ Modifica il gruppo' : '👥 Nuovo gruppo'}</h1>
+    <div class="card">
+      <label for="gname">Nome del gruppo</label><input id="gname" maxlength="60" value="${esc(g.name || '')}" placeholder="Es. Cucina Trieste">
+      <label for="gtag">Tag</label><input id="gtag" maxlength="30" value="${esc(g.tag || '')}" placeholder="cucina-trieste" autocapitalize="none" autocorrect="off" ${old ? 'readonly' : ''}>
+      <p class="muted small">${old ? 'Il tag non si cambia.' : 'È il nome breve del gruppo (3-30 caratteri: lettere, numeri, trattini). Non si può cambiare dopo.'}</p>
+      <label for="gcat">Categoria</label><select id="gcat">${GROUP_CATS.map((x) => `<option value="${x[0]}" ${g.category === x[0] ? 'selected' : ''}>${x[1]} ${x[2]}</option>`).join('')}</select>
+      <label>Chi può entrare</label>
+      <div class="seg" id="gpriv"><button type="button" data-p="public" class="${g.privacy === 'public' ? 'on' : ''}">🌍 Pubblico</button><button type="button" data-p="private" class="${g.privacy === 'private' ? 'on' : ''}">🔒 Privato</button></div>
+      <p class="muted small" id="gprivn"></p></div>
+    <div class="card"><h2>Icona dei pin</h2>
+      <p class="muted small">I pin del gruppo compaiono sulla mappa con questa icona. Carica il tuo logo (diventa rotondo) oppure scegli una delle 5 icone.</p>
+      <div class="chips" id="gico">${GROUP_ICONS.map((i) => `<button type="button" class="chip" data-i="${i[0]}" style="font-size:22px" aria-label="${i[3]}">${i[1]}</button>`).join('')}</div>
+      <div class="row" style="align-items:center;gap:12px"><div id="glogoprev" style="flex:0 0 auto"></div><label class="btn ghost" style="margin:0">📷 Carica il logo<input id="glogo" type="file" accept="image/*" hidden></label><button type="button" class="ghost" id="glogox" hidden>Togli logo</button></div></div>
+    <div class="card"><h2>Pagina manifesto</h2>
+      <label for="gcity">Città o zona <span class="muted small">(facoltativo)</span></label><input id="gcity" maxlength="60" value="${esc(g.city || '')}">
+      <label for="ggoal">Obiettivo: che contenuti pubblicate e perché</label><textarea id="ggoal" maxlength="300" rows="3" placeholder="Es. Raccogliamo i posti dove si mangia bene e le ricette della tradizione">${esc(g.goal || '')}</textarea>
+      <label for="gbio">Chi siamo</label><textarea id="gbio" maxlength="600" rows="4">${esc(g.bio || '')}</textarea>
+      <label for="grules">Regole del gruppo <span class="muted small">(facoltativo)</span></label><textarea id="grules" maxlength="500" rows="3">${esc(g.rules || '')}</textarea>
+      <h3 style="margin:12px 0 2px">Contatti pubblici <span class="muted small">(facoltativi)</span></h3>
+      <p class="muted small">Li vede chiunque apra la pagina: non mettere numeri di telefono personali.</p>
+      <label for="gmail">Email</label><input id="gmail" type="email" maxlength="80" value="${esc(c.email || '')}">
+      <label for="gweb">Sito web</label><input id="gweb" maxlength="120" value="${esc(c.web || '')}" placeholder="https://…">
+      <label for="gsoc">Social</label><input id="gsoc" maxlength="100" value="${esc(c.social || '')}" placeholder="Es. instagram @cucinats"></div>
+    <div id="gfm"></div><button class="accent full" id="gsave" type="button">${old ? 'Salva le modifiche' : 'Crea il gruppo'}</button>
+    <a class="btn ghost full" href="${old ? `#/gruppo/${esc(g.tag)}` : '#/gruppi'}" style="margin-top:8px">Annulla</a>`;
+  const drawIco = () => {
+    [...$('#gico').children].forEach((b) => b.classList.toggle('on', !st.logo_url && !st.logoBlob && b.dataset.i === st.icon));
+    const url = st.logoBlob ? URL.createObjectURL(st.logoBlob) : (st.logoGone ? '' : st.logo_url);
+    const i = GROUP_ICONS.find((x) => x[0] === st.icon) || GROUP_ICONS[0];
+    $('#glogoprev').innerHTML = groupBadge({ logo_url: url, icon: st.icon, name: $('#gname').value || 'Gruppo' }, 'xl');
+    $('#glogox').hidden = !url;
+  };
+  const drawPriv = () => {
+    [...$('#gpriv').children].forEach((b) => b.classList.toggle('on', b.dataset.p === st.privacy));
+    $('#gprivn').textContent = st.privacy === 'public' ? 'Chiunque può entrare con un tocco.' : 'La pagina manifesto è visibile a tutti, ma si entra solo su richiesta (che approvi tu) o con il link di invito.';
+  };
+  $('#gpriv').onclick = (e) => { const b = e.target.closest('button'); if (b) { st.privacy = b.dataset.p; drawPriv(); } };
+  $('#gico').onclick = (e) => { const b = e.target.closest('button'); if (b) { st.icon = b.dataset.i; st.logoBlob = null; st.logoGone = true; drawIco(); } };
+  $('#glogo').onchange = async () => { const f = $('#glogo').files[0]; if (!f) return; try { st.logoBlob = await logoSquare(f); st.logoGone = false; drawIco(); } catch (e) { msg($('#gfm'), errText(e)); } };
+  $('#glogox').onclick = () => { st.logoBlob = null; st.logoGone = true; drawIco(); };
+  $('#gname').oninput = drawIco;
+  $('#gtag').oninput = () => { $('#gtag').value = $('#gtag').value.toLowerCase().replace(/[^a-z0-9-]/g, ''); };
+  if (!old) $('#gname').addEventListener('input', () => { if (!$('#gtag').dataset.touched) $('#gtag').value = $('#gname').value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30); });
+  $('#gtag').addEventListener('input', () => { $('#gtag').dataset.touched = '1'; });
+  drawIco(); drawPriv();
+  $('#gsave').onclick = async () => {
+    const err = (t) => msg($('#gfm'), t);
+    const name = $('#gname').value.trim(), gtag = $('#gtag').value.trim();
+    if (name.length < 3) return err('Scrivi il nome del gruppo (almeno 3 lettere).');
+    if (!/^[a-z0-9][a-z0-9-]{2,29}$/.test(gtag)) return err('Il tag deve avere da 3 a 30 caratteri: lettere, numeri e trattini.');
+    const mail = $('#gmail').value.trim(); if (mail && !EMAIL_RE.test(mail)) return err('L\'email di contatto non è valida.');
+    let web = $('#gweb').value.trim(); if (web && !/^https?:\/\//i.test(web)) web = 'https://' + web;
+    if (web && !/^https:\/\/[^\s]+\.[^\s]+$/i.test(web.replace(/^http:/i, 'https:'))) return err('Il sito web non è valido.');
+    web = web.replace(/^http:/i, 'https:');
+    $('#gsave').disabled = true; $('#gsave').textContent = 'Salvo…';
+    try {
+      let logo_url = st.logoGone ? null : st.logo_url;
+      if (st.logoBlob) logo_url = await B.uploadGroupLogo(st.logoBlob);
+      const p = { name, tag: gtag, category: $('#gcat').value, privacy: st.privacy, icon: st.icon, logo_url: logo_url || '', city: $('#gcity').value.trim(), goal: $('#ggoal').value.trim(), bio: $('#gbio').value.trim(), rules: $('#grules').value.trim(),
+        contacts: { ...(mail ? { email: mail } : {}), ...(web ? { web } : {}), ...($('#gsoc').value.trim() ? { social: $('#gsoc').value.trim() } : {}) } };
+      if (old) await B.groupUpdate(old.id, p); else await B.groupCreate(p);
+      GROUP_CACHE.clear();
+      location.hash = `#/gruppo/${gtag}`;
+    } catch (e) { err(errText(e)); $('#gsave').disabled = false; $('#gsave').textContent = old ? 'Salva le modifiche' : 'Crea il gruppo'; }
+  };
+}
+
+// Scheda «Pubblica in un gruppo» del modulo nuovo pin
+async function initGroupCard(s, ed) {
+  const sel = $('#grp'); if (!sel) return;
+  let gs = []; try { gs = (await B.myGroups()).filter((g) => g.my_status === 'active'); } catch { /* niente gruppi */ }
+  const pre = store.get('ubi_new_group'); store.set('ubi_new_group', null);
+  if (!gs.length) return;
+  sel.innerHTML = '<option value="">— Nessun gruppo: pin personale —</option>' + gs.map((g) => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+  $('#grpcard').hidden = false;
+  if (ed && ed.group_id) { sel.value = ed.group_id; $('#grponly').checked = !!ed.group_only; $('#grpfar').checked = !!ed.open_anywhere; }
+  else if (pre && gs.some((g) => g.id === pre)) sel.value = pre;
+  const sync = () => { const on = !!sel.value; $('#grpopts').hidden = !on; if ($('#viscard')) $('#viscard').hidden = on; };
+  sel.onchange = sync; sync();
+}
+
+// ---------- Gruppi in modalità demo: le stesse regole del database, salvate sul telefono ----------
+function demoGroups(getDb, save) {
+  const D = () => { const db = getDb(); db.ug = db.ug || []; db.ugm = db.ugm || []; db.ugr = db.ugr || []; return db; };
+  const uid = () => getDb().user?.id;
+  const mem = (gid, u) => D().ugm.find((m) => m.g === gid && m.u === u);
+  const isMgr = (gid, u) => { const m = mem(gid, u); return !!m && m.status === 'active' && (m.role === 'owner' || m.role === 'mod'); };
+  const members = (gid) => D().ugm.filter((m) => m.g === gid && m.status === 'active').length;
+  const detach = (gid, u) => D().contents.forEach((c) => { if (c.group_id === gid && (!u || c.owner_id === u)) { c.group_id = null; c.group_only = false; c.visibility = 'hidden'; if (!c.unlock_at) c.open_anywhere = false; } });
+  const row = (g) => { const me = mem(g.id, uid()); return { id: g.id, tag: g.tag, name: g.name, category: g.category, privacy: g.privacy, icon: g.icon, logo_url: g.logo_url || null, city: g.city || null, bio: (g.bio || '').slice(0, 140) || null, verified: !!g.verified, members: members(g.id), my_status: me?.status || null, my_role: me?.role || null }; };
+  const RESERVED = /^(admin|ubi|ufficiale|comune|polizia|carabinieri|soccorso|protezione|vigili|regione|governo|ministero|112|sos)/;
+  return {
+    async groupCreate(p) {
+      const db = D(); const t = String(p.tag || '').toLowerCase().trim();
+      if (!/^[a-z0-9][a-z0-9-]{2,29}$/.test(t)) throw new Error('Il tag deve avere da 3 a 30 caratteri: lettere, numeri e trattini');
+      if (RESERVED.test(t) && !db.admin) throw new Error('Questo tag è riservato: scegline un altro');
+      if (db.ug.some((g) => g.tag === t)) throw new Error('Questo tag è già usato: scegline un altro');
+      if (db.ug.filter((g) => g.owner_id === uid()).length >= 5 && !db.admin) throw new Error('Puoi creare al massimo 5 gruppi');
+      const g = { id: crypto.randomUUID(), tag: t, name: p.name, category: p.category || 'altro', privacy: p.privacy || 'public', icon: p.icon || 'g1', logo_url: p.logo_url || null, city: p.city || null, bio: p.bio || null, goal: p.goal || null, rules: p.rules || null, contacts: p.contacts || {}, invite_code: [...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(16).padStart(2, '0')).join(''), owner_id: uid(), verified: false, suspended: false, created_at: new Date().toISOString() };
+      db.ug.push(g); db.ugm.push({ g: g.id, u: uid(), role: 'owner', status: 'active', at: g.created_at }); save(); return g.id;
+    },
+    async groupUpdate(id, p) {
+      const g = D().ug.find((x) => x.id === id); if (!g || (g.owner_id !== uid() && !getDb().admin)) throw new Error('Solo il proprietario può modificare il gruppo');
+      Object.assign(g, { name: p.name || g.name, category: p.category || g.category, privacy: p.privacy || g.privacy, icon: p.icon || g.icon, logo_url: p.logo_url || null, city: p.city || null, bio: p.bio || null, goal: p.goal || null, rules: p.rules || null, contacts: p.contacts || {} }); save();
+    },
+    async groupDelete(id) { const db = D(); const g = db.ug.find((x) => x.id === id); if (!g || (g.owner_id !== uid() && !db.admin)) throw new Error('Solo il proprietario può eliminare il gruppo'); detach(id); db.ug = db.ug.filter((x) => x.id !== id); db.ugm = db.ugm.filter((m) => m.g !== id); save(); },
+    async groupRegenInvite(id) { const g = D().ug.find((x) => x.id === id); if (!isMgr(id, uid())) throw new Error('Non autorizzato'); g.invite_code = [...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(16).padStart(2, '0')).join(''); save(); return g.invite_code; },
+    async groupsList(q, cat) {
+      const s = String(q || '').toLowerCase();
+      return D().ug.filter((g) => !g.suspended && (!cat || g.category === cat) && (!s || g.name.toLowerCase().includes(s) || g.tag.includes(s) || (g.city || '').toLowerCase().includes(s)))
+        .map(row).sort((a, b) => (b.verified - a.verified) || (b.members - a.members)).slice(0, 100);
+    },
+    async myGroups() {
+      return D().ug.filter((g) => !g.suspended && ['active', 'pending'].includes(mem(g.id, uid())?.status)).map((g) => ({ ...row(g), pending: isMgr(g.id, uid()) ? D().ugm.filter((m) => m.g === g.id && m.status === 'pending').length : 0 }))
+        .sort((a, b) => (b.my_status === 'active') - (a.my_status === 'active') || a.name.localeCompare(b.name));
+    },
+    async groupPage(tag) {
+      const g = D().ug.find((x) => x.tag === String(tag).toLowerCase()); if (!g || (g.suspended && !getDb().admin)) return null;
+      const mgr = isMgr(g.id, uid());
+      return { ...row(g), goal: g.goal || null, rules: g.rules || null, contacts: g.contacts || {}, suspended: g.suspended, created_at: g.created_at, is_owner: g.owner_id === uid(), invite_code: mgr ? g.invite_code : null, pending: mgr ? D().ugm.filter((m) => m.g === g.id && m.status === 'pending').length : 0, bio: g.bio || null };
+    },
+    async groupJoin(tag, code) {
+      const g = D().ug.find((x) => x.tag === String(tag).toLowerCase() && !x.suspended); if (!g) throw new Error('Gruppo non trovato');
+      const m = mem(g.id, uid()); if (m) { if (m.status === 'banned') throw new Error('Sei stato escluso da questo gruppo'); return m.status; }
+      const st = g.privacy === 'public' || (code && code === g.invite_code) ? 'active' : 'pending';
+      D().ugm.push({ g: g.id, u: uid(), role: 'member', status: st, at: new Date().toISOString() }); save(); return st;
+    },
+    async groupLeave(id) {
+      const g = D().ug.find((x) => x.id === id); if (g && g.owner_id === uid()) throw new Error('Il proprietario non può uscire: elimina il gruppo');
+      detach(id, uid()); D().ugm = D().ugm.filter((m) => !(m.g === id && m.u === uid() && m.status !== 'banned')); save();
+    },
+    async groupMembers(id) {
+      if (!isMgr(id, uid())) return [];
+      const db = D(); const ord = { owner: 0, mod: 1, member: 2 };
+      return db.ugm.filter((m) => m.g === id).sort((a, b) => ((b.status === 'pending') - (a.status === 'pending')) || (ord[a.role] - ord[b.role]))
+        .map((m) => ({ user_id: m.u, name: db.profiles[m.u]?.display_name || 'Utente', role: m.role, status: m.status, created_at: m.at }));
+    },
+    async groupMemberSet(id, user, action) {
+      const db = D(); const mine = mem(id, uid()); if (!mine || mine.status !== 'active' || !['owner', 'mod'].includes(mine.role)) throw new Error('Non autorizzato');
+      const t = mem(id, user); if (!t) throw new Error('Persona non trovata');
+      if (user === uid()) throw new Error('Non puoi farlo su te stesso');
+      if (t.role === 'owner') throw new Error('Il proprietario non si tocca');
+      if (t.role === 'mod' && mine.role !== 'owner') throw new Error('Solo il proprietario gestisce i moderatori');
+      if (action === 'approve') { if (t.status === 'pending') t.status = 'active'; }
+      else if (action === 'reject' || action === 'unban') { if (t.status === (action === 'reject' ? 'pending' : 'banned')) db.ugm = db.ugm.filter((m) => m !== t); }
+      else if (action === 'promote' || action === 'demote') { if (mine.role !== 'owner') throw new Error('Solo il proprietario nomina i moderatori'); t.role = action === 'promote' ? 'mod' : 'member'; }
+      else if (action === 'remove' || action === 'ban') { detach(id, user); if (action === 'ban') { t.status = 'banned'; t.role = 'member'; } else db.ugm = db.ugm.filter((m) => m !== t); }
+      else throw new Error('Azione non valida');
+      save();
+    },
+    async groupPins(id) {
+      const db = D(); const u = db.user;
+      return db.contents.filter((c) => c.group_id === id && (c.owner_id === u?.id || db.ug.some((g) => g.id === id && !g.suspended && (!c.group_only || mem(id, u?.id)?.status === 'active'))))
+        .map((c) => ({ share_slug: c.share_slug, title: c.title, media_type: c.media_type, lat: c.lat, lng: c.lng, group_only: !!c.group_only, created_at: c.created_at, unlocked: db.unlocks.some((x) => x.c === c.id && x.u === u?.id) }));
+    },
+    async pinGroups(slugs) {
+      const db = D(); const u = db.user;
+      return db.contents.filter((c) => c.group_id && slugs.includes(c.share_slug)).map((c) => ({ c, g: db.ug.find((x) => x.id === c.group_id) }))
+        .filter(({ c, g }) => g && !g.suspended && (c.owner_id === u?.id || !c.group_only || mem(g.id, u?.id)?.status === 'active'))
+        .map(({ c, g }) => ({ slug: c.share_slug, group_id: g.id, tag: g.tag, name: g.name, icon: g.icon, logo_url: g.logo_url || null, only_members: !!c.group_only }));
+    },
+    async groupReport(id, reason) { const db = D(); db.ugr = db.ugr.filter((r) => !(r.g === id && r.u === uid())); db.ugr.push({ g: id, u: uid(), reason }); save(); },
+    async adminGroupSet(id, verified, suspended) { const g = D().ug.find((x) => x.id === id); if (!getDb().admin || !g) throw new Error('Non autorizzato'); Object.assign(g, { verified, suspended }); save(); },
+    async uploadGroupLogo(blob) { return B.uploadAdImage(blob); },
+    _groupOk(c, u) {
+      const db = D(); const g = db.ug.find((x) => x.id === c.group_id);
+      return !!g && !g.suspended && (!c.group_only || (!!u && mem(g.id, u.id)?.status === 'active'));
+    },
+    _groupActive(gid, u) { return mem(gid, u)?.status === 'active'; },
+  };
+}
 
 // ======================= AVVIO =======================
 (async () => {

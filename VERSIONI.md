@@ -30,6 +30,7 @@ Ogni versione ha anche un'etichetta Git con lo stesso nome (`git tag`).
 | v.136 | 26/11/2026 | 003a825 | 5 video tutorial rifatti e verificati fotogramma per fotogramma; durate corrette nei pulsanti |
 | v.137 | 26/11/2026 | a055e72 | Lettore video dentro Ubi: a fine video compare il pulsante galleggiante «← Torna indietro» (anche il tasto indietro del telefono chiude il video) |
 | v.138 | 26/11/2026 | 596495e | Tolti i pulsanti «Continua con Google/Facebook»: i due accessi non sono attivati in Supabase («provider is not enabled»). Si riattivano con OAUTH_LOGIN in config.js |
+| v.139 | 26/11/2026 | (da inserire) | Gruppi: pulsante «Gruppi» in home; gruppi pubblici o privati con nome, tag, categoria e pagina manifesto (obiettivo, bio, contatti, regole); iscrizione libera, su richiesta o con link di invito; ruoli proprietario/moderatore, ban e rimozione; icona dei pin = logo caricato o 1 di 5 icone; pin pubblici o riservati agli iscritti, apribili sul posto o da lontano; segnalazione e verifica/sospensione da parte dell'amministratore. Database: migrazione 20261126100000_gruppi |
 
 ## Rilascio in blocco v.121–v.136 (26/11/2026)
 
