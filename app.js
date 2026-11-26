@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611260747';
+import { CONFIG } from './config.js?v=202611260748';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260747';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611260748';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.133';
+const APP_VERSION = 'v.134';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -750,7 +750,7 @@ function demoBackend() {
     },
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
     _book() { db.book = db.book || {}; db.book[db.user.id] = db.book[db.user.id] || []; return db.book[db.user.id]; },
-    async notifyRecipients() { return { sent: 0, skipped: 0, demo: true }; },
+    async notifyRecipients(slug) { const c = db.contents.find((x) => x.share_slug === slug); return { sent: (c?.recipients || []).length, skipped: 0, demo: true }; },   // simula l'invio riuscito
     async joinDating(d) { Object.assign(db.profiles[db.user.id], { dating_gender: d.gender, dating_birth_date: d.birth, dating_consent_version: CONFIG.DATING_CONSENT_VERSION }); save(); },
     async leaveDating() { db.profiles[db.user.id].dating_consent_version = null; save(); },
     // risposte nella demo: solo testo, salvate sul telefono
@@ -2817,7 +2817,7 @@ async function viewWedding(user) {
       <button class="btn accent full" id="w-save" type="button" style="margin-top:14px">💍 Crea il pin matrimonio</button></div>` : ''}
     <div class="card"><h2 style="margin-top:0">ℹ️ Come funziona</h2>
       <p class="small">1. <b>Crei il pin</b> con il nome del matrimonio e inviti gli ospiti via email.</p>
-      <p class="small">2. <b>Gli ospiti ricevono una notifica</b> e possono aprire il pin dal luogo del ricevimento e lasciare un messaggio video, foto o testo.</p>
+      <p class="small">2. <b>Gli ospiti ricevono un'email</b> con il link. Accedono a Ubi con lo stesso indirizzo email e, arrivati al luogo del ricevimento, aprono il pin e lasciano un messaggio video, foto o testo.</p>
       <p class="small">3. <b>Tu hai una raccolta permanente</b> di tutti i ricordi, geo-localizzati, da rivivere quando vuoi.</p>
       <p class="small">I pin matrimonio usano l'icona 💍, sono visibili <b>solo agli invitati</b> e non compaiono sulla mappa pubblica.</p></div>
     <a class="btn full ghost" href="#/" style="margin-top:4px">← Torna alla mappa</a>`;
@@ -2892,6 +2892,7 @@ async function viewWedding(user) {
 
     try {
       const slug = await B.create(data);
+      const me = await B.profile().catch(() => null);
       const pinUrl = `${location.origin}/#/c/${slug}`;
       let copied = false;
       try { await navigator.clipboard.writeText(pinUrl); copied = true; } catch {}
@@ -2903,9 +2904,11 @@ async function viewWedding(user) {
           ${dateLabel ? `<p class="muted small">📅 ${dateLabel}</p>` : ''}
           <p class="muted small">${recipients.length > 0 ? `${recipients.length} ospiti invitati` : 'Pin privato — nessun ospite ancora'}</p>
           ${copied ? `<div class="msg info small">🔗 Link copiato! Condividilo con i tuoi ospiti.</div>` : `<div class="msg info small">🔗 Link del pin: <b>${esc(pinUrl)}</b></div>`}
-          <a class="btn accent full" href="#/c/${esc(slug)}" style="margin-top:12px">Apri il pin</a>
-          <a class="btn ghost full" href="#/wedding" style="margin-top:8px">💍 Crea un altro pin</a>
-          <a class="btn ghost full" href="#/" style="margin-top:8px">← Torna alla mappa</a></div>`;
+          <a class="btn accent full" href="#/c/${esc(slug)}" style="margin-top:12px">Apri il pin</a></div>
+        ${recipients.length ? emailCard({ recipients, title: data.title, hint: data.hint, slug, author: me?.display_name }) : ''}
+        <a class="btn ghost full" href="#/wedding" style="margin-top:8px">💍 Crea un altro pin</a>
+        <a class="btn ghost full" href="#/" style="margin-top:8px">← Torna alla mappa</a>`;
+      if (recipients.length) autoNotify(slug, $('#automsg'));
     } catch (err) { msg($('#w-m'), errText(err)); btn.disabled = false; btn.textContent = '💍 Crea il pin matrimonio'; }
   };
 }
