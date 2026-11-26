@@ -10,6 +10,7 @@ export const CONFIG = {
   PRIVACY_VERSION: '2026-11-16b',   // cambiala quando aggiorni l'informativa: verrà richiesto un nuovo consenso
   DATING_CONSENT_VERSION: '1',  // cambiala quando aggiorni i consensi dating: verranno richiesti di nuovo
   REPLY_FUNCTION: 'notify-reply',  // nome (slug) della funzione che avvisa il creatore quando riceve una risposta
+  OAUTH_LOGIN: false,           // true solo dopo aver attivato Google e Facebook in Supabase > Authentication > Providers
   MAX_VIDEO_SECONDS: 60,
   MAX_FILE_MB: 25,
   DEFAULT_RADIUS_M: 50,
