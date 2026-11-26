@@ -24,9 +24,21 @@ Ogni versione ha anche un'etichetta Git con lo stesso nome (`git tag`).
 | v.130 | 25/11/2026 | 38743c8 | Home riorganizzata: sezioni Montagna ed Eventi |
 | v.131 | 25/11/2026 | a4ad1ae | FAQ e pulsanti video per Montagna, Radioamatori, S.O.S. LoRa, Matrimonio |
 | v.132 | 26/11/2026 | 36f69a6 | Primi 5 video tutorial (ritirati in v.136: messaggio sul 112 ambiguo e schermate non corrispondenti) |
-| v.133 | 26/11/2026 | *vedi tag* | Sicurezza: i testi su S.O.S. Montagna mettono per primo «chiama subito il 112» |
-| v.134 | 26/11/2026 | *vedi tag* | Matrimonio: gli ospiti ricevono davvero l'email di invito (prima la pagina lo prometteva ma non la inviava) |
-| v.135 | 26/11/2026 | *vedi tag* | Radioamatori e Matrimonio: se il GPS non funziona compare il campo per le coordinate; conferma GPS sempre visibile |
-| v.136 | 26/11/2026 | *vedi tag* | 5 video tutorial rifatti e verificati fotogramma per fotogramma; durate corrette nei pulsanti |
+| v.133 | 26/11/2026 | 27d7997 | Sicurezza: i testi su S.O.S. Montagna mettono per primo «chiama subito il 112» |
+| v.134 | 26/11/2026 | aa55299 | Matrimonio: gli ospiti ricevono davvero l'email di invito (prima la pagina lo prometteva ma non la inviava) |
+| v.135 | 26/11/2026 | 209724f | Radioamatori e Matrimonio: se il GPS non funziona compare il campo per le coordinate; conferma GPS sempre visibile |
+| v.136 | 26/11/2026 | 003a825 | 5 video tutorial rifatti e verificati fotogramma per fotogramma; durate corrette nei pulsanti |
 
-Nota: da v.121 a v.132 `APP_VERSION` è rimasto per errore a `v.120` e il numero di cache non è stato aggiornato, quindi alcuni telefoni possono aver continuato a usare la v.120. Da v.133 il numero di cache torna ad aggiornarsi a ogni versione.
+## Rilascio in blocco v.121–v.136 (26/11/2026)
+
+Le versioni v.121–v.132 sono state sviluppate e caricate sul server il 25/11/2026, senza attivare l'aggiornamento per i telefoni già in uso (numero di cache e `APP_VERSION` rimasti a v.120). Prima di attivarlo è stata fatta una revisione completa di contenuti, testi, messaggi e grafica, con particolare attenzione alla sicurezza: Ubi include funzioni di emergenza (pin SOS, S.O.S. Montagna) e un messaggio sbagliato può mettere in pericolo una persona.
+
+La revisione ha portato a quattro correzioni, pubblicate come versioni separate:
+- v.133: nei testi su S.O.S. Montagna il 112 compare per primo, all'imperativo positivo;
+- v.134: la pagina Matrimonio invia davvero l'email agli ospiti, come prometteva;
+- v.135: inserimento manuale delle coordinate quando il GPS non è disponibile;
+- v.136: i 5 video tutorial di v.132 sono stati ritirati e rifatti. Il finale del video S.O.S. Montagna, letto da solo, poteva sembrare un invito a non chiamare il 112.
+
+L'aggiornamento verso tutti i telefoni è stato quindi distribuito in blocco con la v.136, dopo il collaudo di tutte le pagine coinvolte (incluso il caso di GPS non disponibile) e il controllo di ogni fotogramma dei video.
+
+Le modifiche al solo registro (questo file) non cambiano l'app e non ricevono un numero di versione.
