@@ -39,6 +39,7 @@ const T = {
     subject: (a) => `📍 ${a} ha lasciato qualcosa per te su Ubi`,
     text: (a, t, h, link) => `${a} ha lasciato per te un contenuto su Ubi: «${t}».\n${h ? `Indizio: ${h}\n` : ''}Si apre solo sul posto. Apri il pin: ${link}`,
     noMore: 'Non vuoi più avvisi?',
+    whyFriend: (a) => `Ricevi questa email perché ${esc(a)} è tuo amico su Ubi.`,
   },
   en: {
     friend: 'A friend',
@@ -52,6 +53,7 @@ const T = {
     subject: (a) => `📍 ${a} left something for you on Ubi`,
     text: (a, t, h, link) => `${a} left something for you on Ubi: «${t}».\n${h ? `Hint: ${h}\n` : ''}It only opens on the spot. Open the pin: ${link}`,
     noMore: 'No more notifications?',
+    whyFriend: (a) => `You're receiving this email because ${esc(a)} is your friend on Ubi.`,
   },
 };
 
@@ -65,7 +67,7 @@ function block(L, { name, title, hint, link }) {
       <p style="font-size:13px;color:#687385;margin:16px 0 0">${L.login}</p>`;
 }
 
-function emailHtml({ name, title, hint, link, unsub, langs }) {
+function emailHtml({ name, title, hint, link, unsub, langs, friends }) {
   const [A, B] = langs.map((l) => T[l]);
   return `<!DOCTYPE html><html lang="${langs[0]}"><body style="margin:0;background:#f6f3ee;font-family:Arial,Helvetica,sans-serif;color:#1b2430">
   <div style="max-width:520px;margin:0 auto;padding:24px">
@@ -75,7 +77,7 @@ function emailHtml({ name, title, hint, link, unsub, langs }) {
       <hr style="border:0;border-top:1px solid #e4ded4;margin:22px 0" lang="${langs[1]}">
       <div lang="${langs[1]}">${block(B, { name, title, hint, link })}</div>
     </div>
-    <p style="font-size:12px;color:#687385;text-align:center;margin:14px 0 0">${A.why(name || A.friend)}<br>${B.why(name || B.friend)}<br>
+    <p style="font-size:12px;color:#687385;text-align:center;margin:14px 0 0">${(friends ? A.whyFriend : A.why)(name || A.friend)}<br>${(friends ? B.whyFriend : B.why)(name || B.friend)}<br>
       <a href="${esc(unsub)}" style="color:#687385">${A.unsub} · ${B.unsub}</a></p>
   </div></body></html>`;
 }
@@ -93,16 +95,33 @@ Deno.serve(async (req) => {
     if (uerr || !user) return json({ error: 'Accesso richiesto' }, 401);
 
     // 2) il pin è suo ed è riservato?
-    const { slug, lang } = await req.json().catch(() => ({}));
+    const { slug, lang, friends } = await req.json().catch(() => ({}));
     const langs = lang === 'en' ? ['en', 'it'] : ['it', 'en'];
     if (!slug) return json({ error: 'slug mancante' }, 400);
-    const { data: c } = await admin.from('contents').select('id, owner_id, title, hint, share_slug, visibility').eq('share_slug', slug).maybeSingle();
+    const { data: c } = await admin.from('contents').select('id, owner_id, title, hint, share_slug, visibility, friends_only, is_dating, group_id').eq('share_slug', slug).maybeSingle();
     if (!c || c.owner_id !== user.id) return json({ error: 'Non autorizzato' }, 403);
-    if (c.visibility !== 'restricted') return json({ sent: 0, skipped: 0 });
+    if (friends) {
+      if (c.is_dating || c.group_id) return json({ error: 'Questo tipo di pin non si può comunicare agli amici' }, 400);
+      if (c.visibility === 'hidden' && !c.friends_only) return json({ error: 'Il pin è solo tuo: scegli «Solo amici» o «Tutti» per avvisare gli amici' }, 400);
+    } else if (c.visibility !== 'restricted') return json({ sent: 0, skipped: 0 });
 
     // 3) destinatari da avvisare: esclusi già avvisati e disiscritti
-    const { data: rec } = await admin.from('content_recipients').select('email').eq('content_id', c.id);
-    const emails = [...new Set((rec || []).map((r) => r.email).filter(Boolean))];
+    let emails = [];
+    if (friends) {
+      const { data: fr } = await admin.from('friendships').select('user_a, user_b').or(`user_a.eq.${user.id},user_b.eq.${user.id}`).limit(500);
+      const fids = (fr || []).map((f) => (f.user_a === user.id ? f.user_b : f.user_a));
+      const { data: offs } = fids.length ? await admin.from('profiles').select('id').in('id', fids).eq('friend_mail', false) : { data: [] };
+      const off = new Set((offs || []).map((x) => x.id));
+      const want = fids.filter((i) => !off.has(i)).slice(0, 200);
+      for (let i = 0; i < want.length; i += 20) {
+        const got = await Promise.all(want.slice(i, i + 20).map((id) => admin.auth.admin.getUserById(id).then((r) => r.data?.user?.email || null).catch(() => null)));
+        emails.push(...got.filter(Boolean).map((e) => e.toLowerCase()));
+      }
+      emails = [...new Set(emails)];
+    } else {
+      const { data: rec } = await admin.from('content_recipients').select('email').eq('content_id', c.id);
+      emails = [...new Set((rec || []).map((r) => r.email).filter(Boolean))];
+    }
     if (!emails.length) return json({ sent: 0, skipped: 0 });
     const { data: done } = await admin.from('content_notifications').select('email').eq('content_id', c.id);
     const { data: out } = await admin.from('email_optout').select('email').in('email', emails);
@@ -137,7 +156,7 @@ Deno.serve(async (req) => {
           sender: { email: Deno.env.get('BREVO_SENDER_EMAIL'), name: Deno.env.get('BREVO_SENDER_NAME') || 'Ubi' },
           to: [{ email }],
           subject: A.subject(name || A.friend),
-          htmlContent: emailHtml({ name, title: c.title, hint: c.hint, link, unsub, langs }),
+          htmlContent: emailHtml({ name, title: c.title, hint: c.hint, link, unsub, langs, friends: !!friends }),
           textContent: `${A.text(name || A.friend, c.title, c.hint, link)}\n\n———\n\n${B.text(name || B.friend, c.title, c.hint, link)}\n\n${A.noMore} / ${B.noMore} ${unsub}`,
           headers: { 'List-Unsubscribe': `<${unsub}>` },
         }),

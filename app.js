@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280705';
+import { CONFIG } from './config.js?v=202611280712';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280705';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280712';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.147';
+const APP_VERSION = 'v.148';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -254,8 +254,11 @@ async function supabaseBackend() {
       const res = await sb.from('contents').update({ media_type: 'photo', media_path, text_body }).eq('id', c.id).eq('owner_id', u.id).select('id').single();
       if (res.error) { await sb.storage.from('media').remove([media_path]); throw res.error; }
     },
-    async notifyRecipients(slug) {
-      const { data, error } = await sb.functions.invoke(CONFIG.NOTIFY_FUNCTION || 'notify-recipients', { body: { slug, lang: LANG } });
+    async notifyFriends(slug) { return B.notifyRecipients(slug, true); },
+    async friendMailGet() { return !!must(await sb.rpc('friend_mail_get')); },
+    async friendMailSet(on) { must(await sb.rpc('friend_mail_set', { p_on: !!on })); },
+    async notifyRecipients(slug, friends) {
+      const { data, error } = await sb.functions.invoke(CONFIG.NOTIFY_FUNCTION || 'notify-recipients', { body: { slug, lang: LANG, friends: !!friends } });
       if (error) {   // leggo il motivo vero restituito dalla funzione
         let detail = error.message;
         try { const b = await error.context.json(); detail = b.error || JSON.stringify(b); } catch { try { detail = await error.context.text() || detail; } catch { /* resta il messaggio */ } }
@@ -810,6 +813,9 @@ function demoBackend() {
     },
     async remove(c) { db.contents = db.contents.filter((x) => x.id !== c.id); save(); },
     _book() { db.book = db.book || {}; db.book[db.user.id] = db.book[db.user.id] || []; return db.book[db.user.id]; },
+    async notifyFriends() { return { sent: (db.friends || []).length, skipped: 0, demo: true }; },
+    async friendMailGet() { return db.friendMail !== false; },
+    async friendMailSet(on) { db.friendMail = !!on; save(); },
     async notifyRecipients(slug) { const c = db.contents.find((x) => x.share_slug === slug); return { sent: (c?.recipients || []).length, skipped: 0, demo: true }; },   // simula l'invio riuscito
     async joinDating(d) { Object.assign(db.profiles[db.user.id], { dating_gender: d.gender, dating_birth_date: d.birth, dating_consent_version: CONFIG.DATING_CONSENT_VERSION }); save(); },
     async leaveDating() { db.profiles[db.user.id].dating_consent_version = null; save(); },
@@ -1806,6 +1812,7 @@ async function viewHome(user, prof) {
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
   $('#out').onclick = async (e) => { e.preventDefault(); await B.signOut(); location.hash = '#/'; route(); };
+  B.followFeed().then((f) => { const seen = +store.get('ubi_news_seen') || 0; const n = f.filter((c) => Date.parse(c.created_at) > seen).length; if (n && $('#newlink')) $('#newlink').innerHTML = `⭐ Novità <span class="pill">${n}</span>`; }).catch(() => {});
   B.friendRequestsIn().then((r) => { if (r.length && $('#frlink')) $('#frlink').innerHTML = `👥 Amici <span class="pill">${r.length}</span>`; }).catch(() => {});
   bindTopTools(app);
   homeMap();
@@ -2377,7 +2384,8 @@ async function viewNew(ed = null, opts = {}) {
       if (hunt) { location.hash = `#/caccia/${hunt.id}`; return; }
       const me = await B.profile().catch(() => null);
       viewCreated(title, slug, data.visibility === 'restricted'
-        ? { recipients: data.recipients, title, hint: data.hint, slug, author: me?.display_name } : null);
+        ? { recipients: data.recipients, title, hint: data.hint, slug, author: me?.display_name } : null,
+        !dating && !grpId && (data.visibility !== 'hidden' || data.friends_only));
     } catch (e) { err(errText(e)); btn.disabled = false; btn.textContent = ed ? 'Salva le modifiche' : 'Fissa nel luogo'; }
   };
 }
@@ -2432,17 +2440,18 @@ async function autoNotify(slug, box) {
 // l'ultimo punto usato per un pin, per crearne altri lì vicino senza rifare tutto
 function lastPoint() { try { const p = JSON.parse(localStorage.getItem('ubi_last_point') || 'null'); return p && Number.isFinite(p.lat) && Number.isFinite(p.lng) ? p : null; } catch { return null; } }
 function saveLastPoint(d) { try { localStorage.setItem('ubi_last_point', JSON.stringify({ lat: d.lat, lng: d.lng, radius: d.radius, source: d.source })); } catch { /* pazienza */ } }
-function viewCreated(title, slug, info = null) {
+function viewCreated(title, slug, info = null, canFriends = false) {
   history.replaceState(null, '', location.pathname + '#/fatto');  // così '＋' e 'Torna alla mappa' funzionano
   app.innerHTML = `
     <div class="hero"><span class="pin"></span><h1>Fissato!</h1>
       <p class="muted">«<span translate="no">${esc(title)}</span>» ora vive in quel luogo. Manda il link: si aprirà solo sul posto.</p></div>
     ${pinShareCard(title, slug, info?.hint)}
     ${info && info.recipients.length ? emailCard(info) : ''}
+    ${canFriends ? friendNotifyCard() : ''}
     <a class="btn accent full" href="#/new" id="samept">📌 Crea un altro pin nello stesso punto</a>
     <a class="btn ghost full" href="#/" style="margin-top:10px">Torna alla mappa</a>`;
   $('#samept').onclick = () => { try { sessionStorage.setItem('ubi_same_point', '1'); } catch { /* niente */ } };
-  bindPinShare(app);
+  bindPinShare(app); if (canFriends) bindFriendNotify(slug);
   if (info && info.recipients.length) autoNotify(slug, $('#automsg'));
 }
 
@@ -2525,6 +2534,7 @@ async function viewContent(slug, user) {
       ${huntNext}<div id="prizebox"></div>
       ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica o sostituisci il contenuto</a>
         ${!t.is_dating && !t.hunt_id && !art && !gi ? `<button class="ghost full" id="clonepin" type="button" style="margin-bottom:10px">📑 ${T2('Clona questo pin', 'Clone this pin')}</button><div id="clonebox" hidden></div>` : ''}
+        ${!t.is_dating && !t.hunt_id && !art && !gi ? `<button class="ghost full" id="fnbtn" type="button" style="margin-bottom:10px">👥 ${T2('Avvisa i miei amici via email', 'Tell my friends by email')}</button><div id="fnmsg"></div>` : ''}
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
       ${!t.is_owner && !t.is_dating ? `<div class="card center mine"><p><b>${T2('Ti è piaciuto?', 'Did you like it?')}</b> ${T2('Lascia anche tu un pin per i tuoi amici: ci vuole un minuto.', 'Leave a pin for your friends too: it takes a minute.')}</p><a class="btn accent full" href="#/new">📍 ${T2('Crea il tuo pin', 'Create your pin')}</a><a class="btn ghost full" style="margin-top:8px" href="#/amici">👥 ${T2('Invita un amico', 'Invite a friend')}</a>
@@ -2534,6 +2544,7 @@ async function viewContent(slug, user) {
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     bindPinShare(app);
+    if ($('#fnbtn')) bindFriendNotify(slug);
     if ($('#reppin')) $('#reppin').onclick = (e) => { e.preventDefault(); reportPanel($('#repm'), 'pin', slug, null); };
     if ($('#freq')) $('#freq').onclick = async () => {
       const b = $('#freq'); b.disabled = true;
@@ -5190,6 +5201,21 @@ async function viewFriendInvite(code, user) {
     <a class="btn ghost full" style="margin-top:8px" href="#/">${T2('Vai alla mappa', 'Go to the map')}</a></div>`;
 }
 
+// Pulsante "Avvisa i miei amici": un'email a ciascun amico (max 100 al giorno, mai due volte per lo stesso pin)
+const friendNotifyCard = () => `<div class="card"><button class="accent full" id="fnbtn" type="button">👥 ${T2('Avvisa i miei amici via email', 'Tell my friends by email')}</button><div id="fnmsg"></div></div>`;
+function bindFriendNotify(slug) {
+  const b = $('#fnbtn'); if (!b) return;
+  b.onclick = async () => {
+    b.disabled = true; msg($('#fnmsg'), T2('Invio in corso…', 'Sending…'), 'info');
+    try {
+      const r = await B.notifyFriends(slug);
+      if (r.failed) return (b.disabled = false, msg($('#fnmsg'), T2('Alcune email non sono partite: riprova tra poco.', 'Some emails failed: try again soon.'), 'err'));
+      msg($('#fnmsg'), r.sent ? T2(`✓ Avviso inviato a ${r.sent} amic${r.sent === 1 ? 'o' : 'i'}.`, `✓ Sent to ${r.sent} friend(s).`) : T2('Nessuna email nuova: nessun amico da avvisare, o già avvisati.', 'Nothing new to send.'), 'ok');
+      if (r.limited) msg($('#fnmsg'), T2('Limite giornaliero raggiunto: gli altri domani.', 'Daily limit reached.'), 'info');
+    } catch (err) { b.disabled = false; msg($('#fnmsg'), errText(err)); }
+  };
+}
+
 // Pannello "Segnala": motivo breve e invio
 function reportPanel(box, kind, slug, user) {
   box.innerHTML = `<div class="card"><b>🚩 ${T2('Cosa non va?', "What's wrong?")}</b>
@@ -5214,10 +5240,10 @@ async function viewNews() {
     const rows = list.map((c) => ({ ...c, d: pos ? distanceM(pos.lat, pos.lng, c.lat, c.lng) : null }));
     if (pos) rows.sort((a, b) => a.d - b.d);
     $('#nl').innerHTML = rows.length ? rows.map((c) => `<a class="card item pinrow" href="#/c/${esc(c.share_slug)}"><div class="ico">${badge(c.media_type)}</div>
-      <div><div class="t">${esc(c.title)}</div><div class="meta"><span translate="no">${esc(c.owner_name)}</span> · ${new Date(c.created_at).toLocaleDateString(LOC)}${c.d != null ? ' · ' + (c.d < 1000 ? Math.round(c.d) + ' m' : (c.d / 1000).toFixed(1) + ' km') + T2(' da te', ' away') : ''}</div></div></a>`).join('')
-      : `<div class="card center muted">${T2('Nessuna novità negli ultimi 30 giorni. Segui i profili che ti piacciono dalla loro pagina.', 'Nothing new in the last 30 days.')}</div>`;
+      <div><div class="t">${esc(c.title)}</div><div class="meta">${c.is_friend ? '👥 ' : '⭐ '}<span translate="no">${esc(c.owner_name)}</span> · ${new Date(c.created_at).toLocaleDateString(LOC)}${c.d != null ? ' · ' + (c.d < 1000 ? Math.round(c.d) + ' m' : (c.d / 1000).toFixed(1) + ' km') + T2(' da te', ' away') : ''}</div></div></a>`).join('')
+      : `<div class="card center muted">${T2('Nessuna novità negli ultimi 30 giorni. Qui trovi i pin dei tuoi amici e di chi segui.', 'Nothing new in the last 30 days.')}</div>`;
   };
-  app.innerHTML = `<h1>⭐ ${T2('Novità da chi segui', 'News from people you follow')}</h1>
+  app.innerHTML = `<h1>⭐ ${T2('Novità da amici e seguiti', 'News from friends and people you follow')}</h1>
     <p class="muted small">${T2('I pin pubblici degli ultimi 30 giorni. Tocca «Vicino a me» per ordinarli per distanza.', 'Public pins from the last 30 days.')}</p>
     <button class="ghost full" id="nnear" type="button" style="margin-bottom:10px">📍 ${T2('Vicino a me', 'Near me')}</button><div id="nm"></div><div id="nl"></div>
     <p class="center"><a href="#/amici">${T2('Chi seguo', 'Following')}</a> · <a href="#/">${T2('Torna a Ubi', 'Back to Ubi')}</a></p>`;
@@ -5263,9 +5289,12 @@ async function viewFriends() {
     <div id="freqs"></div>
     <h2 id="fcount" style="margin-top:20px"></h2><div id="flist"></div>
     <div id="ffol"></div>
+    <label class="inline card"><input type="checkbox" id="fmail" checked><span>${T2('Ricevi un\'email quando un amico lascia un pin', 'Email me when a friend leaves a pin')}</span></label>
     <p class="center"><a href="#/">${T2('Torna a Ubi', 'Back to Ubi')}</a></p>`;
   const drawFol = () => { $('#ffol').innerHTML = fol.length ? `<h2 style="margin-top:20px">⭐ ${T2('Chi seguo', 'Following')} (${fol.length})</h2>` + fol.map((f) => `<div class="card item" data-id="${esc(f.user_id)}"><a href="#/u/${esc(f.user_id)}" style="flex:1;text-decoration:none;color:inherit"><div class="t" translate="no">${esc(f.name)}</div><div class="meta">${f.followers} follower</div></a><button class="ghost small" data-unf type="button">${T2('Smetti', 'Unfollow')}</button></div>`).join('') : ''; };
   drawFol();
+  B.friendMailGet().then((on) => { if ($('#fmail')) $('#fmail').checked = on; }).catch(() => {});
+  $('#fmail').onchange = async () => { try { await B.friendMailSet($('#fmail').checked); } catch (err) { msg($('#fm'), errText(err)); } };
   $('#ffol').onclick = async (e) => { const b = e.target.closest('[data-unf]'); if (!b) return; b.disabled = true; const id = b.closest('.card').dataset.id;
     try { await B.followSet(id, false); fol = fol.filter((f) => f.user_id !== id); drawFol(); } catch (err) { b.disabled = false; msg($('#fm'), errText(err)); } };
   const drawReq = () => { $('#freqs').innerHTML = reqs.length ? `<h2 style="margin-top:20px">🤝 ${T2('Richieste di amicizia', 'Friend requests')}</h2>` + reqs.map((r) => `<div class="card item" data-id="${esc(r.user_id)}"><div style="flex:1"><div class="t" translate="no">${esc(r.name)}</div><div class="meta">${T2('vuole essere tuo amico', 'wants to be your friend')}</div></div><button class="accent small" data-ok type="button">${T2('Accetta', 'Accept')}</button> <button class="ghost small" data-no type="button">${T2('Rifiuta', 'Decline')}</button></div>`).join('') : ''; };
