@@ -35,6 +35,7 @@ Ogni versione ha anche un'etichetta Git con lo stesso nome (`git tag`).
 | v.141 | 28/11/2026 | e872c83 | Clona un pin: dal proprio pin aperto, «Clona questo pin» copia contenuto, indizio, raggio e visibilità in un altro punto scelto sulla mappa (o con la propria posizione), e si può ripetere quante volte si vuole. Le cacce restavano già duplicabili con «Duplica caccia». |
 | v.142 | 28/11/2026 | 910237d | «I miei contenuti»: l'elenco di tutti i propri pin si vede subito (categoria «Tutto» già aperta), con ricerca e conteggio, e ogni pin clonabile ha il pulsante «Clona» accanto a Condividi, Apri, Modifica, Elimina. |
 | v.143 | 28/11/2026 | 88e2801 | Amici con link di invito: ogni iscritto ha un proprio link; chi lo apre e si iscrive diventa suo amico (amicizia reciproca). Pagina «I miei amici» con invito (WhatsApp, copia, condividi), elenco e «Togli». Gli amici vedono solo il nome: mai email, telefono o posizione. Pulsanti «Amici» in home, profilo e dopo lo sblocco di un pin. Database: tabella friendships e funzioni friend_*. |
+| v.144 | 28/11/2026 | (commit) | Pin «Solo amici»: lo apre solo chi è amico dell'autore (anche chi lo diventa dopo). Richiesta di amicizia dall'autore di un pin sbloccato, con richieste da accettare o rifiutare in «I miei amici». Database: colonna friends_only, can_access aggiornata, friend_requests. |
 
 ## Rilascio in blocco v.121–v.136 (26/11/2026)
 

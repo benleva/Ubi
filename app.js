@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280646';
+import { CONFIG } from './config.js?v=202611280653';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280646';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280653';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.143';
+const APP_VERSION = 'v.144';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -236,7 +236,7 @@ async function supabaseBackend() {
       const row = {
         id, owner_id: u.id, title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
         external_url: d.external_url || null, duration_seconds: d.duration ?? null, lat: d.lat, lng: d.lng,
-        unlock_radius_m: d.radius, location_source: d.source, visibility: d.visibility, password_hash: d.password || null,
+        unlock_radius_m: d.radius, location_source: d.source, visibility: d.visibility, friends_only: !!d.friends_only, password_hash: d.password || null,
         unlock_at: d.unlock_at || null, open_anywhere: d.group_id ? !!d.open_anywhere : !!(d.unlock_at && d.open_anywhere), group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only), hunt_id: d.hunt_id || null, hunt_step: d.hunt_id ? d.hunt_step : null,
         text_body: d.text_body || null, tags: d.tags || [], is_dating: !!d.is_dating, replies_enabled: d.replies_enabled !== false,
         expires_at: d.expires_at || null,
@@ -508,6 +508,9 @@ async function supabaseBackend() {
     async friendAccept(code) { return (must(await sb.rpc('friend_accept', { p_code: code })) || [])[0] || { status: 'error' }; },
     async friendList() { return must(await sb.rpc('friend_list')) || []; },
     async friendRemove(id) { must(await sb.rpc('friend_remove', { p_user: id })); },
+    async friendRequestFromPin(slug) { return must(await sb.rpc('friend_request_from_pin', { p_slug: slug })); },
+    async friendRequestsIn() { return must(await sb.rpc('friend_requests_in')) || []; },
+    async friendRequestAnswer(id, ok) { must(await sb.rpc('friend_request_answer', { p_user: id, p_ok: !!ok })); },
     async huntWinners(id) { return must(await sb.rpc('hunt_winners_list', { p_hunt: id })) || []; },
     async huntRedeem(id, code) { return (must(await sb.rpc('hunt_redeem', { p_hunt: id, p_code: code })) || [])[0]; },
     async myHuntPrize(slug) { return (must(await sb.rpc('my_hunt_prize', { p_slug: slug })) || [])[0] || null; },
@@ -607,7 +610,7 @@ async function supabaseBackend() {
         ...(d.media_type === 'text' ? { text_body: d.text_body } : kindIsFile ? {} : { text_body: null }),   // il testo sotto una foto resta
         duration_seconds: kindIsFile ? (d.file ? d.duration : old.duration_seconds) : null,
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, location_source: d.source,
-        visibility: d.visibility, tags: d.tags || [], replies_enabled: d.replies_enabled !== false,
+        visibility: d.visibility, friends_only: !!d.friends_only, tags: d.tags || [], replies_enabled: d.replies_enabled !== false,
         unlock_at: d.unlock_at || null, open_anywhere: d.group_id ? !!d.open_anywhere : !!(d.unlock_at && d.open_anywhere),
         group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
         expires_at: d.expires_at || null,
@@ -752,7 +755,7 @@ function demoBackend() {
   }
   const sha = async (s) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, '0')).join('');
   const hex = (n) => [...crypto.getRandomValues(new Uint8Array(n))].map((b) => b.toString(16).padStart(2, '0')).join('');
-  const canAccess = (c, u) => (u && c.owner_id === u.id) || (c.group_id ? B._groupOk(c, u) : (c.visibility === 'public' || (c.visibility === 'restricted' && !!u && c.recipients.includes(u.email))));
+  const canAccess = (c, u) => (u && c.owner_id === u.id) || (c.group_id ? B._groupOk(c, u) : (c.visibility === 'public' || (c.friends_only && (db.friends || []).length > 0) || (c.visibility === 'restricted' && !!u && c.recipients.includes(u.email))));
   const demoArtistOf = (a) => !!a && (!!db.admin || (!!db.user && a.user_id === db.user.id));
   // nella demo i file possono essere anche indirizzi (immagini di prova per video e presentazioni)
   const demoMediaUrl = async (c) => (!c.media_path ? null : /^(https?:|img\/|arte\/|data:)/.test(c.media_path) ? c.media_path : URL.createObjectURL(await getBlob(c.media_path) || new Blob()));
@@ -785,7 +788,7 @@ function demoBackend() {
       db.contents.push({
         id, share_slug: slug, owner_id: db.user.id, title: d.title, hint: d.hint || null, media_type: d.media_type,
         media_path: d.file ? id : null, external_url: d.external_url || null, lat: d.lat, lng: d.lng, unlock_radius_m: d.radius,
-        visibility: d.group_id ? (d.group_only ? 'hidden' : 'public') : d.visibility, group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
+        visibility: d.group_id ? (d.group_only ? 'hidden' : 'public') : d.visibility, friends_only: !d.group_id && !!d.friends_only, group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
         recipients: d.group_id ? [] : d.recipients, password_hash: d.password ? await sha(d.password) : null,
         text_body: d.text_body || null, tags: d.tags || [], created_at: new Date().toISOString(),
         unlock_at: d.unlock_at || null, open_anywhere: d.group_id ? !!d.open_anywhere : !!(d.unlock_at && d.open_anywhere),
@@ -967,6 +970,10 @@ function demoBackend() {
     },
     async friendList() { return [...(db.friends || [])]; },
     async friendRemove(id) { db.friends = (db.friends || []).filter((f) => f.user_id !== id); save(); },
+    async friendRequestFromPin() { return 'sent'; },
+    async friendRequestsIn() { return db.friendReq || (db.friendReq = [{ user_id: 'r_demo', name: 'Luca' }]); },
+    async friendRequestAnswer(id, ok) { const r = (db.friendReq || []).find((x) => x.user_id === id); db.friendReq = (db.friendReq || []).filter((x) => x.user_id !== id);
+      if (ok && r) (db.friends = db.friends || []).push({ user_id: id, name: r.name, since: new Date().toISOString() }); save(); },
     async huntWinners() { return []; },
     async huntRedeem() { return { status: 'not_found' }; },
     async myHuntPrize(slug) {   // demo: stessa logica del database, codice salvato sul telefono
@@ -1082,7 +1089,7 @@ function demoBackend() {
         title: d.title, hint: d.hint || null, media_type: d.media_type,
         external_url: d.media_type === 'link' ? d.external_url : null, text_body: d.media_type === 'text' ? d.text_body : (kindIsFile ? c.text_body : null),
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, tags: d.tags || [],
-        visibility: d.group_id ? (d.group_only ? 'hidden' : 'public') : d.visibility, group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
+        visibility: d.group_id ? (d.group_only ? 'hidden' : 'public') : d.visibility, friends_only: !d.group_id && !!d.friends_only, group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
         open_anywhere: d.group_id ? !!d.open_anywhere : c.open_anywhere && !!c.unlock_at,
         recipients: !d.group_id && d.visibility === 'restricted' ? d.recipients : [],
       });
@@ -1821,7 +1828,7 @@ async function viewHome(user, prof) {
     <div class="card" data-i="${i}">
       <div class="item"><div class="ico">${c.is_dating ? datingBadge(prof.dating_gender) : pinBadge(c)}</div>
         <div><div class="t">${esc(c.title)}</div>
-        <div class="meta">${c.is_dating ? '💗 Dating · ' : ''}${VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString(LOC)}</div></div></div>
+        <div class="meta">${c.is_dating ? '💗 Dating · ' : ''}${c.friends_only ? '👥 Solo amici' : VIS[c.visibility]}${c.password_hash ? ' · 🔒 password' : ''} · ${new Date(c.created_at).toLocaleDateString(LOC)}</div></div></div>
       ${tagChips(c.tags)}
       <div class="actions">
         <button class="ghost" data-a="share">Condividi</button>
@@ -1913,7 +1920,7 @@ async function viewNew(ed = null, opts = {}) {
   if (ed) {
     Object.assign(s, {
       tags: new Set(ed.tags || []), kind: ['photo', 'video', 'audio'].includes(ed.media_type) ? 'file' : ed.media_type,
-      media_type: ed.media_type, radius: ed.unlock_radius_m, vis: ed.visibility,
+      media_type: ed.media_type, radius: ed.unlock_radius_m, vis: ed.friends_only ? 'friends' : ed.visibility,
     });
   }
   app.innerHTML = `
@@ -1995,7 +2002,8 @@ async function viewNew(ed = null, opts = {}) {
         <label class="inline"><input type="checkbox" id="grponly"><span>Solo gli <b>iscritti al gruppo</b> lo vedono (altrimenti è pubblico, con l'icona del gruppo)</span></label>
         <label class="inline"><input type="checkbox" id="grpfar"><span>Si può aprire <b>anche da lontano</b>, senza andare sul posto</span></label></div></div>
     <div class="card" id="viscard" ${dating ? 'hidden' : ''}><h2>4 · Chi può aprirlo</h2>
-      <div class="seg" id="vis"><button data-v="restricted" class="on">Persone scelte</button><button data-v="public">Tutti</button><button data-v="hidden">Solo io</button></div>
+      <div class="seg" id="vis"><button data-v="restricted" class="on">Persone scelte</button><button data-v="friends">👥 Solo amici</button><button data-v="public">Tutti</button><button data-v="hidden">Solo io</button></div>
+      <div class="muted small" id="v-friends" hidden>Lo apre solo chi è tuo amico su Ubi, anche chi lo diventa dopo. <a href="#/amici">I miei amici</a></div>
       <div id="v-restricted">
         <div id="groupbox" hidden><label>👥 Gruppi <span class="muted small">(un tocco seleziona tutti i membri)</span></label><div class="chips" id="groupchips"></div></div>
         <label>Dalla tua rubrica <span class="muted small" id="seln"></span></label>
@@ -2215,6 +2223,7 @@ async function viewNew(ed = null, opts = {}) {
     const b = e.target.closest('button'); if (!b) return;
     s.vis = b.dataset.v; [...$('#vis').children].forEach((x) => x.classList.toggle('on', x === b));
     $('#v-restricted').hidden = s.vis !== 'restricted';
+    $('#v-friends').hidden = s.vis !== 'friends';
   };
 
   if (!dating && !hunt) initGroupCard(s, ed);
@@ -2331,7 +2340,7 @@ async function viewNew(ed = null, opts = {}) {
       text_body: s.kind === 'text' ? $('#txt').value.trim() : null, tags: [...s.tags].filter((t) => t !== 'ico-gruppo').concat(grpId ? ['ico-gruppo'] : []),
       group_id: grpId || null, group_only: grpOnly,
       external_url, lat: s.lat, lng: s.lng, radius: s.radius, source: s.source, title, hint: $('#hint').value.trim(),
-      visibility: dating ? 'public' : s.vis, recipients: dating ? [] : recipients, password: isStage ? normAnswer($('#pwd').value) : $('#pwd').value,
+      visibility: dating ? 'public' : (s.vis === 'friends' ? 'hidden' : s.vis), friends_only: !dating && s.vis === 'friends', recipients: dating ? [] : recipients, password: isStage ? normAnswer($('#pwd').value) : $('#pwd').value,
       is_dating: dating, replies_enabled: dating ? true : $('#replies').checked,
       unlock_at, open_anywhere: grpId ? $('#grpfar').checked : (!!unlock_at && $('#anywhere').checked),
       expires_at: (!dating && !hunt && $('#expiry').checked && $('#expiresat').value) ? new Date($('#expiresat').value).toISOString() : null,
@@ -2500,11 +2509,19 @@ async function viewContent(slug, user) {
         ${!t.is_dating && !t.hunt_id && !art && !gi ? `<button class="ghost full" id="clonepin" type="button" style="margin-bottom:10px">📑 ${T2('Clona questo pin', 'Clone this pin')}</button><div id="clonebox" hidden></div>` : ''}
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
-      ${!t.is_owner && !t.is_dating ? `<div class="card center mine"><p><b>${T2('Ti è piaciuto?', 'Did you like it?')}</b> ${T2('Lascia anche tu un pin per i tuoi amici: ci vuole un minuto.', 'Leave a pin for your friends too: it takes a minute.')}</p><a class="btn accent full" href="#/new">📍 ${T2('Crea il tuo pin', 'Create your pin')}</a><a class="btn ghost full" style="margin-top:8px" href="#/amici">👥 ${T2('Invita un amico', 'Invite a friend')}</a></div>` : ''}
+      ${!t.is_owner && !t.is_dating ? `<div class="card center mine"><p><b>${T2('Ti è piaciuto?', 'Did you like it?')}</b> ${T2('Lascia anche tu un pin per i tuoi amici: ci vuole un minuto.', 'Leave a pin for your friends too: it takes a minute.')}</p><a class="btn accent full" href="#/new">📍 ${T2('Crea il tuo pin', 'Create your pin')}</a><a class="btn ghost full" style="margin-top:8px" href="#/amici">👥 ${T2('Invita un amico', 'Invite a friend')}</a>
+        ${CONFIG.NO_FRIEND_REQ ? '' : `<button class="ghost full" id="freq" type="button" style="margin-top:8px">🤝 ${T2("Chiedi l'amicizia all'autore", 'Ask the author to be friends')}</button><div id="freqm"></div>`}</div>` : ''}
       ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint, t.hunt_id && t.hunt_step === 1 ? { title: t.hunt_title || t.title, prize: '', steps: t.hunt_steps } : null)}
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     bindPinShare(app);
+    if ($('#freq')) $('#freq').onclick = async () => {
+      const b = $('#freq'); b.disabled = true;
+      try { const r = await B.friendRequestFromPin(slug);
+        msg($('#freqm'), r === 'friends' ? T2('Ora siete amici ✓', 'You are friends now ✓') : r === 'already' ? T2('Siete già amici ✓', 'Already friends ✓') : r === 'sent' ? T2("Richiesta inviata ✓ L'autore la vedrà in «I miei amici».", 'Request sent ✓') : T2('Non è possibile per questo pin.', 'Not possible for this pin.'), r === 'none' ? 'info' : 'ok');
+        if (r === 'none') b.disabled = false; }
+      catch (err) { b.disabled = false; msg($('#freqm'), errText(err)); }
+    };
     if ($('#clonepin')) $('#clonepin').onclick = () => pinClonePanel(t, slug);
     try { if ($('#clonepin') && sessionStorage.getItem('ubi_clone_slug') === slug) { sessionStorage.removeItem('ubi_clone_slug'); pinClonePanel(t, slug); } } catch { /* */ }   // arrivo dal pulsante Clona dell'elenco
     if ($('#huntgo')) $('#huntgo').onclick = () => {
@@ -5154,8 +5171,8 @@ async function viewFriendInvite(code, user) {
 
 async function viewFriends() {
   app.innerHTML = '<p class="muted center">Carico i tuoi amici…</p>';
-  let code, list;
-  try { [code, list] = await Promise.all([B.friendMyCode(), B.friendList()]); }
+  let code, list, reqs = [];
+  try { [code, list] = await Promise.all([B.friendMyCode(), B.friendList()]); reqs = await B.friendRequestsIn().catch(() => []); }
   catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}<br><span class="small">${T2('Se continua, il database potrebbe non essere aggiornato.', 'If it keeps happening, the database may not be up to date.')}</span></div>`; return; }
   const url = friendUrl(code), text = friendText('');
   const d = (x) => new Date(x).toLocaleDateString(LOC);
@@ -5171,9 +5188,17 @@ async function viewFriends() {
     <div class="card"><button class="full accent" id="fshare" type="button">📤 ${T2('Invita un amico', 'Invite a friend')}</button>
       <div class="row" style="margin-top:10px"><a class="btn" style="background:#25d366;border-color:#25d366" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}">WhatsApp</a><button class="ghost" id="fcopy" type="button">${T2('Copia link', 'Copy link')}</button></div>
       <p class="muted small" style="margin:10px 0 0;word-break:break-all">${esc(url)}</p><div id="fm"></div></div>
+    <div id="freqs"></div>
     <h2 id="fcount" style="margin-top:20px"></h2><div id="flist"></div>
     <p class="center"><a href="#/">${T2('Torna a Ubi', 'Back to Ubi')}</a></p>`;
-  draw();
+  const drawReq = () => { $('#freqs').innerHTML = reqs.length ? `<h2 style="margin-top:20px">🤝 ${T2('Richieste di amicizia', 'Friend requests')}</h2>` + reqs.map((r) => `<div class="card item" data-id="${esc(r.user_id)}"><div style="flex:1"><div class="t" translate="no">${esc(r.name)}</div><div class="meta">${T2('vuole essere tuo amico', 'wants to be your friend')}</div></div><button class="accent small" data-ok type="button">${T2('Accetta', 'Accept')}</button> <button class="ghost small" data-no type="button">${T2('Rifiuta', 'Decline')}</button></div>`).join('') : ''; };
+  drawReq(); draw();
+  $('#freqs').onclick = async (e) => {
+    const b = e.target.closest('[data-ok],[data-no]'); if (!b) return;
+    const id = b.closest('.card').dataset.id, ok = b.hasAttribute('data-ok'); b.disabled = true;
+    try { await B.friendRequestAnswer(id, ok); reqs = reqs.filter((r) => r.user_id !== id); if (ok) list = await B.friendList(); drawReq(); draw(); }
+    catch (err) { b.disabled = false; msg($('#fm'), errText(err)); }
+  };
   $('#fshare').onclick = async () => {
     try { if (navigator.share) await navigator.share({ text: `${text} ${url}` }); else { await navigator.clipboard.writeText(`${text} ${url}`); msg($('#fm'), T2('Messaggio e link copiati ✓', 'Message and link copied ✓'), 'ok'); } }
     catch (err) { if (err && err.name !== 'AbortError') msg($('#fm'), url, 'info'); }
