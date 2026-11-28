@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280653';
+import { CONFIG } from './config.js?v=202611280656';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280653';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280656';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.144';
+const APP_VERSION = 'v.145';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -510,6 +510,9 @@ async function supabaseBackend() {
     async friendRemove(id) { must(await sb.rpc('friend_remove', { p_user: id })); },
     async friendRequestFromPin(slug) { return must(await sb.rpc('friend_request_from_pin', { p_slug: slug })); },
     async friendRequestsIn() { return must(await sb.rpc('friend_requests_in')) || []; },
+    async followInfo(id) { return (must(await sb.rpc('follow_info', { p_user: id })) || [])[0] || { followers: 0, following: false }; },
+    async followSet(id, on) { must(await sb.rpc('follow_set', { p_user: id, p_on: !!on })); },
+    async followList() { return must(await sb.rpc('follow_list')) || []; },
     async friendRequestAnswer(id, ok) { must(await sb.rpc('friend_request_answer', { p_user: id, p_ok: !!ok })); },
     async huntWinners(id) { return must(await sb.rpc('hunt_winners_list', { p_hunt: id })) || []; },
     async huntRedeem(id, code) { return (must(await sb.rpc('hunt_redeem', { p_hunt: id, p_code: code })) || [])[0]; },
@@ -971,6 +974,9 @@ function demoBackend() {
     async friendList() { return [...(db.friends || [])]; },
     async friendRemove(id) { db.friends = (db.friends || []).filter((f) => f.user_id !== id); save(); },
     async friendRequestFromPin() { return 'sent'; },
+    async followInfo(id) { const f = db.follows || []; return { followers: id === db.user?.id ? 0 : 12, following: f.includes(id) }; },
+    async followSet(id, on) { db.follows = (db.follows || []).filter((x) => x !== id); if (on) db.follows.push(id); save(); },
+    async followList() { return (db.follows || []).map((id) => ({ user_id: id, name: db.profiles[id]?.display_name || 'Creator', followers: 12 })); },
     async friendRequestsIn() { return db.friendReq || (db.friendReq = [{ user_id: 'r_demo', name: 'Luca' }]); },
     async friendRequestAnswer(id, ok) { const r = (db.friendReq || []).find((x) => x.user_id === id); db.friendReq = (db.friendReq || []).filter((x) => x.user_id !== id);
       if (ok && r) (db.friends = db.friends || []).push({ user_id: id, name: r.name, since: new Date().toISOString() }); save(); },
@@ -5171,8 +5177,8 @@ async function viewFriendInvite(code, user) {
 
 async function viewFriends() {
   app.innerHTML = '<p class="muted center">Carico i tuoi amici…</p>';
-  let code, list, reqs = [];
-  try { [code, list] = await Promise.all([B.friendMyCode(), B.friendList()]); reqs = await B.friendRequestsIn().catch(() => []); }
+  let code, list, reqs = [], fol = [];
+  try { [code, list] = await Promise.all([B.friendMyCode(), B.friendList()]); reqs = await B.friendRequestsIn().catch(() => []); fol = await B.followList().catch(() => []); }
   catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}<br><span class="small">${T2('Se continua, il database potrebbe non essere aggiornato.', 'If it keeps happening, the database may not be up to date.')}</span></div>`; return; }
   const url = friendUrl(code), text = friendText('');
   const d = (x) => new Date(x).toLocaleDateString(LOC);
@@ -5190,7 +5196,12 @@ async function viewFriends() {
       <p class="muted small" style="margin:10px 0 0;word-break:break-all">${esc(url)}</p><div id="fm"></div></div>
     <div id="freqs"></div>
     <h2 id="fcount" style="margin-top:20px"></h2><div id="flist"></div>
+    <div id="ffol"></div>
     <p class="center"><a href="#/">${T2('Torna a Ubi', 'Back to Ubi')}</a></p>`;
+  const drawFol = () => { $('#ffol').innerHTML = fol.length ? `<h2 style="margin-top:20px">⭐ ${T2('Chi seguo', 'Following')} (${fol.length})</h2>` + fol.map((f) => `<div class="card item" data-id="${esc(f.user_id)}"><a href="#/u/${esc(f.user_id)}" style="flex:1;text-decoration:none;color:inherit"><div class="t" translate="no">${esc(f.name)}</div><div class="meta">${f.followers} follower</div></a><button class="ghost small" data-unf type="button">${T2('Smetti', 'Unfollow')}</button></div>`).join('') : ''; };
+  drawFol();
+  $('#ffol').onclick = async (e) => { const b = e.target.closest('[data-unf]'); if (!b) return; b.disabled = true; const id = b.closest('.card').dataset.id;
+    try { await B.followSet(id, false); fol = fol.filter((f) => f.user_id !== id); drawFol(); } catch (err) { b.disabled = false; msg($('#fm'), errText(err)); } };
   const drawReq = () => { $('#freqs').innerHTML = reqs.length ? `<h2 style="margin-top:20px">🤝 ${T2('Richieste di amicizia', 'Friend requests')}</h2>` + reqs.map((r) => `<div class="card item" data-id="${esc(r.user_id)}"><div style="flex:1"><div class="t" translate="no">${esc(r.name)}</div><div class="meta">${T2('vuole essere tuo amico', 'wants to be your friend')}</div></div><button class="accent small" data-ok type="button">${T2('Accetta', 'Accept')}</button> <button class="ghost small" data-no type="button">${T2('Rifiuta', 'Decline')}</button></div>`).join('') : ''; };
   drawReq(); draw();
   $('#freqs').onclick = async (e) => {
@@ -5518,7 +5529,7 @@ async function viewMyProfile(prof) {
       </div>
     </div>
     <div class="card"><form id="f">
-      <label for="name">Nome visibile</label><input id="name" required maxlength="60" value="${esc(p.display_name || '')}">
+      <label for="name">Soprannome <span class="muted small">(lo vedono gli altri: non serve il nome vero)</span></label><input id="name" required maxlength="60" value="${esc(p.display_name || '')}">
       <label for="bio">Chi sono (max 300 caratteri)</label>
       <textarea id="bio" maxlength="300" rows="3" placeholder="Es. Guida turistica a Roma, appassionato di fotografia e trekking.">${esc(p.bio || '')}</textarea>
       <h2 style="margin-top:18px">Contatti pubblici (facoltativi)</h2>
@@ -5628,8 +5639,8 @@ async function viewBook() {
 
 async function viewAuthor(id) {
   app.innerHTML = '<p class="muted center">Carico il profilo…</p>';
-  let a, pins;
-  try { a = await B.getAuthor(id); pins = a ? await B.authorPins(id) : []; } catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
+  let a, pins, fi = { followers: 0, following: false };
+  try { a = await B.getAuthor(id); pins = a ? await B.authorPins(id) : []; if (a) fi = await B.followInfo(id).catch(() => fi); } catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
   if (!a) { app.innerHTML = '<div class="card center"><h2>Profilo non disponibile</h2><p class="muted">Puoi vedere il profilo di chi ha pin che tu puoi aprire.</p><a class="btn" href="#/">Torna alla mappa</a></div>'; return; }
   const contacts = [
     a.website && `<a class="btn ghost" href="${esc(a.website)}" target="_blank" rel="noopener noreferrer">🌐 ${esc(hostOf(a.website))}</a>`,
@@ -5641,8 +5652,10 @@ async function viewAuthor(id) {
     <div class="card center profile">
       ${avatarHtml(a.avatar_path, a.display_name, 110)}
       <h1>${esc(a.display_name || 'Utente')}</h1>
+      <div class="muted" id="fwc">${fi.followers ? T2(`${fi.followers} follower`, `${fi.followers} followers`) : ''}</div>
       ${a.bio ? `<p class="bio">${linkify(a.bio)}</p>` : ''}
       ${contacts.length ? `<div class="contacts">${contacts.join('')}</div>` : ''}
+      ${a.is_me ? '' : `<button class="full ${fi.following ? 'ghost' : 'accent'}" id="fwbtn" type="button" style="margin-bottom:8px">${fi.following ? '✓ ' + T2('Segui già', 'Following') : '➕ ' + T2('Segui', 'Follow')}</button><div id="fwm"></div>`}
       ${a.is_me ? '<a class="btn full" href="#/profilo">✏️ Modifica il mio profilo</a>'
         : a.can_message ? `<a class="btn full accent" style="background:var(--accent)" href="#/messaggi/${esc(a.id)}">✉️ Scrivi a ${esc(a.display_name || '')}</a>` : ''}
     </div>
@@ -5650,6 +5663,14 @@ async function viewAuthor(id) {
     ${pins.length ? pins.map((c) => `<a class="card item pinrow" href="#/c/${esc(c.share_slug)}"><div class="ico">${badge(c.media_type)}</div>
         <div><div class="t">${esc(c.title)}</div>${tagChips(c.tags)}</div></a>`).join('') : '<p class="muted">Nessun pin da mostrare.</p>'}
     <p class="center"><a href="#/">Torna alla mappa</a></p>`;
+  if ($('#fwbtn')) $('#fwbtn').onclick = async () => {
+    const b = $('#fwbtn'), on = !fi.following; b.disabled = true;
+    try { await B.followSet(id, on); fi = { followers: Math.max(0, fi.followers + (on ? 1 : -1)), following: on };
+      b.className = 'full ' + (on ? 'ghost' : 'accent'); b.textContent = on ? '✓ ' + T2('Segui già', 'Following') : '➕ ' + T2('Segui', 'Follow');
+      $('#fwc').textContent = fi.followers ? T2(`${fi.followers} follower`, `${fi.followers} followers`) : ''; }
+    catch (err) { msg($('#fwm'), errText(err)); }
+    b.disabled = false;
+  };
 }
 
 async function viewInbox() {
