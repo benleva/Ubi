@@ -38,7 +38,7 @@ Ogni versione ha anche un'etichetta Git con lo stesso nome (`git tag`).
 | v.144 | 28/11/2026 | fb05aae | Pin «Solo amici»: lo apre solo chi è amico dell'autore (anche chi lo diventa dopo). Richiesta di amicizia dall'autore di un pin sbloccato, con richieste da accettare o rifiutare in «I miei amici». Database: colonna friends_only, can_access aggiornata, friend_requests. |
 | v.145 | 28/11/2026 | 9d96e5a | Segui: pulsante «Segui» e contatore follower sul profilo di chi ha pin visibili; elenco «Chi seguo» in «I miei amici». Si vede solo il numero dei follower, mai chi sono. Il nome visibile diventa «Soprannome». Database: tabella follows e funzioni follow_*. |
 | v.146 | 28/11/2026 | 1c3c45c | Social sicuro: iscrizione con dichiarazione «almeno 14 anni, genitore d'accordo se minorenne»; pulsante «Segnala» su pin e profili con coda «Segnalazioni» in admin; pagina «Novità» con i pin recenti di chi segui, ordinabili per distanza. Informativa privacy aggiornata. Database: reports, report_create, admin_reports, follow_feed. |
-| v.147 | 28/11/2026 | (commit) | Avviso delle richieste di amicizia: sul pulsante «Amici» della home compare il numero di richieste da accettare. |
+| v.147 | 28/11/2026 | 443a346 | Avviso delle richieste di amicizia: sul pulsante «Amici» della home compare il numero di richieste da accettare. |
 
 ## Rilascio in blocco v.121–v.136 (26/11/2026)
 
