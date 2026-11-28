@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280803';
+import { CONFIG } from './config.js?v=202611280839';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280803';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280839';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.151';
+const APP_VERSION = 'v.152';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -517,7 +517,7 @@ async function supabaseBackend() {
     async followSet(id, on) { must(await sb.rpc('follow_set', { p_user: id, p_on: !!on })); },
     async followList() { return must(await sb.rpc('follow_list')) || []; },
     async followFeed() { return must(await sb.rpc('follow_feed')) || []; },
-    async reportCreate(kind, slug, user, reason) { must(await sb.rpc('report_create', { p_kind: kind, p_slug: slug || null, p_user: user || null, p_reason: reason })); },
+    async reportCreate(kind, slug, user, reason, link) { must(await sb.rpc('report_create', { p_kind: kind, p_slug: slug || null, p_user: user || null, p_reason: reason, p_link: link || null })); },
     async adminReports(st) { return must(await sb.rpc('admin_reports', { p_status: st || 'open' })) || []; },
     async adminReportDone(id) { must(await sb.rpc('admin_report_done', { p_id: id })); },
     async friendRequestAnswer(id, ok) { must(await sb.rpc('friend_request_answer', { p_user: id, p_ok: !!ok })); },
@@ -616,7 +616,7 @@ async function supabaseBackend() {
       } else if (!kindIsFile) media_path = null;
       const patch = {
         title: d.title, hint: d.hint || null, media_type: d.media_type, media_path,
-        external_url: d.media_type === 'link' ? d.external_url : null,
+        external_url: d.external_url || null,
         ...(d.media_type === 'text' ? { text_body: d.text_body } : kindIsFile ? {} : { text_body: null }),   // il testo sotto una foto resta
         duration_seconds: kindIsFile ? (d.file ? d.duration : old.duration_seconds) : null,
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, location_source: d.source,
@@ -987,7 +987,7 @@ function demoBackend() {
     async followInfo(id) { const f = db.follows || []; return { followers: id === db.user?.id ? 0 : 12, following: f.includes(id) }; },
     async followSet(id, on) { db.follows = (db.follows || []).filter((x) => x !== id); if (on) db.follows.push(id); save(); },
     async followFeed() { return (db.follows || []).length ? [{ share_slug: 'demo', title: 'Tramonto dal molo', media_type: 'photo', created_at: new Date().toISOString(), owner_id: db.follows[0], owner_name: 'Creator', lat: 45.69, lng: 9.67 }] : []; },
-    async reportCreate(kind, slug, user, reason) { (db.reports = db.reports || []).push({ id: crypto.randomUUID(), kind, target_slug: slug, target_user: user, reason, status: 'open', created_at: new Date().toISOString() }); save(); },
+    async reportCreate(kind, slug, user, reason, link) { (db.reports = db.reports || []).push({ id: crypto.randomUUID(), kind, target_slug: slug, target_user: user, reason, link_url: link || null, status: 'open', created_at: new Date().toISOString() }); save(); },
     async adminReports(st) { return (db.reports || []).filter((r) => r.status === (st || 'open')).map((r) => ({ ...r, target_name: 'Utente', reporter_name: 'Tu', n_target: 1 })); },
     async adminReportDone(id) { (db.reports || []).forEach((r) => { if (r.id === id) r.status = 'done'; }); save(); },
     async followList() { return (db.follows || []).map((id) => ({ user_id: id, name: db.profiles[id]?.display_name || 'Creator', followers: 12 })); },
@@ -1107,7 +1107,7 @@ function demoBackend() {
       else if (!kindIsFile) c.media_path = null;
       Object.assign(c, {
         title: d.title, hint: d.hint || null, media_type: d.media_type,
-        external_url: d.media_type === 'link' ? d.external_url : null, text_body: d.media_type === 'text' ? d.text_body : (kindIsFile ? c.text_body : null),
+        external_url: d.external_url || null, text_body: d.media_type === 'text' ? d.text_body : (kindIsFile ? c.text_body : null),
         lat: d.lat, lng: d.lng, unlock_radius_m: d.radius, tags: d.tags || [],
         visibility: d.group_id ? (d.group_only ? 'hidden' : 'public') : d.visibility, friends_only: !d.group_id && !!d.friends_only, group_id: d.group_id || null, group_only: !!(d.group_id && d.group_only),
         open_anywhere: d.group_id ? !!d.open_anywhere : c.open_anywhere && !!c.unlock_at,
@@ -1982,6 +1982,9 @@ async function viewNew(ed = null, opts = {}) {
         <b>Tante foto in un pin:</b> incolla il link di un album condiviso (Google Foto: album → Condividi → Crea link; iPhone: Foto → album condiviso → Sito web pubblico → copia il link).
         Puoi incollare anche tutto il messaggio di condivisione: il link lo troviamo noi. Per i video più lunghi di ${CONFIG.MAX_VIDEO_SECONDS} secondi caricali su YouTube (anche "non in elenco") e incolla qui il link.</p>
         <div id="urlok" class="small"></div></div>
+      <div id="k-extra" hidden><label for="xurl">🔗 Aggiungi un link <span class="muted">(facoltativo)</span></label>
+        <input id="xurl" inputmode="url" placeholder="https://…  sito, mappa, prenotazione, documento">
+        <p class="muted small">Sotto il contenuto comparirà il pulsante «Apri il link».</p></div>
       <div id="pm"></div><div class="preview" id="preview"></div>
     </div>
     <div class="card"><h2>2 · Dove</h2>
@@ -2098,7 +2101,7 @@ async function viewNew(ed = null, opts = {}) {
     const b = e.target.closest('button'); if (!b) return;
     s.kind = b.dataset.k;
     [...$('#kind').children].forEach((x) => x.classList.toggle('on', x === b));
-    $('#k-file').hidden = s.kind !== 'file'; $('#k-link').hidden = s.kind !== 'link'; $('#k-text').hidden = s.kind !== 'text';
+    $('#k-file').hidden = s.kind !== 'file'; $('#k-link').hidden = s.kind !== 'link'; $('#k-text').hidden = s.kind !== 'text'; $('#k-extra').hidden = s.kind === 'link' || !!dating;
     $('#preview').innerHTML = ''; msg($('#pm'), '');
   };
   $('#toalbum').onclick = (e) => { e.preventDefault(); $('#kind button[data-k="link"]').click(); $('#url').focus(); };
@@ -2304,7 +2307,7 @@ async function viewNew(ed = null, opts = {}) {
       showCurrentFile();
     }
     if (ed.text_body) { $('#txt').value = ed.text_body; $('#txt').oninput(); }
-    if (ed.external_url) { $('#url').value = ed.external_url; $('#url').oninput(); }
+    if (ed.external_url) { if (ed.media_type === 'link') { $('#url').value = ed.external_url; $('#url').oninput(); } else $('#xurl').value = ed.external_url; }
     $('#title').value = ed.title || ''; $('#hint').value = ed.hint || '';
     (ed.tags || []).forEach((t) => { if (!t.startsWith('ico-') && !allTags.includes(t) && !(dating && DATING_FLAT.has(t))) allTags.unshift(t); }); drawTags(); drawIcons();
     $(`#vis button[data-v="${s.vis}"]`).click();
@@ -2336,6 +2339,7 @@ async function viewNew(ed = null, opts = {}) {
       if (!$('#txt').value.trim()) return err('Scrivi il testo da lasciare in quel luogo.');
     } else if (s.needShrink) return err('Prima tocca «🎬 Alleggerisci il video»: è troppo pesante per caricarlo così.');
     else if (!s.file && !(ed && ['photo', 'video', 'audio'].includes(ed.media_type))) return err('Scegli una foto, un video o un audio.');
+    if (s.kind !== 'link' && !dating && $('#xurl').value.trim()) { external_url = extractUrl($('#xurl').value); if (!external_url) return err('Il link facoltativo non è valido (es. https://…).'); }
     if (s.lat == null) return err('Indica il luogo: GPS, indirizzo, coordinate o tocco sulla mappa.');
     const title = $('#title').value.trim(); if (!title) return err('Dai un titolo al contenuto.');
     let unlock_at = null;
@@ -2455,8 +2459,9 @@ function viewCreated(title, slug, info = null, canFriends = false) {
   if (info && info.recipients.length) autoNotify(slug, $('#automsg'));
 }
 
+const extraLink = (r) => (r.external_url ? `<a class="btn full" style="margin-top:10px" href="${esc(r.external_url)}" target="_blank" rel="noopener noreferrer">🔗 ${T2('Apri il link', 'Open the link')}: ${esc(hostOf(r.external_url))} ↗</a>` : '');
 function renderMedia(type, r) {
-  if (type === 'text') return `<div class="textbody">${linkify(r.text_body)}</div>`;
+  if (type === 'text') return `<div class="textbody">${linkify(r.text_body)}</div>${extraLink(r)}`;
   if (type === 'link' || (!r.url && r.external_url)) {
     const u = r.external_url || '';
     const yt = youTubeId(u), vm = vimeoId(u);
@@ -2468,9 +2473,9 @@ function renderMedia(type, r) {
       <a class="btn full" style="margin-top:10px" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Apri il link ↗</a>`;
   }
   const story = r.text_body ? `<div class="textbody story">${linkify(r.text_body)}</div>` : '';
-  if (type === 'photo') return `<img src="${esc(r.url)}" alt="">${story}`;
-  if (type === 'video') return `<video src="${esc(r.url)}" controls playsinline autoplay></video>${story}`;
-  return `<audio src="${esc(r.url)}" controls autoplay></audio>${story}`;
+  if (type === 'photo') return `<img src="${esc(r.url)}" alt="">${story}${extraLink(r)}`;
+  if (type === 'video') return `<video src="${esc(r.url)}" controls playsinline autoplay></video>${story}${extraLink(r)}`;
+  return `<audio src="${esc(r.url)}" controls autoplay></audio>${story}${extraLink(r)}`;
 }
 
 async function viewContent(slug, user) {
@@ -5221,13 +5226,15 @@ function bindFriendNotify(slug) {
 function reportPanel(box, kind, slug, user) {
   box.innerHTML = `<div class="card"><b>🚩 ${T2('Cosa non va?', "What's wrong?")}</b>
     <textarea id="repwhy" rows="3" maxlength="500" placeholder="${T2('Spiega in poche parole (es. contenuto offensivo, falso, pericoloso)', 'Explain briefly')}"></textarea>
+    <input id="replink" inputmode="url" placeholder="${T2('Link utile (facoltativo): https://…', 'Useful link (optional): https://…')}" style="margin-top:8px">
     <p class="muted small">${T2('Lo vede solo chi gestisce Ubi. Chi è segnalato non sa chi sei.', 'Only Ubi staff sees it. The reported person will not know who you are.')}</p>
     <div class="row"><button class="accent" id="repok" type="button">${T2('Invia', 'Send')}</button><button class="ghost" id="repno" type="button">${T2('Annulla', 'Cancel')}</button></div><div id="repout"></div></div>`;
   $('#repno').onclick = () => { box.innerHTML = ''; };
   $('#repok').onclick = async () => {
     const why = $('#repwhy').value.trim(); if (!why) return msg($('#repout'), T2('Scrivi almeno una parola.', 'Write a few words.'));
+    const link = $('#replink').value.trim(); if (link && !/^https:\/\/\S+$/i.test(link)) return msg($('#repout'), T2('Il link deve iniziare con https://', 'The link must start with https://'));
     $('#repok').disabled = true;
-    try { await B.reportCreate(kind, slug, user, why); box.innerHTML = `<div class="msg ok">${T2('Grazie, abbiamo ricevuto la segnalazione.', 'Thanks, we received your report.')}</div>`; }
+    try { await B.reportCreate(kind, slug, user, why, link); box.innerHTML = `<div class="msg ok">${T2('Grazie, abbiamo ricevuto la segnalazione.', 'Thanks, we received your report.')}</div>`; }
     catch (err) { $('#repok').disabled = false; msg($('#repout'), errText(err)); }
   };
 }
@@ -5261,7 +5268,7 @@ async function adminReportsPage() {
   app.innerHTML = '<h1>🚩 Segnalazioni</h1><div id="rl"><p class="muted center">Carico…</p></div><p class="center"><a href="#/admin/iscritti">← Amministrazione</a></p>';
   let list; try { list = await B.adminReports('open'); } catch (err) { $('#rl').innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
   const draw = () => { $('#rl').innerHTML = list.length ? list.map((r) => `<div class="card" data-id="${esc(r.id)}"><div class="t">${r.kind === 'pin' ? '📍 Pin' : '👤 Profilo'}: <a href="${r.kind === 'pin' ? '#/c/' + esc(r.target_slug) : '#/u/' + esc(r.target_user)}"><span translate="no">${esc(r.target_name)}</span></a></div>
-      <p style="margin:6px 0">${esc(r.reason)}</p><div class="meta">da ${esc(r.reporter_name)} · ${new Date(r.created_at).toLocaleString(LOC)}${r.n_target > 1 ? ` · <b>${r.n_target} segnalazioni aperte su questo utente</b>` : ''}</div>
+      <p style="margin:6px 0">${esc(r.reason)}</p>${r.link_url ? `<p style="margin:6px 0"><a href="${esc(r.link_url)}" target="_blank" rel="noopener noreferrer">🔗 ${esc(hostOf(r.link_url))} ↗</a></p>` : ''}<div class="meta">da ${esc(r.reporter_name)} · ${new Date(r.created_at).toLocaleString(LOC)}${r.n_target > 1 ? ` · <b>${r.n_target} segnalazioni aperte su questo utente</b>` : ''}</div>
       <button class="ghost small" data-done type="button" style="margin-top:8px">✓ Gestita</button></div>`).join('') : '<div class="card center muted">Nessuna segnalazione aperta ✓</div>'; };
   draw();
   $('#rl').onclick = async (e) => { const b = e.target.closest('[data-done]'); if (!b) return; b.disabled = true; const id = b.closest('.card').dataset.id;
