@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280712';
+import { CONFIG } from './config.js?v=202611280728';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280712';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280728';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.148';
+const APP_VERSION = 'v.149';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -4837,9 +4837,10 @@ const ADMIN_GUIDE = `<div class="aguide">
 <table class="tbl"><tr><th>Scheda</th><th>A cosa serve</th></tr>
 <tr><td>📣 Banner</td><td>Pubblicità in home: crea, modifica, accendi e spegni</td></tr>
 <tr><td>👥 Iscritti</td><td>Elenco iscritti, piano Gratis/Pro, download per Excel</td></tr>
-<tr><td>📊 Pin</td><td>Sblocchi, nuovi iscritti e codici premio per ogni pin pubblico o di caccia</td></tr>
+<tr><td>📊 Pin</td><td>Aperture del link, sblocchi, nuovi iscritti (con % di conversione) e codici premio per ogni pin pubblico o di caccia</td></tr>
 <tr><td>🗺️ Curiosità</td><td>Pin pronti dei comuni (testi + foto libere da Wikimedia)</td></tr>
-<tr><td>🏪 Negozi</td><td>Clienti business: Cassa, catalogo, campagne regalo, biglietti, partner</td></tr></table>
+<tr><td>🏪 Negozi</td><td>Clienti business: Cassa, catalogo, campagne regalo, biglietti, partner</td></tr>
+<tr><td>🚩 Segnalazioni</td><td>Pin e profili segnalati dagli utenti: apri, valuta e tocca «Gestita». Se un utente ha più segnalazioni aperte lo vedi subito</td></tr></table>
 <p class="small">Se una scheda dice che manca qualcosa, quasi sempre manca un pezzo di SQL su Supabase (sezione 8).</p></details>
 
 <details><summary>2 · Aprire e gestire un negozio</summary>
@@ -5892,6 +5893,20 @@ const FAQ_GUIDE = [
     <li>Chi ha creato il pin riceve un'<b>email</b> e trova la risposta aprendo il pin.</li>
     <li>Quando crei un pin puoi disattivare le risposte (casella in fondo, sezione 4).</li>
     <li>Puoi ritirare la tua risposta quando vuoi; il creatore può eliminarla.</li></ol>`],
+  ['🤝 Amici, Segui e Novità', `<p>Su Ubi puoi avere <b>amici</b> e puoi <b>seguire</b> chi lascia pin interessanti. In ogni caso gli altri vedono solo il tuo <b>soprannome</b>, mai email, telefono o posizione.</p>
+    <p><b>Amici</b></p>
+    <ol>
+      <li>Dalla home tocca <b>👥 Amici</b> e manda il tuo link (WhatsApp, copia o condividi). Chi lo apre e si iscrive diventa tuo amico.</li>
+      <li>Dopo aver sbloccato un pin puoi toccare <b>🤝 Chiedi l'amicizia all'autore</b>. L'altro vede la richiesta in <b>Amici</b>, con un numero rosso sul pulsante, e tocca <b>Accetta</b> o <b>Rifiuta</b>.</li>
+      <li>Per togliere un amico: <b>Amici</b> › <b>Togli</b>.</li>
+    </ol>
+    <p><b>Pin «Solo amici»</b>: quando crei un pin, in <i>Chi può aprirlo</i> scegli <b>👥 Solo amici</b>. Lo aprono solo i tuoi amici, anche quelli che lo diventano dopo.</p>
+    <p><b>Avvisare gli amici</b>: dopo aver creato un pin tocca <b>👥 Avvisa i miei amici via email</b> (lo trovi anche sulla pagina del pin). Parte un'email per amico, al massimo 100 al giorno e mai due volte per lo stesso pin. Chi non vuole le email le spegne in <b>Amici</b> › <i>Ricevi un'email quando un amico lascia un pin</i>. Non vale per pin dating, di gruppo o «Solo io».</p>
+    <p><b>Segui</b>: sul profilo di un autore tocca <b>➕ Segui</b>. Si vede il numero dei follower, mai chi sono. L'elenco di chi segui è in <b>Amici</b>.</p>
+    <p><b>⭐ Novità</b>: in home, i pin pubblici degli ultimi 30 giorni di amici (👥) e di chi segui (⭐). Con <b>Vicino a me</b> li ordini per distanza. Non arrivano notifiche sul telefono: le novità si vedono aprendo la pagina.</p>`],
+  ['🚩 Segnalare un pin o un profilo', `<p>Se un contenuto o un profilo non va bene (offensivo, falso, pericoloso), dopo aver sbloccato il pin tocca <b>🚩 Segnala questo pin</b>; sul profilo di un autore tocca <b>🚩 Segnala questo profilo</b>. Scrivi due parole sul motivo e invia.</p>
+    <p>La segnalazione la legge solo chi gestisce Ubi. Chi è segnalato non sa chi l'ha fatta.</p>
+    <p class="small"><b>Età minima:</b> Ubi è per chi ha almeno <b>14 anni</b>; se hai meno di 18 anni, un genitore deve sapere che lo usi ed essere d'accordo. Ubi Dating è solo per maggiorenni.</p>`],
   ['👥 Gruppi della rubrica: mandare un pin a più persone insieme', `<ol>
     <li>Apri <b>📒 La mia rubrica</b> e, in ogni contatto, scrivi uno o più <b>gruppi</b> separati da virgola (es. <code>famiglia, calcetto</code>).</li>
     <li>Quando crei un pin con <b>Persone scelte</b>, sopra i contatti trovi i pulsanti <b>👥 famiglia (5)</b>: un tocco seleziona tutti i membri, un secondo tocco li toglie.</li>

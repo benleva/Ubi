@@ -85,3 +85,12 @@ Per aggiungere altri paesi basta aggiungere voci al file (title, hint, text, wik
 - Le email agli utenti sono in **due lingue**: prima quella di chi le fa partire (chi crea il pin o chi risponde), poi l'altra. Vale per l'avviso ai destinatari (`notify-recipients`, su Supabase si chiama `quick-action`), l'avviso di risposta (`notify-reply`) e l'email scritta con la propria app di posta. Dopo una modifica alle funzioni, ricopia il codice in Supabase › Edge Functions e premi Deploy.
 - Le email di Supabase (conferma iscrizione, nuova password, link di accesso): modelli bilingui in `supabase/email-templates/`, istruzioni in `LEGGIMI.md` nella stessa cartella.
 - Restano in italiano: le pagine dell'amministratore e l'avviso dei nuovi iscritti (arrivano solo a te).
+
+## Funzioni social (v.140–v.148)
+- **Migrazioni:** `aperture_pin`, `amici`, `solo_amici`, `segui`, `segnala_novita`, `avvisi_amici` (cartella `supabase/migrations`). Tabelle con RLS attiva e senza policy: si accede solo con funzioni `security definer`.
+- **Amici:** `friendships`, `friend_requests`; link di invito `#/amico/CODICE`; pagina `#/amici`.
+- **Pin «Solo amici»:** colonna `contents.friends_only` (visibilità `hidden` + flag); `can_access` la rispetta.
+- **Segui e Novità:** `follows`, `follow_feed()`; pagina `#/novita`.
+- **Segnalazioni:** `reports`; coda in `#/admin/segnalazioni`.
+- **Email agli amici:** la funzione Supabase `quick-action` (file `supabase/functions/notify-recipients/index.ts`) con `friends: true`; email con Brevo (gratis fino a 300 al giorno), interruttore `profiles.friend_mail`.
+- **Età minima:** 14 anni, con dichiarazione del genitore d'accordo sotto i 18 (casella all'iscrizione).
