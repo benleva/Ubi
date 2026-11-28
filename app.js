@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280728';
+import { CONFIG } from './config.js?v=202611280732';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280728';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280732';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.149';
+const APP_VERSION = 'v.150';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -5277,7 +5277,7 @@ async function viewFriends() {
   const d = (x) => new Date(x).toLocaleDateString(LOC);
   const draw = () => {
     $('#flist').innerHTML = list.length ? list.map((f) => `<div class="card item" data-id="${esc(f.user_id)}"><div class="ico">🤝</div>
-        <div style="flex:1"><div class="t" translate="no">${esc(f.name)}</div><div class="meta">${T2('Amici dal', 'Friends since')} ${d(f.since)}</div></div>
+        <a href="#/u/${esc(f.user_id)}" style="flex:1;text-decoration:none;color:inherit"><div class="t" translate="no">${esc(f.name)}</div><div class="meta">${T2('Amici dal', 'Friends since')} ${d(f.since)} · ${T2('vedi il profilo', 'view profile')}</div></a>
         <button class="ghost small danger-hover" data-rm type="button">${T2('Togli', 'Remove')}</button></div>`).join('')
       : `<div class="card center muted">${T2('Non hai ancora amici su Ubi. Manda il tuo link: chi lo apre e si iscrive diventa tuo amico.', 'You have no friends on Ubi yet. Send your link: whoever opens it and signs up becomes your friend.')}</div>`;
     $('#fcount').textContent = list.length ? T2(`${list.length} amici`, `${list.length} friends`) : '';

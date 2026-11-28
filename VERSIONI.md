@@ -41,6 +41,7 @@ Ogni versione ha anche un'etichetta Git con lo stesso nome (`git tag`).
 | v.147 | 28/11/2026 | 443a346 | Avviso delle richieste di amicizia: sul pulsante «Amici» della home compare il numero di richieste da accettare. |
 | v.148 | 28/11/2026 | 5052835 | Avvisi agli amici: dopo aver creato un pin, o dalla sua pagina, «Avvisa i miei amici via email» (una email per amico, max 100 al giorno, mai due volte per lo stesso pin). Interruttore «Ricevi un'email quando un amico lascia un pin» in «I miei amici». «Novità» ora mostra anche i pin degli amici, con numero rosso sul pulsante. Funzione email aggiornata (quick-action v.13). |
 | v.149 | 28/11/2026 | 082306d | FAQ e guida admin aggiornate: Amici, Solo amici, Segui, Novità, avviso agli amici, Segnala, età minima 14 anni; scheda Segnalazioni e aperture nella guida admin. README con le funzioni social. |
+| v.150 | 28/11/2026 | (commit) | Dall'elenco amici si apre il profilo dell'amico (prima il nome non era un link e il profilo risultava non disponibile se l'amico non aveva pin visibili). Gli amici possono anche scriversi con i messaggi di Ubi. Database: can_contact include le amicizie. |
 
 ## Rilascio in blocco v.121–v.136 (26/11/2026)
 
