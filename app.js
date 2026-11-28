@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280605';
+import { CONFIG } from './config.js?v=202611280622';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280605';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280622';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.140';
+const APP_VERSION = 'v.141';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -483,6 +483,25 @@ async function supabaseBackend() {
       }
       return nh;
     },
+    async clonePin(slug, { title, lat, lng }) {   // copia di un pin (anche più volte): stessi contenuto, indizio, raggio e visibilità, in un altro punto
+      const u = await B.user();
+      const r = must(await sb.from('contents').select('*').eq('share_slug', slug).single());
+      const nid = crypto.randomUUID(); let media_path = null;
+      if (r.media_path) {
+        media_path = `${u.id}/${nid}/${r.media_path.split('/').pop()}`;
+        must(await sb.storage.from('media').copy(r.media_path, media_path));
+      }
+      const { id: _i, share_slug: _s, created_at: _c, ...rest } = r;
+      try {
+        const ins = must(await sb.from('contents').insert({ ...rest, id: nid, owner_id: u.id, media_path, hunt_id: null, hunt_step: null, parent_id: null,
+          title: title || r.title, lat: Math.max(-89.9, Math.min(89.9, lat)), lng: ((lng + 540) % 360) - 180 }).select('share_slug').single());
+        if (r.visibility === 'restricted') {
+          const rc = must(await sb.from('content_recipients').select('email').eq('content_id', r.id)) || [];
+          if (rc.length) must(await sb.from('content_recipients').insert(rc.filter((x) => x.email).map((x) => ({ content_id: nid, email: x.email }))));
+        }
+        return { slug: ins.share_slug, id: nid };
+      } catch (err) { if (media_path) await sb.storage.from('media').remove([media_path]); throw err; }
+    },
     async huntWinners(id) { return must(await sb.rpc('hunt_winners_list', { p_hunt: id })) || []; },
     async huntRedeem(id, code) { return (must(await sb.rpc('hunt_redeem', { p_hunt: id, p_code: code })) || [])[0]; },
     async myHuntPrize(slug) { return (must(await sb.rpc('my_hunt_prize', { p_slug: slug })) || [])[0] || null; },
@@ -922,6 +941,12 @@ function demoBackend() {
       db.contents.filter((c) => c.hunt_id === id).forEach((c) => db.contents.push({ ...c, id: crypto.randomUUID(), share_slug: Math.random().toString(16).slice(2, 14),
         hunt_id: nh.id, lat: c.lat + dlat, lng: c.lng + dlng, created_at: new Date().toISOString() }));
       save(); return nh;
+    },
+    async clonePin(slug, { title, lat, lng }) {
+      const c = db.contents.find((x) => x.share_slug === slug); if (!c) throw new Error('Pin non trovato.');
+      const n = { ...c, id: crypto.randomUUID(), share_slug: Math.random().toString(16).slice(2, 14), title: title || c.title, lat, lng,
+        hunt_id: null, hunt_step: null, parent_id: null, created_at: new Date().toISOString() };
+      db.contents.push(n); save(); return { slug: n.share_slug, id: n.id };
     },
     async huntWinners() { return []; },
     async huntRedeem() { return { status: 'not_found' }; },
@@ -2448,6 +2473,7 @@ async function viewContent(slug, user) {
       ${art ? '<div id="artsheet"></div>' : ''}<div id="custbox"></div>
       ${huntNext}<div id="prizebox"></div>
       ${t.is_owner ? `<a class="btn full" href="#/edit/${esc(slug)}" style="margin-bottom:10px">✏️ Modifica o sostituisci il contenuto</a>
+        ${!t.is_dating && !t.hunt_id && !art && !gi ? `<button class="ghost full" id="clonepin" type="button" style="margin-bottom:10px">📑 ${T2('Clona questo pin', 'Clone this pin')}</button><div id="clonebox" hidden></div>` : ''}
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
       ${!t.is_owner && !t.is_dating ? `<div class="card center mine"><p><b>${T2('Ti è piaciuto?', 'Did you like it?')}</b> ${T2('Lascia anche tu un pin per i tuoi amici: ci vuole un minuto.', 'Leave a pin for your friends too: it takes a minute.')}</p><a class="btn accent full" href="#/new">📍 ${T2('Crea il tuo pin', 'Create your pin')}</a></div>` : ''}
@@ -2455,6 +2481,7 @@ async function viewContent(slug, user) {
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     bindPinShare(app);
+    if ($('#clonepin')) $('#clonepin').onclick = () => pinClonePanel(t, slug);
     if ($('#huntgo')) $('#huntgo').onclick = () => {
       store.set('ubi_hunt_focus', JSON.stringify({ hunt_id: t.hunt_id, title: t.hunt_title || '', next: t.hunt_step + 1, steps: t.hunt_steps, lat: t.lat, lng: t.lng, fresh: 1 }));
       lastView = null; location.hash = '#/';
@@ -3209,6 +3236,55 @@ async function huntDuplicatePanel(h, steps) {
       const nh = await B.duplicateHunt(h.id, { title: $('#dupt').value.trim() || h.title, ...shift });
       location.hash = `#/caccia/${nh.id}`;
     } catch (err) { b.disabled = false; b.textContent = '📑 Duplica qui'; msg($('#dupm'), errText(err)); }
+  };
+}
+
+// Clona un pin singolo: scegli sulla mappa dove va la copia. Si può rifare più volte (una copia per ogni posto).
+async function pinClonePanel(t, slug) {
+  const box = $('#clonebox'); $('#clonepin').hidden = true; box.hidden = false;
+  box.innerHTML = `<div class="card" style="margin:6px 0"><h2 style="margin-top:0">📑 ${T2('Clona questo pin', 'Clone this pin')}</h2>
+    <p class="muted small">${T2('Stessi contenuto, indizio e raggio, in un altro punto. Puoi rifarlo quante volte vuoi: una copia per ogni posto.', 'Same content, hint and radius, somewhere else. You can repeat it as many times as you like: one copy per place.')}</p>
+    <label for="clt">${T2('Nome della copia', 'Name of the copy')}</label><input id="clt" maxlength="80" value="${esc(t.title || '')}">
+    <p class="small" style="margin:12px 0 6px"><b>${T2('Dove la metti?', 'Where do you put it?')}</b> ${T2('Tocca la mappa nel punto della copia.', 'Tap the map where the copy goes.')}</p>
+    <div class="row" style="margin-bottom:8px"><input id="clq" placeholder="${T2('Cerca un posto (es. piazza Unità, Trieste)', 'Search a place (e.g. a square)')}"><button type="button" class="ghost" id="clgo" style="flex:0 0 auto">${T2('Cerca', 'Search')}</button></div>
+    <button type="button" class="ghost full" id="clme">📍 ${T2('Usa la mia posizione', 'Use my location')}</button>
+    <div class="map" id="clmap" style="height:300px;margin-top:8px"></div>
+    <p class="muted small" id="clinfo">${T2('Nessun punto scelto: tocca la mappa.', 'No point chosen: tap the map.')}</p>
+    <button type="button" class="full accent" id="clok" disabled>📑 ${T2('Clona qui', 'Clone here')}</button><div id="clm"></div><div id="cldone"></div></div>`;
+  await waitLeaflet();
+  const map = makeMap($('#clmap'), t.lat, t.lng, 15); if (!map) return;
+  L.marker([t.lat, t.lng]).addTo(map).bindPopup(T2('Pin originale', 'Original pin'));
+  let pt = null, mk = null;
+  const place = (lat, lng) => {
+    pt = { lat, lng };
+    if (mk) mk.setLatLng([lat, lng]); else mk = L.marker([lat, lng]).addTo(map);
+    map.setView([lat, lng], Math.max(map.getZoom(), 15));
+    $('#clinfo').textContent = T2(`La copia sarà a ${fmtDist(distanceM(t.lat, t.lng, lat, lng))} dal pin originale.`, `The copy will be ${fmtDist(distanceM(t.lat, t.lng, lat, lng))} from the original.`);
+    $('#clok').disabled = false;
+  };
+  map.on('click', (e) => place(e.latlng.lat, e.latlng.lng));
+  $('#clme').onclick = async () => { try { const p = await getPos(); place(p.lat, p.lng); } catch { msg($('#clm'), T2('Posizione non disponibile: tocca la mappa.', 'Location not available: tap the map.')); } };
+  const search = async () => {
+    const q = $('#clq').value.trim(); if (!q) return;
+    try {
+      const r = await (await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=it&q=${encodeURIComponent(q)}`)).json();
+      if (!r.length) return msg($('#clm'), T2('Posto non trovato: prova con un altro nome o tocca la mappa.', 'Place not found: try another name or tap the map.'));
+      $('#clm').innerHTML = ''; map.setView([+r[0].lat, +r[0].lon], 16);
+    } catch { msg($('#clm'), T2('Ricerca non disponibile: sposta la mappa a mano.', 'Search not available: move the map by hand.')); }
+  };
+  $('#clgo').onclick = search; $('#clq').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); search(); } };
+  let n = 0;
+  $('#clok').onclick = async () => {
+    if (!pt) return;
+    const b = $('#clok'); b.disabled = true; b.textContent = T2('Copio…', 'Copying…'); msg($('#clm'), '');
+    try {
+      const r = await B.clonePin(slug, { title: $('#clt').value.trim() || t.title, lat: pt.lat, lng: pt.lng });
+      n += 1;
+      $('#cldone').insertAdjacentHTML('beforeend', `<div class="msg ok small">✓ ${T2('Copia', 'Copy')} ${n}: <a href="#/c/${esc(r.slug)}"><b>${esc($('#clt').value.trim() || t.title)}</b></a></div>`);
+      pt = null;   // il segnaposto resta sulla mappa e si sposta al prossimo tocco
+      $('#clinfo').textContent = T2('Fatto. Per un\'altra copia tocca un nuovo punto sulla mappa.', 'Done. For another copy tap a new point on the map.');
+      b.textContent = `📑 ${T2('Clona qui', 'Clone here')}`;
+    } catch (err) { b.disabled = false; b.textContent = `📑 ${T2('Clona qui', 'Clone here')}`; msg($('#clm'), errText(err)); }
   };
 }
 
