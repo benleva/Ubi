@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280627';
+import { CONFIG } from './config.js?v=202611280646';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280627';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280646';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.142';
+const APP_VERSION = 'v.143';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -502,6 +502,12 @@ async function supabaseBackend() {
         return { slug: ins.share_slug, id: nid };
       } catch (err) { if (media_path) await sb.storage.from('media').remove([media_path]); throw err; }
     },
+    // --- Amici: amicizia reciproca nata da un link di invito (solo nome, mai email o posizione)
+    async friendMyCode() { return must(await sb.rpc('friend_my_code')); },
+    async friendInviteInfo(code) { try { return must(await sb.rpc('friend_invite_info', { p_code: code })) || null; } catch { return null; } },
+    async friendAccept(code) { return (must(await sb.rpc('friend_accept', { p_code: code })) || [])[0] || { status: 'error' }; },
+    async friendList() { return must(await sb.rpc('friend_list')) || []; },
+    async friendRemove(id) { must(await sb.rpc('friend_remove', { p_user: id })); },
     async huntWinners(id) { return must(await sb.rpc('hunt_winners_list', { p_hunt: id })) || []; },
     async huntRedeem(id, code) { return (must(await sb.rpc('hunt_redeem', { p_hunt: id, p_code: code })) || [])[0]; },
     async myHuntPrize(slug) { return (must(await sb.rpc('my_hunt_prize', { p_slug: slug })) || [])[0] || null; },
@@ -948,6 +954,19 @@ function demoBackend() {
         hunt_id: null, hunt_step: null, parent_id: null, created_at: new Date().toISOString() };
       db.contents.push(n); save(); return { slug: n.share_slug, id: n.id };
     },
+    // --- Amici (demo): un solo utente, quindi l'invito di un altro codice crea l'amica «Marta»
+    async friendMyCode() { db.profiles[db.user.id] = db.profiles[db.user.id] || {}; const pr = db.profiles[db.user.id];
+      if (!pr.friend_code) { pr.friend_code = Math.random().toString(16).slice(2, 14).padEnd(12, '0'); save(); } return pr.friend_code; },
+    async friendInviteInfo(code) { return code && /^[a-f0-9]{12}$/.test(code) ? 'Marta' : null; },
+    async friendAccept(code) {
+      if (!code || !/^[a-f0-9]{12}$/.test(code)) return { status: 'not_found', name: null };
+      if (code === (db.profiles[db.user.id] || {}).friend_code) return { status: 'self', name: 'Tu' };
+      db.friends = db.friends || [];
+      if (db.friends.some((f) => f.code === code)) return { status: 'already', name: 'Marta' };
+      db.friends.push({ code, user_id: 'f_' + code, name: 'Marta', since: new Date().toISOString() }); save(); return { status: 'ok', name: 'Marta' };
+    },
+    async friendList() { return [...(db.friends || [])]; },
+    async friendRemove(id) { db.friends = (db.friends || []).filter((f) => f.user_id !== id); save(); },
     async huntWinners() { return []; },
     async huntRedeem() { return { status: 'not_found' }; },
     async myHuntPrize(slug) {   // demo: stessa logica del database, codice salvato sul telefono
@@ -1214,6 +1233,7 @@ async function routeInner() {
     $('#dlog').onclick = (e) => { e.preventDefault(); viewLogin(); };
     return;
   }
+  if (page === 'amico' && arg) return viewFriendInvite(arg, user);
   if (page === 'c' && arg) {
     if (!user && !store.get('ubi_from_pin')) store.set('ubi_from_pin', arg);   // per le statistiche: da quale pin arriva un nuovo iscritto
     if (user) {
@@ -1263,6 +1283,7 @@ async function routeInner() {
   if (page === 'opera' && arg) return viewArtStop(arg);
   if (page === 'profilo') return viewMyProfile(prof);
   if (page === 'rubrica') return viewBook();
+  if (page === 'amici') return viewFriends();
   if (page === 'u' && arg) return viewAuthor(arg);
   if (page === 'messaggi') return arg ? viewThread(arg, location.hash.split('/')[3]) : viewInbox();
   if (page === 'edit' && arg) {
@@ -1746,7 +1767,7 @@ async function viewHome(user, prof) {
     <div id="mm"></div>
     <div id="mygifts"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
-    <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a></div>
+    <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a><a href="#/amici" class="btn ghost">👥 Amici</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
     <a href="#/gruppi" class="btn ghost full gruppi-btn" style="margin-top:10px">👥 Gruppi · associazioni, squadre e amici</a>
     <a href="#/sos" class="btn sos-btn full" style="margin-top:10px">🆘 Emergenza · numeri utili e pin SOS</a>
@@ -2479,7 +2500,7 @@ async function viewContent(slug, user) {
         ${!t.is_dating && !t.hunt_id && !art && !gi ? `<button class="ghost full" id="clonepin" type="button" style="margin-bottom:10px">📑 ${T2('Clona questo pin', 'Clone this pin')}</button><div id="clonebox" hidden></div>` : ''}
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
-      ${!t.is_owner && !t.is_dating ? `<div class="card center mine"><p><b>${T2('Ti è piaciuto?', 'Did you like it?')}</b> ${T2('Lascia anche tu un pin per i tuoi amici: ci vuole un minuto.', 'Leave a pin for your friends too: it takes a minute.')}</p><a class="btn accent full" href="#/new">📍 ${T2('Crea il tuo pin', 'Create your pin')}</a></div>` : ''}
+      ${!t.is_owner && !t.is_dating ? `<div class="card center mine"><p><b>${T2('Ti è piaciuto?', 'Did you like it?')}</b> ${T2('Lascia anche tu un pin per i tuoi amici: ci vuole un minuto.', 'Leave a pin for your friends too: it takes a minute.')}</p><a class="btn accent full" href="#/new">📍 ${T2('Crea il tuo pin', 'Create your pin')}</a><a class="btn ghost full" style="margin-top:8px" href="#/amici">👥 ${T2('Invita un amico', 'Invite a friend')}</a></div>` : ''}
       ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint, t.hunt_id && t.hunt_step === 1 ? { title: t.hunt_title || t.title, prize: '', steps: t.hunt_steps } : null)}
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
@@ -5095,6 +5116,78 @@ function viewInvite() {
   };
 }
 
+// ======================= AMICI (con link di invito) =======================
+const friendUrl = (code) => `${location.origin}${location.pathname}#/amico/${code}`;
+const friendText = (name) => LANG === 'en'
+  ? `${name ? name + ': ' : ''}join me on Ubi! You leave a video, a photo or a message in a real place and it only opens when someone gets there. It is free. Open my link and we become friends:`
+  : `${name ? name + ': ' : ''}vieni su Ubi con me! Lasci un video, una foto o un messaggio in un luogo vero e si apre solo a chi ci arriva. È gratis. Apri il mio link e diventiamo amici:`;
+
+// Pagina che si apre dal link di invito di un amico: se non sei iscritto ti invita a farlo, poi l'amicizia nasce da sola
+async function viewFriendInvite(code, user) {
+  app.innerHTML = '<p class="muted center">Apro l\'invito…</p>';
+  const name = await B.friendInviteInfo(code);
+  if (!name) { app.innerHTML = `<div class="card center"><p style="font-size:44px;margin:0">🔗</p><h2>${T2('Invito non valido', 'Invalid invitation')}</h2><p class="muted">${T2('Il link è incompleto o non esiste più.', 'The link is incomplete or no longer exists.')}</p><a class="btn full accent" href="#/">${T2('Scopri Ubi', 'Discover Ubi')}</a></div>`; return; }
+  if (!user) {
+    setPending(location.hash);
+    app.innerHTML = `<div class="giftpage th-regalo"><h1>👋 ${T2(`${esc(name)} ti invita su Ubi`, `${esc(name)} invites you to Ubi`)}</h1>
+      <p>${T2('Con Ubi lasci un video, una foto o un messaggio in un luogo vero: si apre solo a chi ci arriva. È gratis.', 'With Ubi you leave a video, a photo or a message in a real place: it only opens when someone gets there. It is free.')}</p>
+      <p>${T2(`Registrati e diventate amici subito.`, `Sign up and you become friends right away.`)}</p>
+      <button class="full accent" id="flog" type="button">📍 ${T2('Registrati gratis', 'Sign up free')}</button></div>`;
+    $('#flog').onclick = () => viewLogin();
+    return;
+  }
+  const p = await ensureProfile();
+  if (!p) { setPending(location.hash); return viewConsent(); }
+  if (store.get('ubi_after_login') === location.hash) popPending();
+  let r; try { r = await B.friendAccept(code); } catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
+  const M = {
+    ok: T2(`Tu e ${esc(r.name || '')} siete amici ✓`, `You and ${esc(r.name || '')} are friends ✓`),
+    already: T2(`Siete già amici (${esc(r.name || '')}).`, `You are already friends (${esc(r.name || '')}).`),
+    self: T2('Questo è il tuo link di invito: mandalo a un amico.', 'This is your own invitation link: send it to a friend.'),
+    full: T2('Hai raggiunto il numero massimo di amici.', 'You reached the maximum number of friends.'),
+  };
+  app.innerHTML = `<div class="card center"><p style="font-size:44px;margin:0">${r.status === 'ok' || r.status === 'already' ? '🤝' : 'ℹ️'}</p>
+    <h2>${M[r.status] || T2('Invito non valido', 'Invalid invitation')}</h2>
+    <a class="btn full accent" href="#/amici">👥 ${T2('I miei amici', 'My friends')}</a>
+    <a class="btn ghost full" style="margin-top:8px" href="#/">${T2('Vai alla mappa', 'Go to the map')}</a></div>`;
+}
+
+async function viewFriends() {
+  app.innerHTML = '<p class="muted center">Carico i tuoi amici…</p>';
+  let code, list;
+  try { [code, list] = await Promise.all([B.friendMyCode(), B.friendList()]); }
+  catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}<br><span class="small">${T2('Se continua, il database potrebbe non essere aggiornato.', 'If it keeps happening, the database may not be up to date.')}</span></div>`; return; }
+  const url = friendUrl(code), text = friendText('');
+  const d = (x) => new Date(x).toLocaleDateString(LOC);
+  const draw = () => {
+    $('#flist').innerHTML = list.length ? list.map((f) => `<div class="card item" data-id="${esc(f.user_id)}"><div class="ico">🤝</div>
+        <div style="flex:1"><div class="t" translate="no">${esc(f.name)}</div><div class="meta">${T2('Amici dal', 'Friends since')} ${d(f.since)}</div></div>
+        <button class="ghost small danger-hover" data-rm type="button">${T2('Togli', 'Remove')}</button></div>`).join('')
+      : `<div class="card center muted">${T2('Non hai ancora amici su Ubi. Manda il tuo link: chi lo apre e si iscrive diventa tuo amico.', 'You have no friends on Ubi yet. Send your link: whoever opens it and signs up becomes your friend.')}</div>`;
+    $('#fcount').textContent = list.length ? T2(`${list.length} amici`, `${list.length} friends`) : '';
+  };
+  app.innerHTML = `<h1>👥 ${T2('I miei amici', 'My friends')}</h1>
+    <p class="muted">${T2('Chi apre il tuo link e si iscrive diventa tuo amico. Gli amici vedono solo il tuo nome: mai email, telefono o posizione.', 'Whoever opens your link and signs up becomes your friend. Friends only see your name: never email, phone or location.')}</p>
+    <div class="card"><button class="full accent" id="fshare" type="button">📤 ${T2('Invita un amico', 'Invite a friend')}</button>
+      <div class="row" style="margin-top:10px"><a class="btn" style="background:#25d366;border-color:#25d366" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}">WhatsApp</a><button class="ghost" id="fcopy" type="button">${T2('Copia link', 'Copy link')}</button></div>
+      <p class="muted small" style="margin:10px 0 0;word-break:break-all">${esc(url)}</p><div id="fm"></div></div>
+    <h2 id="fcount" style="margin-top:20px"></h2><div id="flist"></div>
+    <p class="center"><a href="#/">${T2('Torna a Ubi', 'Back to Ubi')}</a></p>`;
+  draw();
+  $('#fshare').onclick = async () => {
+    try { if (navigator.share) await navigator.share({ text: `${text} ${url}` }); else { await navigator.clipboard.writeText(`${text} ${url}`); msg($('#fm'), T2('Messaggio e link copiati ✓', 'Message and link copied ✓'), 'ok'); } }
+    catch (err) { if (err && err.name !== 'AbortError') msg($('#fm'), url, 'info'); }
+  };
+  $('#fcopy').onclick = async () => { try { await navigator.clipboard.writeText(`${text} ${url}`); msg($('#fm'), T2('Messaggio e link copiati ✓', 'Message and link copied ✓'), 'ok'); } catch { msg($('#fm'), url, 'info'); } };
+  $('#flist').onclick = async (e) => {
+    const b = e.target.closest('[data-rm]'); if (!b) return;
+    const id = b.closest('.card').dataset.id;
+    if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = T2('Conferma', 'Confirm'); return; }
+    b.disabled = true;
+    try { await B.friendRemove(id); list = list.filter((f) => f.user_id !== id); draw(); } catch (err) { b.disabled = false; msg($('#fm'), errText(err)); }
+  };
+}
+
 // ======================= RISPOSTE AI PIN =======================
 // Controlla un file scelto per una risposta: tipo, dimensione, durata dei video.
 async function checkMediaFile(f) {
@@ -5413,6 +5506,7 @@ async function viewMyProfile(prof) {
       <button class="full accent" type="submit">Salva il profilo</button>
     </form></div>
     <a class="btn ghost full" href="#/rubrica">📒 La mia rubrica</a>
+    <a class="btn ghost full" href="#/amici">👥 I miei amici</a>
     <p class="center"><a href="#/u/${esc(p.id || '')}">Vedi come ti vedono gli altri</a> · <a href="#/">Torna alla mappa</a></p>
     <p class="center small"><a href="privacy.html">Informativa privacy</a> · Per eliminare l'account scrivi a <a href="mailto:info@ubipin.it">info@ubipin.it</a></p>`;
   bindTopTools(app);
