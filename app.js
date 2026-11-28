@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280732';
+import { CONFIG } from './config.js?v=202611280803';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280732';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280803';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.150';
+const APP_VERSION = 'v.151';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -42,7 +42,7 @@ const PIN_ICONS = [
   ['birra', '🍺', '#b7791f', 'Birra'], ['vino', '🍷', '#7b1f3a', 'Calice di vino'], ['caffe', '☕', '#6d4c41', 'Tazzina di caffè'], ['torta', '🍰', '#c2185b', 'Fetta di torta'],
   ['patatine', '🍟', '#e0a800', 'Patatine fritte'], ['hamburger', '🍔', '#a0522d', 'Hamburger'], ['pizza', '🍕', '#d35400', 'Pizza'],
   ['libro', '📖', '#5b4b8a', 'Libro'], ['cuore', '❤️', '#e91e63', 'Amore'], ['stella', '⭐', '#f1a90f', 'Stella'],
-  ['logo', '🏪', '#ffffff', 'Logo del negozio'], ['musica', '🎵', '#7b1fa2', 'Musica'], ['sport', '⚽', '#37474f', 'Sport'], ['montagna', '⛰️', '#546e7a', 'Montagna'], ['info', 'ℹ️', '#1f3a5f', 'Informazioni'],
+  ['logo', '🏪', '#ffffff', 'Logo del negozio'], ['musica', '🎵', '#7b1fa2', 'Musica'], ['chef', '👨‍🍳', '#8d6e63', 'Chef / Ristorante stellato'], ['sport', '⚽', '#37474f', 'Sport'], ['montagna', '⛰️', '#546e7a', 'Montagna'], ['info', 'ℹ️', '#1f3a5f', 'Informazioni'],
   ['pericolo', '⚠️', '#e65100', 'Pericolo / Attenzione'], ['sos', '🆘', '#b71c1c', 'SOS / Emergenza'], ['pronto-soccorso', '🏥', '#c62828', 'Pronto soccorso'], ['vietato', '🚫', '#c62828', 'Vietato / Chiuso'],
   ['radio', '📻', '#37474f', 'Radio'], ['antenna', '📡', '#455a64', 'Antenna / Ripetitore'], ['telefono', '📞', '#1565c0', 'Telefono / Contatto'],
   ['animale', '🐾', '#5d4037', 'Animali / Fauna'], ['fuoco', '🔥', '#bf360c', 'Fuoco / Incendio'], ['acqua', '💧', '#0277bd', 'Acqua / Sorgente']];
