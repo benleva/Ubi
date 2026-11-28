@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280700';
+import { CONFIG } from './config.js?v=202611280705';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280700';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280705';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.146';
+const APP_VERSION = 'v.147';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1791,7 +1791,7 @@ async function viewHome(user, prof) {
     <div id="mm"></div>
     <div id="mygifts"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
-    <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a><a href="#/amici" class="btn ghost">👥 Amici</a><a href="#/novita" class="btn ghost" id="newlink">⭐ Novità</a></div>
+    <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a><a href="#/amici" class="btn ghost" id="frlink">👥 Amici</a><a href="#/novita" class="btn ghost" id="newlink">⭐ Novità</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
     <a href="#/gruppi" class="btn ghost full gruppi-btn" style="margin-top:10px">👥 Gruppi · associazioni, squadre e amici</a>
     <a href="#/sos" class="btn sos-btn full" style="margin-top:10px">🆘 Emergenza · numeri utili e pin SOS</a>
@@ -1806,6 +1806,7 @@ async function viewHome(user, prof) {
     <div id="list"><p class="muted center">Carico i tuoi contenuti…</p></div>
     <p class="center small"><a href="#" id="out">Esci (${esc(user.email)})</a></p>`;
   $('#out').onclick = async (e) => { e.preventDefault(); await B.signOut(); location.hash = '#/'; route(); };
+  B.friendRequestsIn().then((r) => { if (r.length && $('#frlink')) $('#frlink').innerHTML = `👥 Amici <span class="pill">${r.length}</span>`; }).catch(() => {});
   bindTopTools(app);
   homeMap();
   B.mapStats().then((s) => {
