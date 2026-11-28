@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280622';
+import { CONFIG } from './config.js?v=202611280627';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280622';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280627';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.141';
+const APP_VERSION = 'v.142';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1785,7 +1785,7 @@ async function viewHome(user, prof) {
   // cerca nei miei contenuti: testo (titolo, indizio, tag) + categoria
   const CATS = [['all', 'Tutto'], ...Object.entries(TYPES).map(([k, x]) => [k, x.n]), ['monu', 'Monumenti'], ['lit', 'Scrittori'], ['dating', 'Dating']];
   const cnt = { all: items.length }; items.forEach((c) => { const k = pinCat(c); cnt[k] = (cnt[k] || 0) + 1; });
-  let cat = '';
+  let cat = 'all';   // l'elenco di tutti i pin si vede subito, senza dover toccare una categoria
   const catIcon = (k) => k === 'all' ? '<span class="tico sm" style="background:#888">★</span>' : k === 'monu' ? monuBadge('sm') : k === 'lit' ? litBadge('sm') : k === 'dating' ? datingBadge('f', 'sm') : `<span class="tico sm" style="background:${TYPES[k].c}">${TYPES[k].l}</span>`;
   $('#list').innerHTML = `<input id="mysearch" type="search" placeholder="🔍 Cerca nei miei contenuti (titolo, indizio, #tag)" autocomplete="off">
     <div class="mycats" id="mycats">${CATS.filter(([k]) => k === 'all' || cnt[k]).map(([k, n]) => `<button type="button" class="mycat" data-c="${k}" aria-expanded="false">${catIcon(k)}<span class="lbl">${esc(n)}</span><span class="n">${cnt[k] || 0}</span></button>`).join('')}</div>
@@ -1806,16 +1806,19 @@ async function viewHome(user, prof) {
         <button class="ghost" data-a="share">Condividi</button>
         <a class="btn ghost" href="#/c/${esc(c.share_slug)}">Apri</a>
         <a class="btn ghost" href="#/edit/${esc(c.share_slug)}">Modifica</a>
+        ${!c.is_dating && !c.hunt_id && !c.exhibition_id ? '<button class="ghost" data-a="clone">Clona</button>' : ''}
         <button class="danger" data-a="del">Elimina</button>
       </div></div>`).join('') + (vis.length > 200 ? '<p class="muted small center">Ne mostro 200: scrivi qualcosa nella ricerca per trovare gli altri.</p>' : '');
   };
   $('#mysearch').oninput = drawMine;
+  $('#mycats').querySelectorAll('.mycat').forEach((x) => { const on = x.dataset.c === cat; x.classList.toggle('on', on); x.setAttribute('aria-expanded', on ? 'true' : 'false'); });
   $('#mycats').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; cat = cat === b.dataset.c ? '' : b.dataset.c; $('#mycats').querySelectorAll('.mycat').forEach((x) => { const on = x.dataset.c === cat; x.classList.toggle('on', on); x.setAttribute('aria-expanded', on ? 'true' : 'false'); }); drawMine(); if (cat) $('#mycount').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   drawMine();
   $('#list').onclick = async (e) => {
     const b = e.target.closest('button'); if (!b || !b.closest('.card[data-i]')) return;
     const c = items[+b.closest('.card').dataset.i];
     if (b.dataset.a === 'share') return shareSheet(c.title, c.share_slug, b.closest('.card'), c.hint);
+    if (b.dataset.a === 'clone') { try { sessionStorage.setItem('ubi_clone_slug', c.share_slug); } catch { /* */ } location.hash = `#/c/${c.share_slug}`; return; }
     if (b.dataset.a === 'del') {
       if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Conferma eliminazione'; return; }
       b.disabled = true;
@@ -2482,6 +2485,7 @@ async function viewContent(slug, user) {
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     bindPinShare(app);
     if ($('#clonepin')) $('#clonepin').onclick = () => pinClonePanel(t, slug);
+    try { if ($('#clonepin') && sessionStorage.getItem('ubi_clone_slug') === slug) { sessionStorage.removeItem('ubi_clone_slug'); pinClonePanel(t, slug); } } catch { /* */ }   // arrivo dal pulsante Clona dell'elenco
     if ($('#huntgo')) $('#huntgo').onclick = () => {
       store.set('ubi_hunt_focus', JSON.stringify({ hunt_id: t.hunt_id, title: t.hunt_title || '', next: t.hunt_step + 1, steps: t.hunt_steps, lat: t.lat, lng: t.lng, fresh: 1 }));
       lastView = null; location.hash = '#/';
