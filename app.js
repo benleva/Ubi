@@ -1,11 +1,11 @@
 // Ubi — web app (Fase 1). Nessun build: file statici, librerie da CDN.
-import { CONFIG } from './config.js?v=202611280656';
+import { CONFIG } from './config.js?v=202611280700';
 import { qrMatrix } from './qr.js?v=1';
-import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280656';
+import { LANG, LOC, setLang, startI18n } from './i18n.js?v=202611280700';
 startI18n();
 
 // Versione mostrata accanto al logo: aumentarla a ogni pubblicazione.
-const APP_VERSION = 'v.145';
+const APP_VERSION = 'v.146';
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -513,6 +513,10 @@ async function supabaseBackend() {
     async followInfo(id) { return (must(await sb.rpc('follow_info', { p_user: id })) || [])[0] || { followers: 0, following: false }; },
     async followSet(id, on) { must(await sb.rpc('follow_set', { p_user: id, p_on: !!on })); },
     async followList() { return must(await sb.rpc('follow_list')) || []; },
+    async followFeed() { return must(await sb.rpc('follow_feed')) || []; },
+    async reportCreate(kind, slug, user, reason) { must(await sb.rpc('report_create', { p_kind: kind, p_slug: slug || null, p_user: user || null, p_reason: reason })); },
+    async adminReports(st) { return must(await sb.rpc('admin_reports', { p_status: st || 'open' })) || []; },
+    async adminReportDone(id) { must(await sb.rpc('admin_report_done', { p_id: id })); },
     async friendRequestAnswer(id, ok) { must(await sb.rpc('friend_request_answer', { p_user: id, p_ok: !!ok })); },
     async huntWinners(id) { return must(await sb.rpc('hunt_winners_list', { p_hunt: id })) || []; },
     async huntRedeem(id, code) { return (must(await sb.rpc('hunt_redeem', { p_hunt: id, p_code: code })) || [])[0]; },
@@ -976,6 +980,10 @@ function demoBackend() {
     async friendRequestFromPin() { return 'sent'; },
     async followInfo(id) { const f = db.follows || []; return { followers: id === db.user?.id ? 0 : 12, following: f.includes(id) }; },
     async followSet(id, on) { db.follows = (db.follows || []).filter((x) => x !== id); if (on) db.follows.push(id); save(); },
+    async followFeed() { return (db.follows || []).length ? [{ share_slug: 'demo', title: 'Tramonto dal molo', media_type: 'photo', created_at: new Date().toISOString(), owner_id: db.follows[0], owner_name: 'Creator', lat: 45.69, lng: 9.67 }] : []; },
+    async reportCreate(kind, slug, user, reason) { (db.reports = db.reports || []).push({ id: crypto.randomUUID(), kind, target_slug: slug, target_user: user, reason, status: 'open', created_at: new Date().toISOString() }); save(); },
+    async adminReports(st) { return (db.reports || []).filter((r) => r.status === (st || 'open')).map((r) => ({ ...r, target_name: 'Utente', reporter_name: 'Tu', n_target: 1 })); },
+    async adminReportDone(id) { (db.reports || []).forEach((r) => { if (r.id === id) r.status = 'done'; }); save(); },
     async followList() { return (db.follows || []).map((id) => ({ user_id: id, name: db.profiles[id]?.display_name || 'Creator', followers: 12 })); },
     async friendRequestsIn() { return db.friendReq || (db.friendReq = [{ user_id: 'r_demo', name: 'Luca' }]); },
     async friendRequestAnswer(id, ok) { const r = (db.friendReq || []).find((x) => x.user_id === id); db.friendReq = (db.friendReq || []).filter((x) => x.user_id !== id);
@@ -1297,6 +1305,7 @@ async function routeInner() {
   if (page === 'profilo') return viewMyProfile(prof);
   if (page === 'rubrica') return viewBook();
   if (page === 'amici') return viewFriends();
+  if (page === 'novita') return viewNews();
   if (page === 'u' && arg) return viewAuthor(arg);
   if (page === 'messaggi') return arg ? viewThread(arg, location.hash.split('/')[3]) : viewInbox();
   if (page === 'edit' && arg) {
@@ -1473,7 +1482,9 @@ const consentBoxes = () => `
   <label class="inline"><input type="checkbox" id="c1" required>
     <span>Ho letto l'<a href="privacy.html" target="_blank" rel="noopener">informativa privacy</a> e accetto il trattamento dei miei dati per usare il servizio.</span></label>
   <label class="inline"><input type="checkbox" id="c2" required>
-    <span>Acconsento all'uso della posizione del telefono <b>solo</b> mentre uso l'app, per fissare e sbloccare i contenuti. La posizione non viene salvata nel mio profilo.</span></label>`;
+    <span>Acconsento all'uso della posizione del telefono <b>solo</b> mentre uso l'app, per fissare e sbloccare i contenuti. La posizione non viene salvata nel mio profilo.</span></label>
+  <label class="inline"><input type="checkbox" id="c3" required>
+    <span>Ho <b>almeno 14 anni</b>. Se ho meno di 18 anni, un mio genitore sa che uso Ubi ed è d'accordo.</span></label>`;
 
 // Mostrata solo se manca il consenso (es. informativa aggiornata).
 async function viewConsent() {
@@ -1780,7 +1791,7 @@ async function viewHome(user, prof) {
     <div id="mm"></div>
     <div id="mygifts"></div>
     <a href="#/new" class="btn accent full" style="background:var(--accent)">＋ Lascia un contenuto in un luogo</a>
-    <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a><a href="#/amici" class="btn ghost">👥 Amici</a></div>
+    <div class="row" style="margin-top:10px"><a href="#/profilo" class="btn ghost">👤 Il mio profilo</a><a href="#/rubrica" class="btn ghost">📒 La mia rubrica</a><a href="#/amici" class="btn ghost">👥 Amici</a><a href="#/novita" class="btn ghost" id="newlink">⭐ Novità</a></div>
     <div class="row" style="margin-top:10px"><a href="#/capsule" class="btn ghost">⏳ Capsula del tempo</a><a href="#/cacce" class="btn ghost">🗺️ Caccia al tesoro</a></div>
     <a href="#/gruppi" class="btn ghost full gruppi-btn" style="margin-top:10px">👥 Gruppi · associazioni, squadre e amici</a>
     <a href="#/sos" class="btn sos-btn full" style="margin-top:10px">🆘 Emergenza · numeri utili e pin SOS</a>
@@ -2516,11 +2527,13 @@ async function viewContent(slug, user) {
         <button class="danger full" id="delpin" style="margin-bottom:10px">🗑 Elimina questo pin</button>
         ${t.is_dating ? '' : '<button class="ghost full" id="mailbtn" style="margin-bottom:10px">📧 Avvisa i destinatari via email</button><div id="mailbox"></div>'}` : ''}
       ${!t.is_owner && !t.is_dating ? `<div class="card center mine"><p><b>${T2('Ti è piaciuto?', 'Did you like it?')}</b> ${T2('Lascia anche tu un pin per i tuoi amici: ci vuole un minuto.', 'Leave a pin for your friends too: it takes a minute.')}</p><a class="btn accent full" href="#/new">📍 ${T2('Crea il tuo pin', 'Create your pin')}</a><a class="btn ghost full" style="margin-top:8px" href="#/amici">👥 ${T2('Invita un amico', 'Invite a friend')}</a>
-        ${CONFIG.NO_FRIEND_REQ ? '' : `<button class="ghost full" id="freq" type="button" style="margin-top:8px">🤝 ${T2("Chiedi l'amicizia all'autore", 'Ask the author to be friends')}</button><div id="freqm"></div>`}</div>` : ''}
+        ${CONFIG.NO_FRIEND_REQ ? '' : `<button class="ghost full" id="freq" type="button" style="margin-top:8px">🤝 ${T2("Chiedi l'amicizia all'autore", 'Ask the author to be friends')}</button><div id="freqm"></div>`}
+        <p class="small" style="margin:10px 0 0"><a href="#" id="reppin">🚩 ${T2('Segnala questo pin', 'Report this pin')}</a></p><div id="repm"></div></div>` : ''}
       ${t.is_dating ? '' : pinShareCard(t.title, slug, t.hint, t.hunt_id && t.hunt_step === 1 ? { title: t.hunt_title || t.title, prize: '', steps: t.hunt_steps } : null)}
       <div id="replybox"></div>
       <a class="btn ghost full" href="${t.is_dating ? '#/dating' : '#/'}">${user ? (t.is_dating ? 'Torna a Ubi Dating' : 'Torna alla mappa') : 'Scopri Ubi'}</a>`;
     bindPinShare(app);
+    if ($('#reppin')) $('#reppin').onclick = (e) => { e.preventDefault(); reportPanel($('#repm'), 'pin', slug, null); };
     if ($('#freq')) $('#freq').onclick = async () => {
       const b = $('#freq'); b.disabled = true;
       try { const r = await B.friendRequestFromPin(slug);
@@ -3658,7 +3671,7 @@ const bizContacts = (topic = 'Ubi per la mia attività') => `<div class="bizcont
 const PDF_ICON = '<svg class="pdfi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" fill="#e53935"/><path d="M15 2v5h5" fill="#ffcdd2"/><text x="13" y="18" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff" font-family="sans-serif">PDF</text></svg>';
 // Video tutorial (cartella /video): un pulsante «▶️ Guarda come funziona» per servizio
 const ADMIN_LINKS = `<div class="card adminbox"><b>🛠️ Area amministratore</b> <span class="muted small">(la vedi solo tu)</span>
-  <div class="admtabs" style="margin-top:8px"><a class="btn ghost" href="#/admin/guida">📘 Guida</a><a class="btn ghost" href="#/admin/negozi">🏪 Negozi</a><a class="btn ghost" href="#/admin/nfc">🏷️ NFC</a><a class="btn ghost" href="#/admin/arte">🎨 Arte</a><a class="btn ghost" href="#/admin/banner">📣 Banner</a><a class="btn ghost" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ghost" href="#/admin/pin">📊 Pin</a><a class="btn ghost" href="#/admin/curiosita">🗺️ Curiosità</a></div></div>`;
+  <div class="admtabs" style="margin-top:8px"><a class="btn ghost" href="#/admin/guida">📘 Guida</a><a class="btn ghost" href="#/admin/negozi">🏪 Negozi</a><a class="btn ghost" href="#/admin/nfc">🏷️ NFC</a><a class="btn ghost" href="#/admin/arte">🎨 Arte</a><a class="btn ghost" href="#/admin/banner">📣 Banner</a><a class="btn ghost" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ghost" href="#/admin/pin">📊 Pin</a><a class="btn ghost" href="#/admin/curiosita">🗺️ Curiosità</a><a class="btn ghost" href="#/admin/segnalazioni">🚩 Segnalazioni</a></div></div>`;
 const VIDEOS = {
   pin: { f: 'video/Ubi-tutorial-come-si-apre-un-pin.mp4', s: 20 },
   campagne: { f: 'video/Ubi-tutorial-campagne-regalo.mp4', s: 42 },
@@ -4280,6 +4293,7 @@ async function drawAdSlot(box) {
 async function viewAdmin(tab) {
   if (!(await B.isAdmin())) { app.innerHTML = '<div class="card center">Pagina riservata all\'amministratore. <a href="#/">Torna a Ubi</a></div>'; return; }
   if (tab === 'biglietti') return adminCardsPrint(location.hash.split('/')[3]);
+  if (tab === 'segnalazioni') return adminReportsPage();
   const t = ['iscritti', 'curiosita', 'pin', 'negozi', 'guida', 'nfc', 'arte'].includes(tab) ? tab : 'banner';
   app.innerHTML = `<h1>⚙️ Amministrazione</h1>
     <div class="admtabs"><a class="btn ${t === 'banner' ? 'on' : 'ghost'}" href="#/admin/banner">📣 Banner</a><a class="btn ${t === 'iscritti' ? 'on' : 'ghost'}" href="#/admin/iscritti">👥 Iscritti</a><a class="btn ${t === 'pin' ? 'on' : 'ghost'}" href="#/admin/pin">📊 Pin</a><a class="btn ${t === 'curiosita' ? 'on' : 'ghost'}" href="#/admin/curiosita">🗺️ Curiosità</a><a class="btn ${t === 'negozi' ? 'on' : 'ghost'}" href="#/admin/negozi">🏪 Negozi</a><a class="btn ${t === 'guida' ? 'on' : 'ghost'}" href="#/admin/guida">📘 Guida</a><a class="btn ${t === 'nfc' ? 'on' : 'ghost'}" href="#/admin/nfc">🏷️ NFC</a><a class="btn ${t === 'arte' ? 'on' : 'ghost'}" href="#/admin/arte">🎨 Arte</a></div>
@@ -5175,6 +5189,57 @@ async function viewFriendInvite(code, user) {
     <a class="btn ghost full" style="margin-top:8px" href="#/">${T2('Vai alla mappa', 'Go to the map')}</a></div>`;
 }
 
+// Pannello "Segnala": motivo breve e invio
+function reportPanel(box, kind, slug, user) {
+  box.innerHTML = `<div class="card"><b>🚩 ${T2('Cosa non va?', "What's wrong?")}</b>
+    <textarea id="repwhy" rows="3" maxlength="500" placeholder="${T2('Spiega in poche parole (es. contenuto offensivo, falso, pericoloso)', 'Explain briefly')}"></textarea>
+    <p class="muted small">${T2('Lo vede solo chi gestisce Ubi. Chi è segnalato non sa chi sei.', 'Only Ubi staff sees it. The reported person will not know who you are.')}</p>
+    <div class="row"><button class="accent" id="repok" type="button">${T2('Invia', 'Send')}</button><button class="ghost" id="repno" type="button">${T2('Annulla', 'Cancel')}</button></div><div id="repout"></div></div>`;
+  $('#repno').onclick = () => { box.innerHTML = ''; };
+  $('#repok').onclick = async () => {
+    const why = $('#repwhy').value.trim(); if (!why) return msg($('#repout'), T2('Scrivi almeno una parola.', 'Write a few words.'));
+    $('#repok').disabled = true;
+    try { await B.reportCreate(kind, slug, user, why); box.innerHTML = `<div class="msg ok">${T2('Grazie, abbiamo ricevuto la segnalazione.', 'Thanks, we received your report.')}</div>`; }
+    catch (err) { $('#repok').disabled = false; msg($('#repout'), errText(err)); }
+  };
+}
+
+// Novità da chi seguo: pin recenti, con la distanza se il GPS è attivo
+async function viewNews() {
+  app.innerHTML = '<p class="muted center">Carico le novità…</p>';
+  let list; try { list = await B.followFeed(); } catch (err) { app.innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
+  store.set('ubi_news_seen', String(Date.now()));
+  const draw = (pos) => {
+    const rows = list.map((c) => ({ ...c, d: pos ? distanceM(pos.lat, pos.lng, c.lat, c.lng) : null }));
+    if (pos) rows.sort((a, b) => a.d - b.d);
+    $('#nl').innerHTML = rows.length ? rows.map((c) => `<a class="card item pinrow" href="#/c/${esc(c.share_slug)}"><div class="ico">${badge(c.media_type)}</div>
+      <div><div class="t">${esc(c.title)}</div><div class="meta"><span translate="no">${esc(c.owner_name)}</span> · ${new Date(c.created_at).toLocaleDateString(LOC)}${c.d != null ? ' · ' + (c.d < 1000 ? Math.round(c.d) + ' m' : (c.d / 1000).toFixed(1) + ' km') + T2(' da te', ' away') : ''}</div></div></a>`).join('')
+      : `<div class="card center muted">${T2('Nessuna novità negli ultimi 30 giorni. Segui i profili che ti piacciono dalla loro pagina.', 'Nothing new in the last 30 days.')}</div>`;
+  };
+  app.innerHTML = `<h1>⭐ ${T2('Novità da chi segui', 'News from people you follow')}</h1>
+    <p class="muted small">${T2('I pin pubblici degli ultimi 30 giorni. Tocca «Vicino a me» per ordinarli per distanza.', 'Public pins from the last 30 days.')}</p>
+    <button class="ghost full" id="nnear" type="button" style="margin-bottom:10px">📍 ${T2('Vicino a me', 'Near me')}</button><div id="nm"></div><div id="nl"></div>
+    <p class="center"><a href="#/amici">${T2('Chi seguo', 'Following')}</a> · <a href="#/">${T2('Torna a Ubi', 'Back to Ubi')}</a></p>`;
+  draw(null);
+  $('#nnear').onclick = () => {
+    if (!navigator.geolocation) return msg($('#nm'), T2('Il telefono non permette di usare la posizione.', 'Location not available.'));
+    navigator.geolocation.getCurrentPosition((p) => { draw({ lat: p.coords.latitude, lng: p.coords.longitude }); $('#nm').innerHTML = ''; },
+      () => msg($('#nm'), T2('Posizione non disponibile: controlla il permesso del browser.', 'Location denied.')), { enableHighAccuracy: false, timeout: 10000 });
+  };
+}
+
+// Admin: segnalazioni
+async function adminReportsPage() {
+  app.innerHTML = '<h1>🚩 Segnalazioni</h1><div id="rl"><p class="muted center">Carico…</p></div><p class="center"><a href="#/admin/iscritti">← Amministrazione</a></p>';
+  let list; try { list = await B.adminReports('open'); } catch (err) { $('#rl').innerHTML = `<div class="msg err">${errText(err)}</div>`; return; }
+  const draw = () => { $('#rl').innerHTML = list.length ? list.map((r) => `<div class="card" data-id="${esc(r.id)}"><div class="t">${r.kind === 'pin' ? '📍 Pin' : '👤 Profilo'}: <a href="${r.kind === 'pin' ? '#/c/' + esc(r.target_slug) : '#/u/' + esc(r.target_user)}"><span translate="no">${esc(r.target_name)}</span></a></div>
+      <p style="margin:6px 0">${esc(r.reason)}</p><div class="meta">da ${esc(r.reporter_name)} · ${new Date(r.created_at).toLocaleString(LOC)}${r.n_target > 1 ? ` · <b>${r.n_target} segnalazioni aperte su questo utente</b>` : ''}</div>
+      <button class="ghost small" data-done type="button" style="margin-top:8px">✓ Gestita</button></div>`).join('') : '<div class="card center muted">Nessuna segnalazione aperta ✓</div>'; };
+  draw();
+  $('#rl').onclick = async (e) => { const b = e.target.closest('[data-done]'); if (!b) return; b.disabled = true; const id = b.closest('.card').dataset.id;
+    try { await B.adminReportDone(id); list = list.filter((r) => r.id !== id); draw(); } catch (err) { b.disabled = false; alert(errText(err)); } };
+}
+
 async function viewFriends() {
   app.innerHTML = '<p class="muted center">Carico i tuoi amici…</p>';
   let code, list, reqs = [], fol = [];
@@ -5662,7 +5727,8 @@ async function viewAuthor(id) {
     <h2>${a.is_me ? 'I tuoi pin visibili agli altri' : `I pin di ${esc(a.display_name || '')}`}</h2>
     ${pins.length ? pins.map((c) => `<a class="card item pinrow" href="#/c/${esc(c.share_slug)}"><div class="ico">${badge(c.media_type)}</div>
         <div><div class="t">${esc(c.title)}</div>${tagChips(c.tags)}</div></a>`).join('') : '<p class="muted">Nessun pin da mostrare.</p>'}
-    <p class="center"><a href="#/">Torna alla mappa</a></p>`;
+    <p class="center">${a.is_me ? '' : '<a href="#" id="repu">🚩 Segnala questo profilo</a> · '}<a href="#/">Torna alla mappa</a></p><div id="repm"></div>`;
+  if ($('#repu')) $('#repu').onclick = (e) => { e.preventDefault(); reportPanel($('#repm'), 'user', null, id); };
   if ($('#fwbtn')) $('#fwbtn').onclick = async () => {
     const b = $('#fwbtn'), on = !fi.following; b.disabled = true;
     try { await B.followSet(id, on); fi = { followers: Math.max(0, fi.followers + (on ? 1 : -1)), following: on };
